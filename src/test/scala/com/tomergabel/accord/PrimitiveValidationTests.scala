@@ -1,4 +1,4 @@
-package com.tomergabel.util.validation
+package com.tomergabel.accord
 
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatest.matchers._

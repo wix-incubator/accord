@@ -1,11 +1,11 @@
-package com.tomergabel.util
+package com.tomergabel
 
 import scala.language.experimental.macros
 
 /**
  * Created by tomer on 8/7/13.
  */
-package object validation {
+package object accord {
   // TODO work on the description/messaging infrastructure
 
   case class Violation( constraint: String, value: Any )
@@ -33,7 +33,7 @@ package object validation {
   def validate[ T ]( x: T )( implicit validator: Validator[ T ] ) = validator( x )
 
   object combinators {
-    private[ validation ] def result( test: => Boolean, violation: => Violation ) =
+    private[ accord ] def result( test: => Boolean, violation: => Violation ) =
       if ( test ) Success else Failure( Seq( violation ) )
 
     type HasEmpty = { def isEmpty(): Boolean }

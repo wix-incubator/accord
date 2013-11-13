@@ -1,4 +1,4 @@
-package com.tomergabel.util.validation
+package com.tomergabel.accord
 
 import scala.reflect.macros.Context
 
@@ -131,7 +131,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     * Function1[ T, Result ], which is instantiated and returned as the expression value.
     *
     * @param sv The subvalidator to rewrite
-    * @return A valid expression representing a [[com.tomergabel.util.validation.Validator]] of `T`.
+    * @return A valid expression representing a [[com.tomergabel.accord.Validator]] of `T`.
     */
   private def rewriteOne( sv: Subvalidator ): Expr[ Validator[ T ] ] = {
 
@@ -187,7 +187,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
   /** Returns the specified validation block, transformed into a single monolithic validator.
     *
-    * @return The transformed [[com.tomergabel.util.validation.Validator]] of `T`.
+    * @return The transformed [[com.tomergabel.accord.Validator]] of `T`.
     */
   def transformed: Expr[ Validator[ T ] ] = {
     // Rewrite all validators
