@@ -6,6 +6,7 @@ Accord is a validation library written in and for Scala. Compared to [JSR 303](h
 * __Composable__: Because JSR 303 is annotation based, validation rules cannot be composed (annotations cannot receive other annotations as parameters). This is a real problem with some Scala features, for example `Option`s or collections. Accord's validation rules are trivially composable.
 * __Simple__: Accord provides a dead-simple story for validation rule definition as well as the validation call site (see example below).
 * __Self-contained__: Accord is macro-based but completely self-contained, and consequently only relies on the Scala runtime and reflection libraries.
+* __Integrated__: Other than providing its own DSL and matcher library, Accord is intended to play well with [Hamcrest matchers](https://github.com/hamcrest/JavaHamcrest), and fully integrate with [Specs<sup>2</sup>](http://etorreborre.github.io/specs2/) and [ScalaTest](http://www.scalatest.org/).
 
 Accord is work-in-progress and distributed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0), which basically means you can use and modify it freely. Feedback, bug reports and improvements are welcome!
 
@@ -31,7 +32,7 @@ Defining a validator:
     }
 
     implicit val classValidator = validator[ Classroom ] { c =>
-      c.teacher is valid
+      c.teacher is valid        // Implicitly relies on personValidator!
       c.students.each is valid
       c.students have size > 0
     }
