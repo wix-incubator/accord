@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/holograph/accord.png)](https://travis-ci.org/holograph/accord)
+
 Overview
 ========
 
