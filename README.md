@@ -21,7 +21,7 @@ Importing the library for use:
 
 Defining a validator:
 
-    import builder._    // Import the validator DSL
+    import dsl._    // Import the validator DSL
 
     case class Person( firstName: String, lastName: String )
     case class Classroom( teacher: Person, students: Seq[ Person ] )

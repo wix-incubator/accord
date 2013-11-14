@@ -22,7 +22,7 @@ import org.scalatest.matchers._
 
 
 object PrimitiveValidationTests {
-  import builder._
+  import dsl._
 
   case class Person( firstName: String, lastName: String )
   case class Classroom( teacher: Person, students: Seq[ Person ] )

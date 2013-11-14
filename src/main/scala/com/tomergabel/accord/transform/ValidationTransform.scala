@@ -15,9 +15,11 @@
  */
 
 
-package com.tomergabel.accord
+package com.tomergabel.accord.transform
 
 import scala.reflect.macros.Context
+import com.tomergabel.accord._
+import com.tomergabel.accord.dsl.Combinators
 
 private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] ) {
   import context.universe._
@@ -79,7 +81,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
   private val validatorType = typeOf[ Validator[_] ]
   private val function1Type = typeOf[ Function1[_,_] ]
-  private val contextualizerTerm = typeOf[ builder.Contextualizer[_] ].typeSymbol.name.toTermName
+  private val contextualizerTerm = typeOf[ dsl.Contextualizer[_] ].typeSymbol.name.toTermName
 
 
   private object ValidatorApplication {
@@ -210,7 +212,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     // Rewrite all validators
     val subvalidators = findSubvalidators( vimpl ) map rewriteOne
     val svseq: Expr[ Seq[ Validator[ T ] ] ] = subvalidators.consolidate
-    val result: Expr[ Validator[ T ] ] = reify { new combinators.And( svseq.splice :_* ) }
+    val result: Expr[ Validator[ T ] ] = reify { new dsl.Combinators.And( svseq.splice :_* ) }
 
     log( s"""|Result of validation transform:
              |  Clean: ${show( result )}
