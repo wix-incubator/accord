@@ -17,7 +17,7 @@ Getting Started
 Accord is in the process of being published to the Maven central repository. In the meantime, you can simply clone the repository and build it yourself:
 
 ```
-arilou:demo tomer$ git clone git@github.com:holograph/accord.git
+arilou:dev tomer$ git clone git@github.com:holograph/accord.git
 Cloning into 'accord'...
 remote: Counting objects: 101, done.
 remote: Compressing objects: 100% (46/46), done.
@@ -26,19 +26,24 @@ Receiving objects: 100% (101/101), 17.50 KiB | 0 bytes/s, done.
 Resolving deltas: 100% (23/23), done.
 Checking connectivity... done
 
-arilou:demo tomer$ cd accord
+arilou:dev tomer$ cd accord
 arilou:accord tomer$ sbt package
 [info] Loading global plugins from /Users/tomer/.sbt/0.13/plugins
-[info] Set current project to accord (in build file:/private/tmp/demo/accord/)
-[info] Updating {file:/private/tmp/demo/accord/}accord...
+[info] Loading project definition from /Users/tomer/dev/accord/project
+[info] Set current project to root (in build file:/Users/tomer/dev/accord/)
+[info] Updating {file:/Users/tomer/dev/accord/}root...
+[info] Updating {file:/Users/tomer/dev/accord/}core...
 [info] Resolving org.fusesource.jansi#jansi;1.4 ...
 [info] Done updating.
-[info] Compiling 6 Scala sources to /private/tmp/demo/accord/target/scala-2.10/classes...
-[warn] there were 4 feature warning(s); re-run with -feature for details
-[warn] one warning found
-[info] Packaging /private/tmp/demo/accord/target/scala-2.10/accord_2.10-0.1.jar ...
+[info] Resolving org.scala-lang#scala-library;2.10.3 ...
+[info] Compiling 6 Scala sources to /Users/tomer/dev/accord/core/target/scala-2.10/classes...
+[info] Resolving org.fusesource.jansi#jansi;1.4 ...
+[info] Done updating.
+[info] Packaging /Users/tomer/dev/accord/target/scala-2.10/root_2.10-0.1-SNAPSHOT.jar ...
 [info] Done packaging.
-[success] Total time: 11 s, completed Nov 14, 2013 3:08:41 PM
+[info] Packaging /Users/tomer/dev/accord/core/target/scala-2.10/accord_2.10-0.1-SNAPSHOT.jar ...
+[info] Done packaging.
+[success] Total time: 11 s, completed Nov 14, 2013 5:05:17 PM
 ```
 
 Example
