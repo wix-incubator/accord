@@ -18,18 +18,30 @@ package com.tomergabel.accord
 
 // TODO work on the description/messaging infrastructure
 
+/** Each violation represents failure in a single validation rule. Multiple violations may be aggregated into
+  * a single [[com.tomergabel.accord.Failure]] instance.
+  * @param constraint A textual description of the constraint which failed validation.
+  * @param value The value that caused the failure.
+  */
 case class Violation( constraint: String, value: Any )
 
+/** A base trait for validation results.
+  * @see [[com.tomergabel.accord.Success]], [[com.tomergabel.accord.Failure]]
+  */
 sealed trait Result {
   def and( other: Result ): Result
   def or( other: Result ): Result
 }
 
+/** An object representing a successful validation result. */
 case object Success extends Result {
   def and( other: Result ) = other
   def or( other: Result ) = this
 }
 
+/** An object representing a failed validation result.
+  * @param violations The violations that caused the validation to fail.
+  */
 case class Failure( violations: Seq[ Violation ] ) extends Result {
   def and( other: Result ) = other match {
     case Success => this

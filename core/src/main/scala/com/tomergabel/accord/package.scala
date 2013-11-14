@@ -16,7 +16,23 @@
 
 package com.tomergabel
 
+/** The entry-point to the Accord library. To execute a validator, simply import it into the local scope,
+  * import this package and execute `validate( objectUnderValidation )`.
+  */
 package object accord {
-  type Validator[ T ] = T => Result
+  /** A type alias. A validator is in fact a function `T => Result`, where `T` is the type of the object
+    * under validation and Result is an instance of [[com.tomergabel.accord.Result]]. This alias is merely
+    * a semantic label for a suitable validation function.
+    */
+  type Validator[ T ] = T => Result     // TODO convert to trait and add @implicitNotFound
+
+  /** Validates the specified object and returns a validation [[com.tomergabel.accord.Result]]. An implicit
+    * [[com.tomergabel.accord.Validator]] must be in scope for this call to succeed.
+    *
+    * @param x The object to validate
+    * @param validator A validator for objects of type `T`
+    * @tparam T The type of the object to validate
+    * @return A [[com.tomergabel.accord.Result]] indicating success or failure of the validation.
+    */
   def validate[ T ]( x: T )( implicit validator: Validator[ T ] ) = validator( x )
 }
