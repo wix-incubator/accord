@@ -1,12 +1,10 @@
-organization := "com.tomergabel"
+organization in ThisBuild := "com.tomergabel"
 
-name := "accord"
+version in ThisBuild := "0.1-SNAPSHOT"
 
-version := "0.1-SNAPSHOT"
+scalaVersion in ThisBuild := "2.10.3"
 
-scalaVersion := "2.10.3"
-
-publishTo := {
+publishTo in ThisBuild := {
   val nexus = "https://oss.sonatype.org/"
   if ( version.value.trim.endsWith( "SNAPSHOT" ) )
     Some( "snapshots" at nexus + "content/repositories/snapshots" )
@@ -14,17 +12,9 @@ publishTo := {
     Some( "releases"  at nexus + "service/local/staging/deploy/maven2" )
 }
 
-libraryDependencies <+= scalaVersion( sv => "org.scala-lang" % "scala-reflect" % sv )
+publishMavenStyle in ThisBuild := true
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "2.0" % "test"
-
-publishMavenStyle := true
-
-description := "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
-               "dead-simple and self-contained story for defining validation rules and executing them on object " +
-               "instances. Feedback, bug reports and improvements are welcome!"
-
-pomExtra :=
+pomExtra in ThisBuild :=
   <url>https://github.com/holograph/accord</url>
   <licenses>
     <license>
@@ -44,3 +34,11 @@ pomExtra :=
       <url>http://www.tomergabel.com</url>
     </developer>
   </developers>
+
+scalacOptions in ThisBuild ++= Seq( "-feature", "-language:reflectiveCalls" )
+
+lazy val core = project in file( "core" )
+
+lazy val root = project in file( "." ) aggregate( core )
+
+publishArtifact := false	// Only affects root
