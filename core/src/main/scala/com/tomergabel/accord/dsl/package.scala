@@ -98,6 +98,37 @@ package object dsl {
     }
   }
 
+  /** Wraps expression under validation with an explicit description; after macro transformation, the resulting
+    * validator will use the specified description to render violations. See the
+    * [[com.tomergabel.accord.dsl.Descriptor.as]] method for an example.
+    *
+    * @param value The value to wrap with an explicit description.
+    * @tparam U The type of the provided expression.
+    */
+  implicit class Descriptor[ U ]( value: U ) {
+    /** Tags the specified validation expression with an explicit description. Enables syntax such as:
+      * `p.firstName as "first name" is notEmpty`; violations for this validation rule will be rendered with the
+      * specified expression (instead of the implicit rule), for example:
+      *
+      * ```
+      * scala> case class Person( firstName: String, lastName: String )
+      * defined class Person
+      *
+      * scala> implicit val personValidator = validator[ Person ] { p => p.firstName as "first name" is notEmpty }
+      * personValidator: com.tomergabel.accord.dsl.Combinators.And[Person] = <function1>
+      *
+      * scala> validate( Person( "", "last" ) )
+      * res0: com.tomergabel.accord.Result = Failure(List(Violation(first name must not be empty,)))
+      * ```
+      *
+      * With the explicit description, the violation would read "firstName must not be empty".
+      *
+      * @param description The description to use for the expression in case of violations.
+      * @return The validation expression tagged with the explicit description.
+      */
+    def as( description: String ) = value
+  }
+
   /** Extends validators with useful helpers.
     *
     * @param validator The validator to be extended.

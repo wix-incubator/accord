@@ -30,8 +30,8 @@ case class Person( firstName: String, lastName: String )
 case class Classroom( teacher: Person, students: Seq[ Person ] )
 
 implicit val personValidator = validator[ Person ] { p =>
-  p.firstName is notEmpty
-  p.lastName is notEmpty
+  p.firstName is notEmpty                   // The expression being validated is resolved automatically, see below
+  p.lastName as "last name" is notEmpty     // You can also explicitly describe the expression being validated
 }
 
 implicit val classValidator = validator[ Classroom ] { c =>
@@ -49,19 +49,25 @@ scala> val validPerson = Person( "Wernher", "von Braun" )
 validPerson: Person = Person(Wernher,von Braun)
 
 scala> validate( validPerson )
-res1: com.tomergabel.accord.Result = Success
+res0: com.tomergabel.accord.Result = Success
 
-scala> val invalidPerson = Person( "No Last Name", "" )
-invalidPerson: Person = Person(No Last Name,)
+scala> val invalidPerson = Person( "", "No First Name" )
+invalidPerson: Person = Person(No First Name,)
 
 scala> validate( invalidPerson )
-res3: com.tomergabel.accord.Result = Failure(List(Violation(lastName must not be empty,)))
+res1: com.tomergabel.accord.Result = Failure(List(Violation(firstName must not be empty,)))
+
+scala> val explicitDescription = Person( "No Last Name", "" )
+explicitDescription: Person = Person(No Last Name,)
+
+scala> validate( explicitDescription )
+res2: com.tomergabel.accord.Result = Failure(List(Violation(last name must not be empty,)))
 
 scala> val invalidClassroom = Classroom( Person( "Alfred", "Aho" ), Seq.empty )
 invalidClassroom: Classroom = Classroom(Person(Alfred,Aho),List())
 
 scala> validate( invalidClassroom )
-res0: com.tomergabel.accord.Result = Failure(List(Violation(students has size 0, expected more than 0,List())))
+res3: com.tomergabel.accord.Result = Failure(List(Violation(students has size 0, expected more than 0,List())))
 ```
 
 Getting Started

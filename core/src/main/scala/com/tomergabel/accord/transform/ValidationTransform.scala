@@ -19,7 +19,6 @@ package com.tomergabel.accord.transform
 
 import scala.reflect.macros.Context
 import com.tomergabel.accord._
-import com.tomergabel.accord.dsl.Combinators
 
 private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] ) {
   import context.universe._
@@ -41,11 +40,14 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     found
   }
 
-  def transformByPattern( tree: Tree )( pattern: PartialFunction[ Tree, Tree ] ): Tree =
-    new Transformer {
-      override def transform( subtree: Tree ): Tree =
-        if ( pattern isDefinedAt subtree ) pattern.apply( subtree ) else super.transform( subtree )
-    }.transform( tree.duplicate )
+  def transformByPattern( tree: Tree )( pattern: PartialFunction[ Tree, Tree ] ): Tree = {
+    val transformed =
+      new Transformer {
+        override def transform( subtree: Tree ): Tree =
+          if ( pattern isDefinedAt subtree ) pattern.apply( subtree ) else super.transform( subtree )
+      }.transform( tree.duplicate )
+    context.resetAllAttrs( transformed )
+  }
 
   def defaultCtor( argsToSuper: List[ Tree ] = Nil ) = {
     DefDef(
@@ -68,23 +70,46 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       )
   }
 
-
   private val verboseValidatorRewrite = context.settings.contains( "verboseValidationTransform" )
   def log( s: String, pos: Position = context.enclosingPosition ) =
     if ( verboseValidatorRewrite ) info( pos, s, force = false )
+
+
+  // Transformation logic --
 
   private val Function( prototype, vimpl ) = v.tree
   if ( prototype.size != 1 )
     abort( prototype.tail.head.pos, "Only single-parameter validators are supported!" )
 
-  private case class Subvalidator( description: String, extractor: Tree, validation: Tree, ouvtpe: Type )
+  private case class Subvalidator( description: Tree, extractor: Tree, validation: Tree, ouvtpe: Type )
 
   private val validatorType = typeOf[ Validator[_] ]
-  private val function1Type = typeOf[ Function1[_,_] ]
-  private val contextualizerTerm = typeOf[ dsl.Contextualizer[_] ].typeSymbol.name.toTermName
 
+  /** An extractor for explicitly described validation rules. Applies to validator syntax such as
+    * `p.firstName as "described" is notEmpty`, where the `as` parameter (`"described"` in this case) is
+    * the extracted description tree.
+    */
+  private object ExplicitDescriptor {
+    private val descriptorTerm = typeOf[ dsl.Descriptor[_] ].typeSymbol.name.toTermName
+    private val asTerm = newTermName( "as" )
 
+    def unapply( ouv: Tree ): Option[ Tree ] = ouv match {
+      case Apply( Select( Apply( TypeApply( Select( _, `descriptorTerm` ), _ ), _ ), `asTerm` ), literal :: Nil ) =>
+        Some( literal )
+      case _ => None
+    }
+  }
+
+  /** An extractor for validation rules. The object under validation is, by design, wrapped in the implicit
+    * DSL construct [[com.tomergabel.accord.dsl.Contextualizer]], so that a validation rule can be defined with
+    * syntax like `p.firstName is notEmpty`.
+    *
+    * In the example above, `p.firstName` is the expression wrapped by [[com.tomergabel.accord.dsl.Contextualizer]]
+    * and yields the Object Under Validation (OUV).
+    */
   private object ValidatorApplication {
+    private val contextualizerTerm = typeOf[ dsl.Contextualizer[_] ].typeSymbol.name.toTermName
+
     def extractObjectUnderValidation( t: Tree ) =
       extractFromPattern( t ) {
         case Apply( TypeApply( Select( _, `contextualizerTerm` ), tpe :: Nil ), e :: Nil ) =>
@@ -93,21 +118,26 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
         abort( t.pos, s"Failed to extract object under validation from tree $t (raw=${showRaw(t)})" )
 
     def rewriteContextExpressionAsValidator( expr: Tree, extractor: Tree ) =
-      context.resetAllAttrs( transformByPattern( expr ) {
+      transformByPattern( expr ) {
         case Apply( t @ TypeApply( Select( _, `contextualizerTerm` ), _ ), e :: Nil ) =>
           Apply( t, extractor :: Nil )
-      } )
+      }
+
+    def renderDescriptionTree( ouv: Tree ) = {
+      val para = prototype.head.name
+      ouv match {
+        case ExplicitDescriptor( description )   => description
+        case Select( Ident( `para` ), selector ) => Literal( Constant( selector.toString ) )
+        case _                                   => Literal( Constant( ouv.toString() ) )
+      }
+    }
 
     def unapply( expr: Tree ): Option[ Subvalidator ] = expr match {
       case t if t.tpe <:< validatorType =>
         val ( ouv, ouvtpe ) = extractObjectUnderValidation( expr )
         val extractor = Function( prototype, ouv )
         val sv = rewriteContextExpressionAsValidator( expr, ouv )
-        val para = prototype.head.name
-        val desc = ouv match {
-          case Select( Ident( `para` ), selector ) => selector.toString()
-          case _ => ouv.toString()
-        }
+        val desc = renderDescriptionTree( ouv )
         log( s"""
               |Found subvalidator:
               |  ouv=$ouv
@@ -154,8 +184,8 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     */
   private def rewriteOne( sv: Subvalidator ): Expr[ Validator[ T ] ] = {
 
-    // Export the description as a string literal to be spliced in later
-    val descExpr = context.Expr[ String ]( Literal( Constant( sv.description ) ) )
+    // Export the description as an expression to be spliced in later
+    val descExpr = context.Expr[ String ]( sv.description )
 
     // Define the apply() function body (recall that we're in practice implementing Function1[ T, Result ])
     val applydef = {
