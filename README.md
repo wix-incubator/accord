@@ -154,7 +154,7 @@ Roadmap
 Accord is still fairly rudimentary, and there's plenty of improvements to be made:
 
 * Major issues and improvements slated for the final release of 0.1:
-    * Publish snapshot (in preparation for release) on the central repository
+    * ~~Publish snapshot (in preparation for release) on the central repository~~
     * Additional combinators (negation, missing arithmetic operators)
     * Implement accord-hamcrest integration in a separate artifact
     * Implement accord-scalatest integration in a separate artifact (possibly based on existing code from ResultMatchers)
