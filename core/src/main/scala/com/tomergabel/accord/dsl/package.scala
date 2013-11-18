@@ -134,24 +134,24 @@ package object dsl {
     * @param validator The validator to be extended.
     * @tparam T The type of the object under validation.
     */
-  implicit class ExtendValidator[ T ]( validator: Validator[ T ] ) {
+  implicit class ValidatorBooleanOps[ T ]( validator: Validator[ T ] ) {
     def and( other: Validator[ T ] ) = new And( validator, other ) // TODO shortcut multiple ANDs
     def or( other: Validator[ T ] ) = new Or( validator, other )   // TODO shortcut multiple ORs
   }
 
   /** Specifies a validator that succeeds on empty instances; the object under validation must implement
     * `def isEmpty: Boolean` (see [[com.tomergabel.accord.dsl.Combinators.HasEmpty]]). */
-  def empty[ T <: HasEmpty ]: Validator[ T ] = new Empty[ T ]
+  def empty[ T <% HasEmpty ]: Validator[ T ] = new Empty[ T ]
 
   /** Specifies a validator that fails on empty instances; the object under validation must implement
     * `def isEmpty: Boolean` (see [[com.tomergabel.accord.dsl.Combinators.HasEmpty]]). */
-  def notEmpty[ T <: HasEmpty ]: Validator[ T ] = new NotEmpty[ T ]
+  def notEmpty[ T <% HasEmpty ]: Validator[ T ] = new NotEmpty[ T ]
 
   /** Provides access to size-based validators (where the object under validation must implement
     * `def size: Int`, see [[com.tomergabel.accord.dsl.Combinators.HasSize]]). Enables syntax such as
     * `c.students has size > 0`.
     */
-  def size[ T <: HasSize ] = new Size[ T ]
+  def size[ T ] = new Size[ T ]
 
   /** Delegates validation to a pre-defined validation rule, which is encoded as an implicit
     * [[com.tomergabel.accord.Validator]] in scope. Enables composition of validation rules, as in:

@@ -49,6 +49,6 @@ case class Failure( violations: Seq[ Violation ] ) extends Result {
   }
   def or( other: Result ) = other match {
     case Success => other
-    case Failure( vother ) => Failure( vother )
+    case Failure(_) => this
   }
 }

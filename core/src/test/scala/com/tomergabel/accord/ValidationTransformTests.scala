@@ -17,9 +17,9 @@
 package com.tomergabel.accord
 
 import org.scalatest.{Matchers, WordSpec}
-import PrimitiveSchema._
 
-class PrimitiveValidationTests extends WordSpec with Matchers with ResultMatchers {
+class ValidationTransformTests extends WordSpec with Matchers with ResultMatchers {
+  import PrimitiveSchema._
   val personWithNoName = Person( "", "" )
   val personWithNoFirstName = Person( "", "last" )
   val personWithNoLastName = Person( "first", "" )
