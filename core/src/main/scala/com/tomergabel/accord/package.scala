@@ -16,15 +16,36 @@
 
 package com.tomergabel
 
+import scala.annotation.implicitNotFound
+
 /** The entry-point to the Accord library. To execute a validator, simply import it into the local scope,
   * import this package and execute `validate( objectUnderValidation )`.
   */
 package object accord {
-  /** A type alias. A validator is in fact a function `T => Result`, where `T` is the type of the object
-    * under validation and Result is an instance of [[com.tomergabel.accord.Result]]. This alias is merely
-    * a semantic label for a suitable validation function.
+  /** A validator is a function `T => Result`, where `T` is the type of the object under validation
+    * and Result is an instance of [[com.tomergabel.accord.Result]].
+    *
+    * Implementation note: While theoretically a validator can be defined as a type alias, in practice this
+    * doesn't allow to specify an error message when it's implicitly missing at the call site (see
+    * [[scala.annotation.implicitNotFound]]).
+    *
+    * @tparam T The object type this validator operates on.
     */
-  type Validator[ T ] = T => Result     // TODO convert to trait and add @implicitNotFound
+  @implicitNotFound( "A validator for type ${T} not found. Did you forget to import an implicit validator for " +
+                     "this type? (alternatively, if you own the code, you may want to move the validator to " +
+                     "the companion object for ${T} so it's automatically imported)." )
+  trait Validator[ T ] extends ( T => Result ) {
+
+    /** A helper method to simplify rendering results.
+      *
+      * @param test The validation test. If it succeeds, [[com.tomergabel.accord.Success]] is returned, otherwise
+      *             a [[com.tomergabel.accord.Failure]] is generated based on the specified violation generator.
+      * @param violation A generator for a validation violation. Only called if the test fails.
+      * @return A [[com.tomergabel.accord.Result]] instance with the results of the validation.
+      */
+    protected def result( test: => Boolean, violation: => Violation ) =
+      if ( test ) Success else Failure( Seq( violation ) )
+  }
 
   /** Validates the specified object and returns a validation [[com.tomergabel.accord.Result]]. An implicit
     * [[com.tomergabel.accord.Validator]] must be in scope for this call to succeed.

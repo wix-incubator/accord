@@ -21,17 +21,6 @@ package com.tomergabel.accord
   * used directly by end-user code.
   */
 package object combinators {
-
-  /** A helper method to simplify rendering results.
-    *
-    * @param test The validation test. If it succeeds, [[com.tomergabel.accord.Success]] is returned, otherwise
-    *             a [[com.tomergabel.accord.Failure]] is generated based on the specified violation generator.
-    * @param violation A generator for a validation violation. Only called if the test fails.
-    * @return A [[com.tomergabel.accord.Result]] instance with the results of the validation.
-    */
-  private[ accord ] def result( test: => Boolean, violation: => Violation ) =
-    if ( test ) Success else Failure( Seq( violation ) )
-
   /**
    * A useful helper class when validating numerical properties (size, length, arity...). Provides the usual
    * arithmetic operators in a consistent manner across all numerical property combiners. Violation messages
