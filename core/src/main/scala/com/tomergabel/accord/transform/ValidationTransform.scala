@@ -242,7 +242,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     // Rewrite all validators
     val subvalidators = findSubvalidators( vimpl ) map rewriteOne
     val svseq: Expr[ Seq[ Validator[ T ] ] ] = subvalidators.consolidate
-    val result: Expr[ Validator[ T ] ] = reify { new dsl.Combinators.And( svseq.splice :_* ) }
+    val result: Expr[ Validator[ T ] ] = reify { new combinators.And( svseq.splice :_* ) }
 
     log( s"""|Result of validation transform:
              |  Clean: ${show( result )}

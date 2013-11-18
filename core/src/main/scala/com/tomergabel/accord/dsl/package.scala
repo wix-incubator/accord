@@ -45,7 +45,7 @@ import com.tomergabel.accord.transform.ValidationTransform
   * will generate the violation message "firstName must not be empty" automatically.
   */
 package object dsl {
-  import Combinators._
+  import combinators._
 
   /** Takes a code block and rewrites it into a validation chain (see description in [[com.tomergabel.accord.dsl]].
     *
@@ -115,7 +115,7 @@ package object dsl {
       * defined class Person
       *
       * scala> implicit val personValidator = validator[ Person ] { p => p.firstName as "first name" is notEmpty }
-      * personValidator: com.tomergabel.accord.dsl.Combinators.And[Person] = <function1>
+      * personValidator: com.tomergabel.accord.combinators.And[Person] = <function1>
       *
       * scala> validate( Person( "", "last" ) )
       * res0: com.tomergabel.accord.Result = Failure(List(Violation(first name must not be empty,)))
@@ -140,15 +140,15 @@ package object dsl {
   }
 
   /** Specifies a validator that succeeds on empty instances; the object under validation must implement
-    * `def isEmpty: Boolean` (see [[com.tomergabel.accord.dsl.Combinators.HasEmpty]]). */
+    * `def isEmpty: Boolean` (see [[com.tomergabel.accord.combinators.HasEmpty]]). */
   def empty[ T <% HasEmpty ]: Validator[ T ] = new Empty[ T ]
 
   /** Specifies a validator that fails on empty instances; the object under validation must implement
-    * `def isEmpty: Boolean` (see [[com.tomergabel.accord.dsl.Combinators.HasEmpty]]). */
+    * `def isEmpty: Boolean` (see [[com.tomergabel.accord.combinators.HasEmpty]]). */
   def notEmpty[ T <% HasEmpty ]: Validator[ T ] = new NotEmpty[ T ]
 
   /** Provides access to size-based validators (where the object under validation must implement
-    * `def size: Int`, see [[com.tomergabel.accord.dsl.Combinators.HasSize]]). Enables syntax such as
+    * `def size: Int`, see [[com.tomergabel.accord.combinators.HasSize]]). Enables syntax such as
     * `c.students has size > 0`.
     */
   def size[ T ] = new Size[ T ]
