@@ -19,7 +19,7 @@ package com.tomergabel.accord.combinators
 import org.scalatest.{Matchers, WordSpec}
 import com.tomergabel.accord.ResultMatchers
 
-class CombinatorTests extends WordSpec with Matchers with ResultMatchers {
+class CollectionCombinatorTests extends WordSpec with Matchers with ResultMatchers {
 
   "Size combinator" should {
     case class Test( size: Int )
@@ -67,9 +67,19 @@ class CombinatorTests extends WordSpec with Matchers with ResultMatchers {
   }
 
   "Empty combinator" should {
-    "successfully validate an empty object" in {
+    "successfully validate an empty option" in {
       val left = None
       val validator = new Empty[ Option[ String ] ]
+      validator( left ) should be( aSuccess )
+    }
+    "successfully validate an empty string" in {
+      val left = ""
+      val validator = new Empty[ String ]
+      validator( left ) should be( aSuccess )
+    }
+    "successfully validate an empty sequence" in {
+      val left = Seq.empty[ String ]
+      val validator = new Empty[ Seq[ String ] ]
       validator( left ) should be( aSuccess )
     }
     "render a correct rule violation" in {
@@ -80,81 +90,25 @@ class CombinatorTests extends WordSpec with Matchers with ResultMatchers {
   }
 
   "NotEmpty combinator" should {
-    "successfully validate a non-empty object" in {
+    "successfully validate a non-empty option" in {
       val left = Some( "content" )
       val validator = new NotEmpty[ Option[ String ] ]
+      validator( left ) should be( aSuccess )
+    }
+    "successfully validate a non-empty string" in {
+      val left = "content"
+      val validator = new NotEmpty[ String ]
+      validator( left ) should be( aSuccess )
+    }
+    "successfully validate a non-empty sequence" in {
+      val left = Seq( "content" )
+      val validator = new NotEmpty[ Seq[ String ] ]
       validator( left ) should be( aSuccess )
     }
     "render a correct rule violation" in {
       val left = None
       val validator = new NotEmpty[ Option[ String ] ]
       validator( left ) should failWith( "must not be empty" )
-    }
-  }
-
-  "StartsWith combinator" should {
-    "successfully validate a string that starts with the specified prefix" in {
-      val left = "ham and eggs"
-      val validator = new StartsWith( "ham" )
-      validator( left ) should be( aSuccess )
-    }
-    "render a correct rule violation" in {
-      val left = "eggs and ham"
-      val validator = new StartsWith( "ham" )
-      validator( left ) should failWith( "must start with 'ham'" )
-    }
-  }
-
-  "And combinator with a two-clause rule" should {
-    val clause1 = new Size[ String ] >= 4
-    val clause2 = new StartsWith( "ok" )
-    val validator = new And[ String ]( clause1, clause2 )
-    
-    "successfully validate a object that satisfies both clauses" in {
-      validator( "okay" ) should be( aSuccess )
-    }
-    "render a correct rule violation when the first clause is not satisfied" in {
-      validator( "ok" ) should failWith( "has size 2, expected 4 or more" )
-    }
-    "render a correct rule violation when the second clause is not satisfied" in {
-      validator( "no such luck" ) should failWith( "must start with 'ok'" )
-    }
-    "render a correct rule violation when both clauses are not satisfied" in {
-      validator( "no" ) should failWith( "has size 2, expected 4 or more", "must start with 'ok'" )
-    }
-  }
-
-  "Or combinator with a two-clause rule" should {
-    val clause1 = new Size[ String ] >= 4
-    val clause2 = new StartsWith( "ok" )
-    val validator = new Or[ String ]( clause1, clause2 )
-
-    "successfully validate a object that satisfies both clauses" in {
-      validator( "okay" ) should be( aSuccess )
-    }
-    "successfully validate an object that only satisfies the first clause" in {
-      validator( "dokey" ) should be( aSuccess )
-    }
-    "successfully validate an object that only satisfies the second clause" in {
-      validator( "ok" ) should be( aSuccess )
-    }
-    "render a correct rule violation when both clauses are not satisfied" in {
-      // TODO decide on the correct user story and rewrite the violation/reporting subsystem
-      validator( "no" ) should failWith( "doesn't meet any of the requirements" )
-    }
-  }
-
-  "Fail combinator" should {
-    "render a correct rule violation" in {
-      val validator = new Fail[ String ]( "message" )
-      validator( "whatever" ) should failWith( "message" )
-    }
-  }
-
-  "Nil validator" should {
-    "successfully validate an arbitrary object" in {
-      val validator = new NilValidator[ String ]
-      validator( "whatever" ) should be( aSuccess )
     }
   }
 }
