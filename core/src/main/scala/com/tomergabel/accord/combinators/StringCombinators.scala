@@ -15,12 +15,15 @@
  */
 
 
-package com.tomergabel.accord
+package com.tomergabel.accord.combinators
 
-/** Aggregates all implemented combinators for use by the DSL. Can, though not intended to, be used
-  * directly by end-user code.
-  */
-package object combinators
-  extends GeneralPurposeCombinators
-  with CollectionCombinators
-  with StringCombinators
+import com.tomergabel.accord.{Violation, Validator}
+
+/** Combinators that operate specifically on strings. */
+trait StringCombinators {
+
+  /** A validator that succeeds only if the provided string starts with the specified prefix. */
+  class StartsWith( prefix: String ) extends Validator[ String ] {
+    def apply( x: String ) = result( x startsWith prefix, Violation( s"must start with '$prefix'", x ) )
+  }
+}
