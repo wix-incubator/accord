@@ -1,6 +1,6 @@
 name := "accord"
 
-libraryDependencies <+= scalaVersion( sv => "org.scala-lang" % "scala-reflect" % sv )
+libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-reflect" % _ % "provided" )
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.0" % "test"
 
