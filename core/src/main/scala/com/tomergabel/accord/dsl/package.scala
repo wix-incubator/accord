@@ -140,11 +140,13 @@ package object dsl {
   }
 
   /** Specifies a validator that succeeds on empty instances; the object under validation must implement
-    * `def isEmpty: Boolean` (see [[com.tomergabel.accord.combinators.HasEmpty]]). */
+    * `def isEmpty: Boolean` (see [[com.tomergabel.accord.combinators.HasEmpty]]).
+    */
   def empty[ T <% HasEmpty ]: Validator[ T ] = new Empty[ T ]
 
   /** Specifies a validator that fails on empty instances; the object under validation must implement
-    * `def isEmpty: Boolean` (see [[com.tomergabel.accord.combinators.HasEmpty]]). */
+    * `def isEmpty: Boolean` (see [[com.tomergabel.accord.combinators.HasEmpty]]).
+    */
   def notEmpty[ T <% HasEmpty ]: Validator[ T ] = new NotEmpty[ T ]
 
   /** Provides access to size-based validators (where the object under validation must implement
@@ -172,4 +174,9 @@ package object dsl {
     * ```
     */
   def valid[ T ]( implicit validator: Validator[ T ] ): Validator[ T ] = validator
+
+  /** Specifies a validator that operates on strings and succeeds only if the validation expression starts with
+    * the specified prefix.
+    */
+  def startsWith( prefix: String ): Validator[ String ] = new StartsWith( prefix )
 }

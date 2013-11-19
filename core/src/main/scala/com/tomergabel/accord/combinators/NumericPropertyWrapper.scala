@@ -48,7 +48,7 @@ import com.tomergabel.accord.{Violation, Validator}
  * @tparam Repr The runtime representation of the object under validation. When it differs from `T`, an implicit
  *              conversion `T => Repr` is required ''at the call site''.
  */
-class NumericPropertyWrapper[ T, P, Repr ]( extractor: Repr => P, snippet: String )( implicit ev: Numeric[ P ] ) {
+abstract class NumericPropertyWrapper[ T, P, Repr ]( extractor: Repr => P, snippet: String )( implicit ev: Numeric[ P ] ) {
   /** Generates a validator that succeeds only if the property value is greater than the specified bound. */
   def >( other: P )( implicit repr: T => Repr ) = new Validator[ T ] {
     def apply( x: T ) = {
