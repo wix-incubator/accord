@@ -34,10 +34,11 @@ trait GeneralPurposeCombinators {
     * @tparam T The type on which this validator operates.
     */
   class Or[ T ]( predicates: Validator[ T ]* ) extends Validator[ T ] {
-    // TODO this is a very poor solution. The violation/reporting subsystem needs significant rework.
     def apply( x: T ) = {
-      val base = Failure( Violation( "doesn't meet any of the requirements", x ) :: Nil )
-      predicates.map { _ apply x }.fold( base ) { _ or _ }
+      val results = predicates.map { _ apply x }
+      result( results contains Success,
+        GroupViolation( x, "doesn't meet any of the requirements",
+          results.collect { case Failure( violations ) => violations }.flatten ) )
     }
   }
 
@@ -46,7 +47,7 @@ trait GeneralPurposeCombinators {
     * @tparam T The type on which this validator operates.
     */
   class Fail[ T ]( message: => String ) extends Validator[ T ] {
-    def apply( x: T ) = result( test = false, Violation( message, x ) )
+    def apply( x: T ) = result( test = false, violation( x, message ) )
   }
 
   /** A validator that always succeeds.

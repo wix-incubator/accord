@@ -16,14 +16,22 @@
 
 package com.tomergabel.accord
 
-// TODO work on the description/messaging infrastructure
+trait Violation extends Iterable[ RuleViolation ] {
+  def value: Any
+  def constraint: String
 
-/** Each violation represents failure in a single validation rule. Multiple violations may be aggregated into
-  * a single [[com.tomergabel.accord.Failure]] instance.
-  * @param constraint A textual description of the constraint which failed validation.
-  * @param value The value that caused the failure.
-  */
-case class Violation( constraint: String, value: Any )
+  private[ accord ] def withDescription( rewrite: String ): Violation
+}
+case class RuleViolation( value: Any, constraint: String, description: String ) extends Violation {
+  private[ accord ] def withDescription( rewrite: String ) = this.copy( description = rewrite )
+  def iterator = Iterator( this )
+}
+case class GroupViolation( value: Any, constraint: String, rules: Seq[ Violation ] ) extends Violation {
+  private[ accord ] def withDescription( rewrite: String ) =
+    this.copy( rules = this.rules map { _ withDescription rewrite } )
+
+  def iterator = rules.flatten.iterator
+}
 
 /** A base trait for validation results.
   * @see [[com.tomergabel.accord.Success]], [[com.tomergabel.accord.Failure]]

@@ -17,13 +17,13 @@
 
 package com.tomergabel.accord.combinators
 
-import com.tomergabel.accord.{Violation, Validator}
+import com.tomergabel.accord.Validator
 
 /** Combinators that operate specifically on strings. */
 trait StringCombinators {
 
   /** A validator that succeeds only if the provided string starts with the specified prefix. */
   class StartsWith( prefix: String ) extends Validator[ String ] {
-    def apply( x: String ) = result( x startsWith prefix, Violation( s"must start with '$prefix'", x ) )
+    def apply( x: String ) = result( x startsWith prefix, violation( x, s"must start with '$prefix'" ) )
   }
 }

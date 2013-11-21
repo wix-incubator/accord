@@ -16,10 +16,8 @@
 
 package com.tomergabel.accord.combinators
 
-import org.scalatest.{Matchers, WordSpec}
-import com.tomergabel.accord.ResultMatchers
 
-class GeneralPurposeCombinatorTests extends WordSpec with Matchers with ResultMatchers {
+class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
 
   "And combinator with a two-clause rule" should {
     val clause1 = new Size[ String ] >= 4
@@ -30,13 +28,15 @@ class GeneralPurposeCombinatorTests extends WordSpec with Matchers with ResultMa
       validator( "okay" ) should be( aSuccess )
     }
     "render a correct rule violation when the first clause is not satisfied" in {
-      validator( "ok" ) should failWith( "has size 2, expected 4 or more" )
+      validator( "ok" ) should failRule( testContext -> "has size 2, expected 4 or more" )
     }
     "render a correct rule violation when the second clause is not satisfied" in {
-      validator( "no such luck" ) should failWith( "must start with 'ok'" )
+      validator( "no such luck" ) should failRule( testContext -> "must start with 'ok'" )
     }
     "render a correct rule violation when both clauses are not satisfied" in {
-      validator( "no" ) should failWith( "has size 2, expected 4 or more", "must start with 'ok'" )
+      validator( "no" ) should failRule(
+        testContext -> "has size 2, expected 4 or more",
+        testContext -> "must start with 'ok'" )
     }
   }
 
@@ -56,14 +56,14 @@ class GeneralPurposeCombinatorTests extends WordSpec with Matchers with ResultMa
     }
     "render a correct rule violation when both clauses are not satisfied" in {
       // TODO decide on the correct user story and rewrite the violation/reporting subsystem
-      validator( "no" ) should failWith( "doesn't meet any of the requirements" )
+      validator( "no" ) should failRule( testContext -> "doesn't meet any of the requirements" )
     }
   }
 
   "Fail combinator" should {
     "render a correct rule violation" in {
       val validator = new Fail[ String ]( "message" )
-      validator( "whatever" ) should failWith( "message" )
+      validator( "whatever" ) should failRule( testContext -> "message" )
     }
   }
 

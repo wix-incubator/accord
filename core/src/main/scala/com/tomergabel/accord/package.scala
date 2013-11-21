@@ -22,6 +22,8 @@ import scala.annotation.implicitNotFound
   * import this package and execute `validate( objectUnderValidation )`.
   */
 package object accord {
+  private[ accord ] val stubValidationContext = "stub"
+
   /** A validator is a function `T => Result`, where `T` is the type of the object under validation
     * and Result is an instance of [[com.tomergabel.accord.Result]].
     *
@@ -35,6 +37,9 @@ package object accord {
                      "this type? (alternatively, if you own the code, you may want to move the validator to " +
                      "the companion object for ${T} so it's automatically imported)." )
   trait Validator[ T ] extends ( T => Result ) {
+    // TODO cleanup
+    private[ accord ] def context: String = stubValidationContext    // Rewritten by the validation macro
+    protected def violation( value: T, constraint: String ) = RuleViolation( value, constraint, context )
 
     /** A helper method to simplify rendering results.
       *

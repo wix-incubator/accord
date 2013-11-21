@@ -17,7 +17,7 @@
 
 package com.tomergabel.accord.combinators
 
-import com.tomergabel.accord.{Violation, Validator}
+import com.tomergabel.accord.Validator
 import scala.language.implicitConversions
 
 /** Combinators that operate on collections and collection-like structures. */
@@ -52,7 +52,7 @@ trait CollectionCombinators {
     * @see [[com.tomergabel.accord.combinators.NotEmpty]]
     */
   class Empty[ T <% HasEmpty ] extends Validator[ T ] {
-    def apply( x: T ) = result( x.isEmpty, Violation( "must be empty", x ) )
+    def apply( x: T ) = result( x.isEmpty, violation( x, "must be empty" ) )
   }
 
   /** A validator that operates on objects that can be empty, and succeeds only if the provided instance is ''not''
@@ -61,7 +61,7 @@ trait CollectionCombinators {
     * @see [[com.tomergabel.accord.combinators.Empty]]
     */
   class NotEmpty[ T <% HasEmpty ] extends Validator[ T ] {
-    def apply( x: T ) = result( !x.isEmpty, Violation( "must not be empty", x ) )
+    def apply( x: T ) = result( !x.isEmpty, violation( x, "must not be empty" ) )
   }
 
   /** A structural type representing any object that has a size. */

@@ -23,17 +23,19 @@ import org.scalatest.matchers.{BeMatcher, MatchResult, Matcher}
 trait ResultMatchers {
   self: Suite =>
 
+
+  // TODO update documentation
   /** Enables syntax like `someResult should failWith( "violation1", "violation2", ... )`.
     * Unspecified violations will fail the test with an "unexpected violations" message. Specified
     * violations that did not occur will fail the tests with an "expected violations weren't found"
     * message.
     */
-  def failWith( expectedViolations: String* ) = new Matcher[ Result ] {
+  def failRule( expectedViolations: ( String, String )* ) = new Matcher[ Result ] {
     def apply( left: Result ): MatchResult =
       left match {
         case Success => MatchResult( matches = false, "Validation was successful", "Validation was not successful" )
         case Failure( vlist ) =>
-          val violations = vlist.map { _.constraint }.toSet
+          val violations = vlist.flatten.map { v => ( v.description, v.constraint ) }.toSet
           val remainder = expectedViolations.toSet -- violations
           val unexpected = violations.toSet -- expectedViolations.toSet
           MatchResult( matches = remainder.isEmpty && unexpected.isEmpty,

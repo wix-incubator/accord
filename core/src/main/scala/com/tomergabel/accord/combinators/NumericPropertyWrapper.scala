@@ -17,7 +17,7 @@
 
 package com.tomergabel.accord.combinators
 
-import com.tomergabel.accord.{Violation, Validator}
+import com.tomergabel.accord.Validator
 
 /**
  * A useful helper class when validating numerical properties (size, length, arity...). Provides the usual
@@ -53,28 +53,28 @@ abstract class NumericPropertyWrapper[ T, P, Repr ]( extractor: Repr => P, snipp
   def >( other: P )( implicit repr: T => Repr ) = new Validator[ T ] {
     def apply( x: T ) = {
       val v = ( repr andThen extractor )( x )
-      result( ev.gt( v, other ), Violation( s"$snippet $v, expected more than $other", x ) )
+      result( ev.gt( v, other ), violation( x, s"$snippet $v, expected more than $other" ) )
     }
   }
   /** Generates a validator that succeeds only if the property value is less than the specified bound. */
   def <( other: P )( implicit repr: T => Repr ) = new Validator[ T ] {
     def apply( x: T ) = {
       val v = ( repr andThen extractor )( x )
-      result( ev.lt( v, other ), Violation( s"$snippet $v, expected less than $other", x ) )
+      result( ev.lt( v, other ), violation( x, s"$snippet $v, expected less than $other" ) )
     }
   }
   /** Generates a validator that succeeds if the property value is greater than or equal to the specified bound. */
   def >=( other: P )( implicit repr: T => Repr ) = new Validator[ T ] {
     def apply( x: T ) = {
       val v = ( repr andThen extractor )( x )
-      result( ev.gteq( v, other ), Violation( s"$snippet $v, expected $other or more", x ) )
+      result( ev.gteq( v, other ), violation( x, s"$snippet $v, expected $other or more" ) )
     }
   }
   /** Generates a validator that succeeds if the property value is less than or equal to the specified bound. */
   def <=( other: P )( implicit repr: T => Repr ) = new Validator[ T ] {
     def apply( x: T ) = {
       val v = ( repr andThen extractor )( x )
-      result( ev.lteq( v, other ), Violation( s"$snippet $v, expected $other or less", x ) )
+      result( ev.lteq( v, other ), violation( x, s"$snippet $v, expected $other or less" ) )
     }
   }
 }

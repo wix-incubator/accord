@@ -198,7 +198,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
         val vterm = newTermName( "violations" )
         val vexpr = context.Expr[ Seq[ Violation ] ]( Ident( vterm ) )
         val vappl =
-          reify { Failure( vexpr.splice map { f => f.copy( constraint = descExpr.splice + " " + f.constraint ) } ) }
+          reify { Failure( vexpr.splice map { f => f withDescription descExpr.splice } ) }
         CaseDef(
           Bind( newTermName( "f" ), Apply( Ident( newTermName( "Failure" ) ), List( Bind( vterm, Ident( nme.WILDCARD ) ) ) ) ),
           EmptyTree,

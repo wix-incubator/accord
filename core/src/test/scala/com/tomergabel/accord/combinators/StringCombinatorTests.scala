@@ -19,7 +19,7 @@ package com.tomergabel.accord.combinators
 import org.scalatest.{Matchers, WordSpec}
 import com.tomergabel.accord.ResultMatchers
 
-class StringCombinatorTests extends WordSpec with Matchers with ResultMatchers {
+class StringCombinatorTests extends CombinatorTestSpec {
 
   "StartsWith combinator" should {
     "successfully validate a string that starts with the specified prefix" in {
@@ -30,7 +30,7 @@ class StringCombinatorTests extends WordSpec with Matchers with ResultMatchers {
     "render a correct rule violation" in {
       val left = "eggs and ham"
       val validator = new StartsWith( "ham" )
-      validator( left ) should failWith( "must start with 'ham'" )
+      validator( left ) should failRule( testContext -> "must start with 'ham'" )
     }
   }
 }
