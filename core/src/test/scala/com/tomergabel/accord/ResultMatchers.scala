@@ -24,48 +24,92 @@ import org.scalatest.matchers.{BeMatcher, MatchResult, Matcher}
 trait ResultMatchers {
   self: Suite =>
 
+  /** Abstracts over validators for the various violation type. */
   sealed trait ViolationMatcher extends Matcher[ Violation ]
 
-  case class RuleViolationMatcher( value: Any = null, constraint: String = null, context: String = null )
+  /** A matcher over [[com.tomergabel.accord.RuleViolation]]s. To generate a violation rule "pattern", call
+    * the constructor with the required predicates, for example:
+    *
+    * ``` 
+    * val firstNameNotEmpty = RuleViolationMatcher( description = "firstName", constraint = "must not be empty" )
+    * val validationResult: Result = ...
+    * validationResult must failWith( firstNameNotEmpty )
+    * ```
+    * 
+    * @param value A predicate specifying the object under validation.
+    * @param constraint A predicate specifying the constraint being violated.
+    * @param description A predicate specifying the description of the object being validated.
+    * @see [[com.tomergabel.accord.RuleViolation]]                    
+    */  
+  case class RuleViolationMatcher( value: Any = null, constraint: String = null, description: String = null )
     extends ViolationMatcher {
 
-    require( value != null || constraint != null || context != null )
+    require( value != null || constraint != null || description != null )
 
     def apply( left: Violation ): MatchResult = left match {
       case rv: RuleViolation =>
         MatchResult(
-          matches = ( value      == null || rv.value      == value      ) &&
-                    ( constraint == null || rv.constraint == constraint ) &&
-                    ( context    == null || rv.description    == context ),
+          matches = ( value       == null || rv.value       == value       ) &&
+                    ( constraint  == null || rv.constraint  == constraint  ) &&
+                    ( description == null || rv.description == description ),
           s"Rule violation $rv did not match pattern $this",
           s"Got unexpected rule violation $rv"
         )
       case _ =>
         MatchResult( matches = false,
-          s"Unexpected violation '$left', " +
-          s"expected a rule violation", s"Got unexpected rule violation '$left'" )
+          s"Unexpected violation '$left', expected a rule violation", 
+          s"Got unexpected rule violation '$left'" )
     }
 
-    override def toString() = Seq( Option( value      ) getOrElse "_",
-                                   Option( constraint ) getOrElse "_",
-                                   Option( context    ) getOrElse "_" ).mkString( "RuleViolation(", ", ", ")" )
+    override def toString() = Seq( Option( value       ) getOrElse "_",
+                                   Option( constraint  ) getOrElse "_",
+                                   Option( description ) getOrElse "_" ).mkString( "RuleViolation(", ", ", ")" )
 
   }
 
-  case class GroupViolationMatcher( value: Any = null, constraint: String = null, context: String = null,
+  /** A convenience implicit to simplify test code. Enables syntax like:
+    * 
+    * ```
+    * val rule: RuleViolationMatcher = "firstName" -> "must not be empty"
+    * // ... which is equivalent to
+    * val rule = RuleViolationMatcher( description = "firstName", constraint = "must not be empty" )
+    * ```
+    */
+  implicit def stringTuple2RuleMatcher( v: ( String, String ) ) =
+    RuleViolationMatcher( description = v._1, constraint = v._2 )
+
+  /** A matcher over [[com.tomergabel.accord.GroupViolation]]s. To generate a violation rule "pattern", call
+    * the constructor with the required predicates, for example:
+    *
+    * ```
+    * val firstNameNotEmpty = RuleViolationMatcher( description = "firstName", constraint = "must not be empty" )
+    * val lastNameNotEmpty = RuleViolationMatcher( description = "lastName", constraint = "must not be empty" )
+    * val orPredicateFailed = GroupViolationMatcher( constraint = "doesn't meet any of the requirements",
+    *                                                violations = firstNameNotEmpty :: lastNameNotEmpty :: Nil )
+    * val validationResult: Result = ...
+    * validationResult must failWith( orPredicateFailed )
+    * ```
+    *
+    * @param value A predicate specifying the object under validation.
+    * @param constraint A predicate specifying the constraint being violated.
+    * @param description A predicate specifying the description of the object being validated.
+    * @param violations The set of violations that comprise the group being validated.
+    * @see [[com.tomergabel.accord.GroupViolation]]
+    */
+  case class GroupViolationMatcher( value: Any = null, constraint: String = null, description: String = null,
                                     violations: Seq[ ViolationMatcher ] = null )
     extends ViolationMatcher {
 
-    require( value != null || constraint != null || context != null && violations != null )
+    require( value != null || constraint != null || description != null && violations != null )
 
     def apply( left: Violation ): MatchResult = left match {
       case gv: GroupViolation =>
         val rulesMatch = gv.children.length == violations.length &&
                          gv.children.forall( rule => violations.exists( _.apply( rule ).matches ) )
         MatchResult(
-          matches = ( value      == null || gv.value      == value      ) &&
-                    ( constraint == null || gv.constraint == constraint ) &&
-                    ( context    == null || gv.description    == context    ) &&
+          matches = ( value       == null || gv.value       == value       ) &&
+                    ( constraint  == null || gv.constraint  == constraint  ) &&
+                    ( description == null || gv.description == description ) &&
                     rulesMatch,
           s"Group violation $gv did not match pattern $this",
           s"Got unexpected group violation $gv"
@@ -78,10 +122,15 @@ trait ResultMatchers {
 
     override def toString() = Seq( Option( value      ) getOrElse "_",
                                    Option( constraint ) getOrElse "_",
-                                   Option( context    ) getOrElse "_",
+                                   Option( description    ) getOrElse "_",
                                    Option( violations ) getOrElse "_" ).mkString( "GroupViolation(", ", ", ")" )
   }
 
+  /** A matcher over validation [[com.tomergabel.accord.Result]]s. Takes a set of expected violations
+    * and return a suitable match result in case of failure.
+    *
+    * @param expectedViolations The set of expected violations for this matcher.
+    */
   case class ResultMatcher( expectedViolations: Seq[ ViolationMatcher ] ) extends Matcher[ Result ] {
     def apply( left: Result ) = left match {
       case Success =>
@@ -105,16 +154,35 @@ trait ResultMatchers {
     }
   }
 
+  /** A convenience method for matching failures. Enables syntax like:
+    * 
+    * ```
+    * val result: Result = ...
+    * result should failWith( "firstName" -> "must not be empty", "lastName" -> "must not be empty" )
+    * ```
+    * 
+    * @param expectedViolations The set of expected violations.
+    * @return A matcher over validation [[com.tomergabel.accord.Result]]s.
+    */
   def failWith( expectedViolations: ViolationMatcher* ): Matcher[ Result ] = ResultMatcher( expectedViolations )
 
-
-  implicit def stringTuple2RuleMatcher( v: ( String, String ) ) =
-    RuleViolationMatcher( context = v._1, constraint = v._2 )
-
-  def group( context: String, constraint: String, expectedViolations: ( String, String )* ) =
-    new GroupViolationMatcher( constraint = constraint,
-                               context    = context,
-                               violations = expectedViolations map stringTuple2RuleMatcher )
+  /** A convenience method for matching violation groups. Enables syntax like:
+    * 
+    * ```
+    * val result: Result = ...
+    * result should failWith( group( "teacher", "is invalid",                // The group context
+    *                                "firstName -> "must not be empty" ) )   // The rule violations
+    * ```
+    *
+    * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
+    * @param description The textual description of the object under validation.
+    * @param expectedViolations The set of expected violations that comprise the group.
+    * @return A matcher over [[com.tomergabel.accord.GroupViolation]]s.
+    */
+  def group( description: String, constraint: String, expectedViolations: ( String, String )* ) =
+    new GroupViolationMatcher( constraint  = constraint,
+                               description = description,
+                               violations  = expectedViolations map stringTuple2RuleMatcher )
 
   /** Enables syntax like `someResult should be( aFailure )` */
   val aFailure = new BeMatcher[ Result ] {
