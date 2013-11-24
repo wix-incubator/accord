@@ -30,7 +30,7 @@ class StringCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation" in {
       val left = "eggs and ham"
       val validator = new StartsWith( "ham" )
-      validator( left ) should failRule( testContext -> "must start with 'ham'" )
+      validator( left ) should failWith( testContext -> "must start with 'ham'" )
     }
   }
 }
