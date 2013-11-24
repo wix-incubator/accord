@@ -28,13 +28,13 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
       validator( "okay" ) should be( aSuccess )
     }
     "render a correct rule violation when the first clause is not satisfied" in {
-      validator( "ok" ) should failRule( testContext -> "has size 2, expected 4 or more" )
+      validator( "ok" ) should failWith( testContext -> "has size 2, expected 4 or more" )
     }
     "render a correct rule violation when the second clause is not satisfied" in {
-      validator( "no such luck" ) should failRule( testContext -> "must start with 'ok'" )
+      validator( "no such luck" ) should failWith( testContext -> "must start with 'ok'" )
     }
     "render a correct rule violation when both clauses are not satisfied" in {
-      validator( "no" ) should failRule(
+      validator( "no" ) should failWith(
         testContext -> "has size 2, expected 4 or more",
         testContext -> "must start with 'ok'" )
     }
@@ -55,15 +55,17 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
       validator( "ok" ) should be( aSuccess )
     }
     "render a correct rule violation when both clauses are not satisfied" in {
-      // TODO decide on the correct user story and rewrite the violation/reporting subsystem
-      validator( "no" ) should failRule( testContext -> "doesn't meet any of the requirements" )
+      validator( "no" ) should failWith( group( testContext, "doesn't meet any of the requirements",
+        testContext -> "has size 2, expected 4 or more",
+        testContext -> "must start with 'ok'"
+      ) )
     }
   }
 
   "Fail combinator" should {
     "render a correct rule violation" in {
       val validator = new Fail[ String ]( "message" )
-      validator( "whatever" ) should failRule( testContext -> "message" )
+      validator( "whatever" ) should failWith( testContext -> "message" )
     }
   }
 

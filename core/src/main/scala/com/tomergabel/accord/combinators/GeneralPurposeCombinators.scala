@@ -29,16 +29,19 @@ trait GeneralPurposeCombinators {
     def apply( x: T ) = predicates.map { _ apply x }.fold( Success ) { _ and _ }
   }
 
-  /** A combinator that takes a chain of predicates and implements logical OR between them.
+  /** A combinator that takes a chain of predicates and implements logical OR between them. When all predicates
+    * fail, a [[com.tomergabel.accord.GroupViolation]] is produced; the predicates comprise the group's children.
+    *
     * @param predicates The predicates to chain together.
     * @tparam T The type on which this validator operates.
     */
   class Or[ T ]( predicates: Validator[ T ]* ) extends Validator[ T ] {
     def apply( x: T ) = {
       val results = predicates.map { _ apply x }
-      result( results contains Success,
-        GroupViolation( x, "doesn't meet any of the requirements",
-          results.collect { case Failure( violations ) => violations }.flatten ) )
+      val failures =
+        results.collect { case Failure( violations ) => violations map { _ withDescription description } }.flatten
+      result( results exists { _ == Success },
+        GroupViolation( x, "doesn't meet any of the requirements", description, failures ) )
     }
   }
 
@@ -47,7 +50,7 @@ trait GeneralPurposeCombinators {
     * @tparam T The type on which this validator operates.
     */
   class Fail[ T ]( message: => String ) extends Validator[ T ] {
-    def apply( x: T ) = result( test = false, violation( x, message ) )
+    def apply( x: T ) = result( test = false, RuleViolation( x, message, description ) )
   }
 
   /** A validator that always succeeds.
@@ -57,4 +60,35 @@ trait GeneralPurposeCombinators {
     def apply( x: T ) = Success
   }
 
+  /** A validator which merely delegates to another, implicitly available validator. This is necessary for the
+    * description generation to work correctly, e.g. in the case where:
+    *
+    * ```
+    * case class Person( firstName: String, lastName: String )
+    * case class Classroom( teacher: Person, students: Seq[ Person ] )
+    *
+    * implicit val personValidator = validator[ Person ] { p =>
+    *   p.firstName is notEmpty
+    *   p.lastName is notEmpty
+    * }
+    *
+    * implicit val classValidator = validator[ Classroom ] { c =>
+    *   c.teacher is valid
+    *   c.students.each is valid
+    *   c.students have size > 0
+    * }
+    * ```
+    *
+    * `c.teacher` actually delegates to the `personValidator`, which means a correct error message would be
+    * a [[com.tomergabel.accord.GroupViolation]] aggregating the actual rule violations.
+    *
+    * @tparam T The object type this validator operates on. An implicit [[com.tomergabel.accord.Validator]]
+    *           over type `T` must be in scope.
+    */
+  class Valid[ T : Validator ] extends Validator[ T ] {
+    def apply( x: T ) = implicitly[ Validator[ T ] ].apply( x ) match {
+      case Success => Success
+      case Failure( rules ) => Failure( GroupViolation( x, "is invalid", description, rules ) :: Nil )
+    }
+  }
 }

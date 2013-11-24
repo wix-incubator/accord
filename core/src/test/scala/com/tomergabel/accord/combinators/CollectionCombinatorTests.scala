@@ -32,7 +32,7 @@ class CollectionCombinatorTests extends CombinatorTestSpec {
     "render a correct greater-than rule violation" in {
       val left = Test( 0 )
       val validator = new Size[ Test ] > 5
-      validator( left ) should failRule( testContext -> "has size 0, expected more than 5" )
+      validator( left ) should failWith( testContext -> "has size 0, expected more than 5" )
     }
     "successfully validate a greater-than-or-equal rule" in {
       val left = Test( 10 )
@@ -42,7 +42,7 @@ class CollectionCombinatorTests extends CombinatorTestSpec {
     "render a correct greater-than-or-equal rule violation" in {
       val left = Test( 0 )
       val validator = new Size[ Test ] >= 5
-      validator( left ) should failRule( testContext -> "has size 0, expected 5 or more" )
+      validator( left ) should failWith( testContext -> "has size 0, expected 5 or more" )
     }
     "successfully validate a lesser-than rule" in {
       val left = Test( 5 )
@@ -52,7 +52,7 @@ class CollectionCombinatorTests extends CombinatorTestSpec {
     "render a correct lesser-than rule violation" in {
       val left = Test( 10 )
       val validator = new Size[ Test ] < 10
-      validator( left ) should failRule( testContext -> "has size 10, expected less than 10" )
+      validator( left ) should failWith( testContext -> "has size 10, expected less than 10" )
     }
     "successfully validate a lesser-than-or-equal rule" in {
       val left = Test( 10 )
@@ -62,7 +62,7 @@ class CollectionCombinatorTests extends CombinatorTestSpec {
     "render a correct lesser-than-or-equal rule violation" in {
       val left = Test( 10 )
       val validator = new Size[ Test ] <= 5
-      validator( left ) should failRule( testContext -> "has size 10, expected 5 or less" )
+      validator( left ) should failWith( testContext -> "has size 10, expected 5 or less" )
     }
   }
 
@@ -85,7 +85,7 @@ class CollectionCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation" in {
       val left = Some( "content" )
       val validator = new Empty[ Option[ String ] ]
-      validator( left ) should failRule( testContext -> "must be empty" )
+      validator( left ) should failWith( testContext -> "must be empty" )
     }
   }
 
@@ -108,7 +108,7 @@ class CollectionCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation" in {
       val left = None
       val validator = new NotEmpty[ Option[ String ] ]
-      validator( left ) should failRule( testContext -> "must not be empty" )
+      validator( left ) should failWith( testContext -> "must not be empty" )
     }
   }
 }

@@ -41,7 +41,7 @@ class DescriptionEnabledValidationTests extends WordSpec with Matchers with Resu
     }
 
     "generate a correct violation message" in {
-      validate( Described( "" ) ) should failRule( "described" -> "must not be empty" )
+      validate( Described( "" ) ) should failWith( "described" -> "must not be empty" )
     }
   }
 }

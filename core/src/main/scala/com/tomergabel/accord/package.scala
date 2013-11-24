@@ -37,9 +37,13 @@ package object accord {
                      "this type? (alternatively, if you own the code, you may want to move the validator to " +
                      "the companion object for ${T} so it's automatically imported)." )
   trait Validator[ T ] extends ( T => Result ) {
-    // TODO cleanup
-    private[ accord ] def context: String = stubValidationContext    // Rewritten by the validation macro
-    protected def violation( value: T, constraint: String ) = RuleViolation( value, constraint, context )
+    /** Provides a textual description of the expression being evaluated. For example, a validation rule like
+      * `p.firstName is notEmpty` might have the context `firstName`. The initial value is a stub and is later
+      * rewritten by the validation transform.
+      * 
+      * @return The textual description of the object under validation.
+      */
+    protected def description: String = stubValidationContext    // Rewritten by the validation macro
 
     /** A helper method to simplify rendering results.
       *
@@ -55,9 +59,9 @@ package object accord {
   /** Validates the specified object and returns a validation [[com.tomergabel.accord.Result]]. An implicit
     * [[com.tomergabel.accord.Validator]] must be in scope for this call to succeed.
     *
-    * @param x The object to validate
-    * @param validator A validator for objects of type `T`
-    * @tparam T The type of the object to validate
+    * @param x The object to validate.
+    * @param validator A validator for objects of type `T`.
+    * @tparam T The type of the object to validate.
     * @return A [[com.tomergabel.accord.Result]] indicating success or failure of the validation.
     */
   def validate[ T ]( x: T )( implicit validator: Validator[ T ] ) = validator( x )

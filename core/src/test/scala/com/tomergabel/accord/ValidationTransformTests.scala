@@ -33,11 +33,11 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
   "personValidator" should {
     "fail a person with no first name" in {
       val result = validate( personWithNoFirstName )
-      result should failRule( "firstName" -> "must not be empty" )
+      result should failWith( "firstName" -> "must not be empty" )
     }
     "fail a person with no last name" in {
       val result = validate( personWithNoLastName )
-      result should failRule( "lastName" -> "must not be empty" )
+      result should failWith( "lastName" -> "must not be empty" )
     }
     "pass a person with a full name" in {
       val result = validate( legitPerson1 )
@@ -48,16 +48,19 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
   "classroomValidator" should {
     "fail a classroom with no students" in {
       val result = validate( classWithNoStudents )
-      result should failRule( "students" -> "has size 0, expected more than 0" )
+      result should failWith( "students" -> "has size 0, expected more than 0" )
     }
     "fail a classroom with an invalid teacher" in {
       val result = validate( classWithInvalidTeacher )
-      result should failRule( "teacher.firstName" -> "must not be empty",
-                              "teacher.lastName" -> "must not be empty" )
+      result should failWith( group( "teacher", "is invalid",
+        "firstName" -> "must not be empty",
+        "lastName" -> "must not be empty"
+      ) )
     }
     "fail a classroom with an invalid student" in {
       val result = validate( classWithInvalidStudent )
-      result should failRule( "students.each.lastName" -> "must not be empty" )
+      result should failWith( group( "students", "is invalid",
+        "lastName" -> "must not be empty" ) )
     }
   }
 }

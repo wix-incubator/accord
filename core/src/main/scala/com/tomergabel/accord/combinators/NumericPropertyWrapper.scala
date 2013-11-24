@@ -17,7 +17,7 @@
 
 package com.tomergabel.accord.combinators
 
-import com.tomergabel.accord.Validator
+import com.tomergabel.accord.{RuleViolation, Validator}
 
 /**
  * A useful helper class when validating numerical properties (size, length, arity...). Provides the usual
@@ -53,28 +53,28 @@ abstract class NumericPropertyWrapper[ T, P, Repr ]( extractor: Repr => P, snipp
   def >( other: P )( implicit repr: T => Repr ) = new Validator[ T ] {
     def apply( x: T ) = {
       val v = ( repr andThen extractor )( x )
-      result( ev.gt( v, other ), violation( x, s"$snippet $v, expected more than $other" ) )
+      result( ev.gt( v, other ), RuleViolation( x, s"$snippet $v, expected more than $other", description ) )
     }
   }
   /** Generates a validator that succeeds only if the property value is less than the specified bound. */
   def <( other: P )( implicit repr: T => Repr ) = new Validator[ T ] {
     def apply( x: T ) = {
       val v = ( repr andThen extractor )( x )
-      result( ev.lt( v, other ), violation( x, s"$snippet $v, expected less than $other" ) )
+      result( ev.lt( v, other ), RuleViolation( x, s"$snippet $v, expected less than $other", description ) )
     }
   }
   /** Generates a validator that succeeds if the property value is greater than or equal to the specified bound. */
   def >=( other: P )( implicit repr: T => Repr ) = new Validator[ T ] {
     def apply( x: T ) = {
       val v = ( repr andThen extractor )( x )
-      result( ev.gteq( v, other ), violation( x, s"$snippet $v, expected $other or more" ) )
+      result( ev.gteq( v, other ), RuleViolation( x, s"$snippet $v, expected $other or more", description ) )
     }
   }
   /** Generates a validator that succeeds if the property value is less than or equal to the specified bound. */
   def <=( other: P )( implicit repr: T => Repr ) = new Validator[ T ] {
     def apply( x: T ) = {
       val v = ( repr andThen extractor )( x )
-      result( ev.lteq( v, other ), violation( x, s"$snippet $v, expected $other or less" ) )
+      result( ev.lteq( v, other ), RuleViolation( x, s"$snippet $v, expected $other or less", description ) )
     }
   }
 }

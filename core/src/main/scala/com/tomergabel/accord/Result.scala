@@ -16,21 +16,49 @@
 
 package com.tomergabel.accord
 
-trait Violation extends Iterable[ RuleViolation ] {
+/** A base trait for all violation types. */ 
+trait Violation {
+  /** The actual runtime value of the object under validation. */
   def value: Any
+  /** A textual description of the constraint being violated (for example, "must not be empty"). */
   def constraint: String
+  /** The textual description of the object under validation (this is the expression that, when evaluated at
+    * runtime, produces the value in [[com.tomergabel.accord.Violation.value]]). This is normally filled in
+    * by the validation transform macro, but can also be explicitly provided via the
+    * [[com.tomergabel.accord.dsl.Descriptor.as()]] method. */
+  def description: String
 
+  /** Rewrites the description for this violation (used internally by the validation transform macro). As
+    * violations are immutable, in practice this returns a modified copy.
+    *
+    * @param rewrite The rewritten description.
+    * @return A modified copy of this violation with the new description in place.
+    */
   private[ accord ] def withDescription( rewrite: String ): Violation
 }
+
+/** Describes the violation of a validation rule or constraint.
+  * 
+  * @param value The value of the object which failed the validation rule.
+  * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
+  * @param description The textual description of the object under validation.
+  */
 case class RuleViolation( value: Any, constraint: String, description: String ) extends Violation {
   private[ accord ] def withDescription( rewrite: String ) = this.copy( description = rewrite )
-  def iterator = Iterator( this )
 }
-case class GroupViolation( value: Any, constraint: String, rules: Seq[ Violation ] ) extends Violation {
-  private[ accord ] def withDescription( rewrite: String ) =
-    this.copy( rules = this.rules map { _ withDescription rewrite } )
 
-  def iterator = rules.flatten.iterator
+/** Describes the violation of a group of constraints. For example, the [[com.tomergabel.accord.combinators.Or]]
+  * combinator produces a group violation when all predicates fail.
+  *
+  * @param value The value of the object which failed the validation rule.
+  * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
+  * @param description The textual description of the object under validation.
+  * @param children The set of violations contained within the group.
+  */
+case class GroupViolation( value: Any, constraint: String, description: String, children: Seq[ Violation ] )
+  extends Violation {
+
+  private[ accord ] def withDescription( rewrite: String ) = this.copy( description = rewrite )
 }
 
 /** A base trait for validation results.

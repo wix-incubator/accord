@@ -173,7 +173,7 @@ package object dsl {
     *
     * ```
     */
-  def valid[ T ]( implicit validator: Validator[ T ] ): Validator[ T ] = validator
+  def valid[ T ]( implicit validator: Validator[ T ] ): Validator[ T ] = new Valid[ T ]
 
   /** Specifies a validator that operates on strings and succeeds only if the validation expression starts with
     * the specified prefix.
