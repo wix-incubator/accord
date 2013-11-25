@@ -34,7 +34,7 @@ trait Violation {
     * @param rewrite The rewritten description.
     * @return A modified copy of this violation with the new description in place.
     */
-  private[ accord ] def withDescription( rewrite: String ): Violation
+  def withDescription( rewrite: String ): Violation
 }
 
 /** Describes the violation of a validation rule or constraint.
@@ -44,7 +44,7 @@ trait Violation {
   * @param description The textual description of the object under validation.
   */
 case class RuleViolation( value: Any, constraint: String, description: String ) extends Violation {
-  private[ accord ] def withDescription( rewrite: String ) = this.copy( description = rewrite )
+  def withDescription( rewrite: String ) = this.copy( description = rewrite )
 }
 
 /** Describes the violation of a group of constraints. For example, the [[com.tomergabel.accord.combinators.Or]]
@@ -58,7 +58,7 @@ case class RuleViolation( value: Any, constraint: String, description: String ) 
 case class GroupViolation( value: Any, constraint: String, description: String, children: Seq[ Violation ] )
   extends Violation {
 
-  private[ accord ] def withDescription( rewrite: String ) = this.copy( description = rewrite )
+  def withDescription( rewrite: String ) = this.copy( description = rewrite )
 }
 
 /** A base trait for validation results.

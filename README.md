@@ -52,22 +52,22 @@ scala> validate( validPerson )
 res0: com.tomergabel.accord.Result = Success
 
 scala> val invalidPerson = Person( "", "No First Name" )
-invalidPerson: Person = Person(No First Name,)
+invalidPerson: Person = Person(,No First Name)
 
 scala> validate( invalidPerson )
-res1: com.tomergabel.accord.Result = Failure(List(Violation(firstName must not be empty,)))
+res1: com.tomergabel.accord.Result = Failure(List(RuleViolation(,must not be empty,firstName)))
 
 scala> val explicitDescription = Person( "No Last Name", "" )
 explicitDescription: Person = Person(No Last Name,)
 
 scala> validate( explicitDescription )
-res2: com.tomergabel.accord.Result = Failure(List(Violation(last name must not be empty,)))
+res2: com.tomergabel.accord.Result = Failure(List(RuleViolation(,must not be empty,last name)))
 
 scala> val invalidClassroom = Classroom( Person( "Alfred", "Aho" ), Seq.empty )
 invalidClassroom: Classroom = Classroom(Person(Alfred,Aho),List())
 
 scala> validate( invalidClassroom )
-res3: com.tomergabel.accord.Result = Failure(List(Violation(students has size 0, expected more than 0,List())))
+res3: com.tomergabel.accord.Result = Failure(List(RuleViolation(List(),has size 0, expected more than 0,students)))
 ```
 
 Getting Started
@@ -155,12 +155,13 @@ Accord is still fairly rudimentary, and there's plenty of improvements to be mad
 
 * Major issues and improvements slated for the final release of 0.1:
     * ~~Publish snapshot (in preparation for release) on the central repository~~
+    * ~~Rearchitect violation message infrastructure~~
     * Additional combinators (negation, missing arithmetic operators)
     * Implement accord-hamcrest integration in a separate artifact
     * Implement accord-scalatest integration in a separate artifact (possibly based on existing code from ResultMatchers)
     * Implement accord-specs2 integration in a separate artifact
 * Improvements under consideration for 0.2:
-    * Support custom violation messages in the DSL (e.g. `p.firstName is notEmpty as "First name must not be empty!"`)
+    * ~~Support custom violation messages in the DSL (e.g. `p.firstName is notEmpty as "First name must not be empty!"`)~~
     * Support custom violation types (e.g. `p.firstName is notEmpty as MyServerError( code = -3 )`)
 
 Ideas and feature requests welcome!
