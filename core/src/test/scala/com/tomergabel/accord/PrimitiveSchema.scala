@@ -25,6 +25,7 @@ object PrimitiveSchema {
   implicit val personValidator = validator[ Person ] { p =>
     p.firstName is notEmpty
     p.lastName is notEmpty
+    p.firstName.length is > 5
   }
 
   implicit val classValidator = validator[ Classroom ] { c =>

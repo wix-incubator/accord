@@ -16,6 +16,7 @@
 
 package com.tomergabel.accord
 
+import scala.language.implicitConversions
 import scala.language.experimental.macros
 import com.tomergabel.accord.transform.ValidationTransform
 
@@ -44,7 +45,7 @@ import com.tomergabel.accord.transform.ValidationTransform
   * so that violation messages are automatically generated; for instance, the rule `p.firstName is notEmpty`
   * will generate the violation message "firstName must not be empty" automatically.
   */
-package object dsl {
+package object dsl extends combinators.NumericOps[_] {
   import combinators._
 
   /** Takes a code block and rewrites it into a validation chain (see description in [[com.tomergabel.accord.dsl]].
@@ -179,4 +180,6 @@ package object dsl {
     * the specified prefix.
     */
   def startsWith( prefix: String ): Validator[ String ] = new StartsWith( prefix )
+
+
 }

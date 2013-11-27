@@ -79,3 +79,31 @@ abstract class NumericPropertyWrapper[ T, P, Repr ]( extractor: Repr => P, snipp
   }
 }
 
+trait NumericOps[ T ] {
+  // All methods here should only require PartialOrdering[ T ], but then the default
+  // implicits are defined in the Numeric companion and would therefore not be imported by
+  // default at the call site.
+
+  protected def snippet = "got"
+
+  /** Generates a validator that succeeds only if the property value is greater than the specified bound. */
+  def >( other: T )( implicit ev: Numeric[ T ] ) = new Validator[ T ] {
+    def apply( x: T ) =
+      result( ev.gt( x, other ), RuleViolation( x, s"$snippet $x, expected more than $other", description ) )
+  }
+  /** Generates a validator that succeeds only if the property value is less than the specified bound. */
+  def <( other: T )( implicit ev: Numeric[ T ] ) = new Validator[ T ] {
+    def apply( x: T ) =
+      result( ev.lt( x, other ), RuleViolation( x, s"$snippet $x, expected less than $other", description ) )
+  }
+  /** Generates a validator that succeeds if the property value is greater than or equal to the specified bound. */
+  def >=( other: T )( implicit ev: Numeric[ T ] ) = new Validator[ T ] {
+    def apply( x: T ) =
+      result( ev.gteq( x, other ), RuleViolation( x, s"$snippet $x, expected $other or more", description ) )
+  }
+  /** Generates a validator that succeeds if the property value is less than or equal to the specified bound. */
+  def <=( other: T )( implicit ev: Numeric[ T ] ) = new Validator[ T ] {
+    def apply( x: T ) =
+      result( ev.lteq( x, other ), RuleViolation( x, s"$snippet $x, expected $other or less", description ) )
+  }
+}
