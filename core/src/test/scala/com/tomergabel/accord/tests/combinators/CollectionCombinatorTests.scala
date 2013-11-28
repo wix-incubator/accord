@@ -14,10 +14,9 @@
   limitations under the License.
  */
 
-package com.tomergabel.accord.combinators
+package com.tomergabel.accord.tests.combinators
 
-import org.scalatest.{Matchers, WordSpec}
-import com.tomergabel.accord.ResultMatchers
+import com.tomergabel.accord.combinators.{Size, Empty, NotEmpty}
 
 class CollectionCombinatorTests extends CombinatorTestSpec {
 

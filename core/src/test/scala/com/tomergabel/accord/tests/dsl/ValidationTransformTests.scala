@@ -14,9 +14,10 @@
   limitations under the License.
  */
 
-package com.tomergabel.accord
+package com.tomergabel.accord.tests.dsl
 
 import org.scalatest.{Matchers, WordSpec}
+import com.tomergabel.accord._
 
 class ValidationTransformTests extends WordSpec with Matchers with ResultMatchers {
   import PrimitiveSchema._

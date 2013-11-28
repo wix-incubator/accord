@@ -14,24 +14,11 @@
   limitations under the License.
  */
 
-package com.tomergabel.accord
+package com.tomergabel.accord.tests.combinators
 
-object PrimitiveSchema {
-  import dsl._
+import com.tomergabel.accord.ResultMatchers
+import org.scalatest.{WordSpec, Matchers}
 
-  case class Person( firstName: String, lastName: String )
-  case class Classroom( teacher: Person, students: Seq[ Person ] )
-
-  implicit val personValidator = validator[ Person ] { p =>
-    p.firstName is notEmpty
-    p.lastName is notEmpty
-    p.firstName.length is > 5
-  }
-
-  implicit val classValidator = validator[ Classroom ] { c =>
-    c.teacher is valid
-    c.students.each is valid
-    c.students have size > 0
-  }
+trait CombinatorTestSpec extends WordSpec with Matchers with ResultMatchers {
+  protected val testContext = com.tomergabel.accord.stubValidationContext
 }
-

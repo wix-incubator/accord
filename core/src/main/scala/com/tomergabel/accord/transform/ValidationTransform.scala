@@ -193,14 +193,14 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       val svdef = ValDef( NoMods, newTermName( "sv" ), TypeTree(), sv.validation )
       val applysel = Apply( Ident( svdef.name ), extractorImpl :: Nil )
 
-      val successCase = CaseDef( Ident( newTermName( "Success" ) ), EmptyTree, Ident( newTermName( "Success" ) ) )
+      val successCase = CaseDef( Ident( typeOf[ Success.type ].termSymbol ), EmptyTree, Ident( typeOf[ Success.type ].termSymbol ) )
       val failCase = {
         val vterm = newTermName( "violations" )
         val vexpr = context.Expr[ Seq[ Violation ] ]( Ident( vterm ) )
         val vappl =
           reify { Failure( vexpr.splice map { f => f withDescription descExpr.splice } ) }
         CaseDef(
-          Bind( newTermName( "f" ), Apply( Ident( newTermName( "Failure" ) ), List( Bind( vterm, Ident( nme.WILDCARD ) ) ) ) ),
+          Bind( newTermName( "f" ), Apply( Ident( typeOf[ Failure.type ].termSymbol ), List( Bind( vterm, Ident( nme.WILDCARD ) ) ) ) ),
           EmptyTree,
           vappl.tree
         )

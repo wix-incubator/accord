@@ -14,8 +14,9 @@
   limitations under the License.
  */
 
-package com.tomergabel.accord.combinators
+package com.tomergabel.accord.tests.combinators
 
+import com.tomergabel.accord.combinators._
 
 class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
 

@@ -49,6 +49,9 @@ import com.tomergabel.accord.{RuleViolation, Validator}
  *              conversion `T => Repr` is required ''at the call site''.
  */
 abstract class NumericPropertyWrapper[ T, P, Repr ]( extractor: Repr => P, snippet: String )( implicit ev: Numeric[ P ] ) {
+  // TODO generalize so this can be implemented based on OrderingOps.
+  // It's unclear whether or not this is even possible because of the extra required conversion step (T => Repr).
+
   /** Generates a validator that succeeds only if the property value is greater than the specified bound. */
   def >( other: P )( implicit repr: T => Repr ) = new Validator[ T ] {
     def apply( x: T ) = {
@@ -77,33 +80,48 @@ abstract class NumericPropertyWrapper[ T, P, Repr ]( extractor: Repr => P, snipp
       result( ev.lteq( v, other ), RuleViolation( x, s"$snippet $v, expected $other or less", description ) )
     }
   }
+
+  /** Generates a validator that succeeds if the property value is exactly equal to the specified value. */
+  def ==( other: P )( implicit repr: T => Repr ) = new Validator[ T ] {
+    def apply( x: T ) = {
+      val v = ( repr andThen extractor )( x )
+      result( ev.equiv( v, other ), RuleViolation( x, s"$snippet $v, expected $other", description ) )
+    }
+  }
 }
 
-trait NumericOps[ T ] {
-  // All methods here should only require PartialOrdering[ T ], but then the default
-  // implicits are defined in the Numeric companion and would therefore not be imported by
-  // default at the call site.
-
-  protected def snippet = "got"
-
+/** Provides combinators over objects implementing [[scala.math.Ordering]].
+  *
+  * Implementation note: All methods here should only require [[scala.math.PartialOrdering]], but then the default
+  * implicits are defined in the Ordering companion and would therefore not be imported by default at the call site.
+  *
+  * @param snippet A prefix for violation messages, e.g. "got 5, expected more than 10" ("got" is the default).
+  */
+class OrderingOps( snippet: String = "got" ) {
   /** Generates a validator that succeeds only if the property value is greater than the specified bound. */
-  def >( other: T )( implicit ev: Numeric[ T ] ) = new Validator[ T ] {
+  def >[ T ]( other: T )( implicit ev: Ordering[ T ] ) = new Validator[ T ] {
     def apply( x: T ) =
       result( ev.gt( x, other ), RuleViolation( x, s"$snippet $x, expected more than $other", description ) )
   }
   /** Generates a validator that succeeds only if the property value is less than the specified bound. */
-  def <( other: T )( implicit ev: Numeric[ T ] ) = new Validator[ T ] {
+  def <[ T ]( other: T )( implicit ev: Ordering[ T ] ) = new Validator[ T ] {
     def apply( x: T ) =
       result( ev.lt( x, other ), RuleViolation( x, s"$snippet $x, expected less than $other", description ) )
   }
   /** Generates a validator that succeeds if the property value is greater than or equal to the specified bound. */
-  def >=( other: T )( implicit ev: Numeric[ T ] ) = new Validator[ T ] {
+  def >=[ T ]( other: T )( implicit ev: Ordering[ T ] ) = new Validator[ T ] {
     def apply( x: T ) =
       result( ev.gteq( x, other ), RuleViolation( x, s"$snippet $x, expected $other or more", description ) )
   }
   /** Generates a validator that succeeds if the property value is less than or equal to the specified bound. */
-  def <=( other: T )( implicit ev: Numeric[ T ] ) = new Validator[ T ] {
+  def <=[ T ]( other: T )( implicit ev: Ordering[ T ] ) = new Validator[ T ] {
     def apply( x: T ) =
       result( ev.lteq( x, other ), RuleViolation( x, s"$snippet $x, expected $other or less", description ) )
+  }
+
+  /** Generates a validator that succeeds if the property value is exactly equal to the specified value. */
+  def ==[ T ]( other: T )( implicit ev: Ordering[ T ] ) = new Validator[ T ] {
+    def apply( x: T ) =
+      result( ev.equiv( x, other ), RuleViolation( x, s"$snippet $x, expected $other", description ) )
   }
 }

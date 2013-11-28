@@ -14,9 +14,10 @@
   limitations under the License.
  */
 
-package com.tomergabel.accord
+package com.tomergabel.accord.tests.dsl
 
 import org.scalatest.{WordSpec, Matchers}
+import com.tomergabel.accord._
 
 object DescriptionEnabledValidationTests {
   import dsl._

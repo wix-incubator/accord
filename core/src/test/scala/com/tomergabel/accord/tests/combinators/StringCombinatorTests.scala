@@ -14,19 +14,20 @@
   limitations under the License.
  */
 
-package com.tomergabel.accord.combinators
+package com.tomergabel.accord.tests.combinators
 
-import org.scalatest.{Matchers, WordSpec}
-import com.tomergabel.accord.ResultMatchers
+import com.tomergabel.accord.combinators.StartsWith
 
 class StringCombinatorTests extends CombinatorTestSpec {
 
   "StartsWith combinator" should {
+
     "successfully validate a string that starts with the specified prefix" in {
       val left = "ham and eggs"
       val validator = new StartsWith( "ham" )
       validator( left ) should be( aSuccess )
     }
+
     "render a correct rule violation" in {
       val left = "eggs and ham"
       val validator = new StartsWith( "ham" )

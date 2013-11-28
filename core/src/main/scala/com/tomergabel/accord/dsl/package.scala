@@ -45,7 +45,7 @@ import com.tomergabel.accord.transform.ValidationTransform
   * so that violation messages are automatically generated; for instance, the rule `p.firstName is notEmpty`
   * will generate the violation message "firstName must not be empty" automatically.
   */
-package object dsl extends combinators.NumericOps[_] {
+package object dsl {
   import combinators._
 
   /** Takes a code block and rewrites it into a validation chain (see description in [[com.tomergabel.accord.dsl]].
@@ -55,6 +55,15 @@ package object dsl extends combinators.NumericOps[_] {
     * @return The validation code block rewritten as a [[com.tomergabel.accord.Validator]] for the specified type `T`.
     */
   def validator[ T ]( v: T => Unit ): Validator[ T ] = macro ValidationTransform.apply[ T ]
+
+  private object Aggregates {
+    private def aggregate[ U, E ]( validator: Validator[ E ], aggregator: Traversable[ Result ] => Result )
+                                 ( implicit ev: U <:< Traversable[ E ] ) =
+      new Validator[ U ] { def apply( col: U ) = aggregator( col map validator ) }
+
+    def all[ U, E ]( validator: Validator[ E ] )( implicit ev: U <:< Traversable[ E ] ): Validator[ U ] =
+      aggregate( validator, r => ( r fold Success )( _ and _ ) )
+  }
 
   /** Wraps expressions under validation with a specialized scope (this is later used during the macro transform).
     * Enables syntax such as `p.firstName is notEmpty`, where `p.firstName` is the actual expression under
@@ -67,35 +76,17 @@ package object dsl extends combinators.NumericOps[_] {
     def is( validator: Validator[ U ] ) = validator
     def has( validator: Validator[ U ] ) = validator
     def have( validator: Validator[ U ] ) = validator
-
-    class TraversableExtensions[ E ]( implicit ev: U <:< Traversable[ E ] ) {
-      private def aggregate( validator: Validator[ E ], aggregator: Traversable[ Result ] => Result ) = new Validator[ U ] {
-        def apply( col: U ) = aggregator( ev( col ) map validator )
-      }
-
-      def all( validator: Validator[ E ] ): Validator[ U ] = aggregate( validator, r => ( r fold Success )( _ and _ ) )
-    }
-
-    /** Provides extended syntax for collections; enables validation rules such as `c.students.are all( valid )`.
-      *
-      * @param ev Evidence that the provided expression can be treated as a collection.
-      * @tparam E The element type of the specified collection.
-      * @return Additional syntax provided by [[com.tomergabel.accord.dsl.Contextualizer.TraversableExtensions]].
-      * @see [[com.tomergabel.accord.dsl.Contextualizer.each]] for alternative syntax.
-      */
-    def are[ E ]( implicit ev: U <:< Traversable[ E ] ) = new TraversableExtensions[ E ]
+    def should( validator: Validator[ U ] ) = validator
+    def must( validator: Validator[ U ] ) = validator
 
     /** Provides extended syntax for collections; enables validation rules such as `c.students.each is valid`.
       *
       * @param ev Evidence that the provided expression can be treated as a collection.
       * @tparam E The element type of the specified collection.
       * @return Additional syntax (see implementation).
-      * @see [[com.tomergabel.accord.dsl.Contextualizer.are]] for alternative syntax.
       */
     def each[ E ]( implicit ev: U <:< Traversable[ E ] ) = new {
-      private val ext = new TraversableExtensions[ E ]
-
-      def is( validator: Validator[ E ] ): Validator[ U ] = ext.all( validator )
+      def is( validator: Validator[ E ] ): Validator[ U ] = Aggregates.all( validator )
     }
   }
 
@@ -181,5 +172,6 @@ package object dsl extends combinators.NumericOps[_] {
     */
   def startsWith( prefix: String ): Validator[ String ] = new StartsWith( prefix )
 
-
+  /** A proxy for ordering ops. Enables syntax such as `p.age should be > 5`. */
+  val be = new OrderingOps
 }
