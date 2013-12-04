@@ -172,6 +172,33 @@ package object dsl {
     */
   def startsWith( prefix: String ): Validator[ String ] = new StartsWith( prefix )
 
+  /** Specifies a validator that operates on strings and succeeds only if the validation expression ends with
+    * the specified suffix.
+    */
+  def endsWith( suffix: String ): Validator[ String ] = new EndsWith( suffix )
+
+  /** Specifies a validator that operates on strings and succeeds only if the validation expression matches the
+    * specified regular expression.
+    */
+  def matches( regex: String ): Validator[ String ] = matches( regex.r.pattern )
+
+  /** Specifies a validator that operates on strings and succeeds only if the validation expression matches the
+    * specified regular expression.
+    */
+  def matches( pattern: java.util.regex.Pattern ): Validator[ String ] = new MatchesRegex( pattern, partialMatchAllowed = true )
+
+  /** Specifies a validator that operates on strings and succeeds only if the validation expression **fully**
+    * matches the specified regular expression. See [[com.tomergabel.accord.combinators.StringCombinators.MatchesRegex]]
+    * for a full explanation of the difference between partial and full matching.
+    */
+  def fullyMatches( pattern: java.util.regex.Pattern ): Validator[ String ] = new MatchesRegex( pattern, partialMatchAllowed = false )
+
+  /** Specifies a validator that operates on strings and succeeds only if the validation expression **fully**
+    * matches the specified regular expression. See [[com.tomergabel.accord.combinators.StringCombinators.MatchesRegex]]
+    * for a full explanation of the difference between partial and full matching.
+    */
+  def fullyMatches( regex: String ): Validator[ String ] = fullyMatches( regex.r.pattern )
+
   /** A proxy for ordering ops. Enables syntax such as `p.age should be > 5`. */
   val be = new OrderingOps
 }
