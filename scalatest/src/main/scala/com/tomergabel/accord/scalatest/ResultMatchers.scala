@@ -101,12 +101,13 @@ trait ResultMatchers {
                                     violations: Seq[ ViolationMatcher ] = null )
     extends ViolationMatcher {
 
-    require( value != null || constraint != null || description != null && violations != null )
+    require( value != null || constraint != null || description != null || violations != null )
 
     def apply( left: Violation ): MatchResult = left match {
       case gv: GroupViolation =>
-        val rulesMatch = gv.children.length == violations.length &&
-                         gv.children.forall( rule => violations.exists( _.apply( rule ).matches ) )
+        val rulesMatch = violations == null ||
+                         ( gv.children.length == violations.length &&
+                           gv.children.forall( rule => violations.exists( _.apply( rule ).matches ) ) )
         MatchResult(
           matches = ( value       == null || gv.value       == value       ) &&
                     ( constraint  == null || gv.constraint  == constraint  ) &&
