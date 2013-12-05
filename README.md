@@ -156,10 +156,11 @@ Accord is still fairly rudimentary, and there's plenty of improvements to be mad
 * Major issues and improvements slated for the final release of 0.1:
     * ~~Publish snapshot (in preparation for release) on the central repository~~
     * ~~Rearchitect violation message infrastructure~~
-    * Additional combinators (negation, missing arithmetic operators)
+    * ~~Implement accord-scalatest integration in a separate artifact~~
+    * ~~Implement accord-specs2 integration in a separate artifact~~
+    * Additional combinators (negation, ~~missing arithmetic operators~~)
     * Implement accord-hamcrest integration in a separate artifact
-    * Implement accord-scalatest integration in a separate artifact (possibly based on existing code from ResultMatchers)
-    * Implement accord-specs2 integration in a separate artifact
+    * Clean up and extend documentation
 * Improvements under consideration for 0.2:
     * ~~Support custom violation messages in the DSL (e.g. `p.firstName is notEmpty as "First name must not be empty!"`)~~
     * Support custom violation types (e.g. `p.firstName is notEmpty as MyServerError( code = -3 )`)
