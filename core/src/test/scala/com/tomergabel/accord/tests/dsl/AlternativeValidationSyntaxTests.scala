@@ -18,7 +18,8 @@ package com.tomergabel.accord.tests.dsl
 
 import org.scalatest.{FlatSpec, Matchers}
 import PrimitiveSchema._
-import com.tomergabel.accord.{Implicits, ResultMatchers}
+import com.tomergabel.accord.{Implicits}
+import com.tomergabel.accord.scalatest.ResultMatchers
 
 class AlternativeValidationSyntaxTests extends FlatSpec with Matchers with ResultMatchers {
   "Importing com.tomergabel.accord.Implicits" should "enable alternative validation invocation syntax" in {

@@ -29,7 +29,7 @@ pomExtra in ThisBuild :=
   </scm>
   <developers>
     <developer>
-      <id>Holgoraph</id>
+      <id>Holograph</id>
       <name>Tomer Gabel</name>
       <url>http://www.tomergabel.com</url>
     </developer>
@@ -37,8 +37,14 @@ pomExtra in ThisBuild :=
 
 scalacOptions in ThisBuild ++= Seq( "-feature", "-language:reflectiveCalls" )
 
-lazy val core = project in file( "core" )
+lazy val api = project in file( "api" )
 
-lazy val root = project in file( "." ) aggregate( core )
+lazy val scalatest = project in file( "scalatest" ) dependsOn( api )
+
+lazy val specs2 = project in file( "specs2" ) dependsOn( api )
+
+lazy val core = project in file( "core" ) dependsOn( api, scalatest % "test->compile" )
+
+lazy val root = project in file( "." ) aggregate( api, core, scalatest/*, specs2*/ )
 
 publishArtifact := false	// Only affects root

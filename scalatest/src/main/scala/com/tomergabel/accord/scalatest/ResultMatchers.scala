@@ -14,11 +14,14 @@
   limitations under the License.
  */
 
-package com.tomergabel.accord
+package com.tomergabel.accord.scalatest
 
 import scala.language.implicitConversions
 import org.scalatest.Suite
 import org.scalatest.matchers.{BeMatcher, MatchResult, Matcher}
+import com.tomergabel.accord._
+import scala.Some
+import scala.Some
 
 /** Extends a test suite with a set of matchers over validation [[com.tomergabel.accord.Result]]s. */
 trait ResultMatchers {

@@ -18,6 +18,7 @@ package com.tomergabel.accord.tests.dsl
 
 import org.scalatest.{WordSpec, Matchers}
 import com.tomergabel.accord._
+import com.tomergabel.accord.scalatest.ResultMatchers
 
 object OrderingOpsDslSpec {
   import dsl._

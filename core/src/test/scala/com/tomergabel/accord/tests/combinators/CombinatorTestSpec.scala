@@ -16,8 +16,8 @@
 
 package com.tomergabel.accord.tests.combinators
 
-import com.tomergabel.accord.ResultMatchers
 import org.scalatest.{WordSpec, Matchers}
+import com.tomergabel.accord.scalatest.ResultMatchers
 
 trait CombinatorTestSpec extends WordSpec with Matchers with ResultMatchers {
   protected val testContext = com.tomergabel.accord.stubValidationContext

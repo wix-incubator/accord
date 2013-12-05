@@ -18,6 +18,7 @@ package com.tomergabel.accord.tests.dsl
 
 import org.scalatest.{Matchers, WordSpec}
 import com.tomergabel.accord._
+import com.tomergabel.accord.scalatest.ResultMatchers
 
 class ValidationTransformTests extends WordSpec with Matchers with ResultMatchers {
   import PrimitiveSchema._
