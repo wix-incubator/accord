@@ -45,6 +45,6 @@ lazy val specs2 = project in file( "specs2" ) dependsOn( api )
 
 lazy val core = project in file( "core" ) dependsOn( api, scalatest % "test->compile" )
 
-lazy val root = project in file( "." ) aggregate( api, core, scalatest/*, specs2*/ )
+lazy val root = project in file( "." ) aggregate( api, core, scalatest, specs2 )
 
 publishArtifact := false	// Only affects root
