@@ -123,10 +123,10 @@ trait ResultMatchers {
           s"Got unexpected group violation '$left'" )
     }
 
-    override def toString() = Seq( Option( value      ) getOrElse "_",
-                                   Option( constraint ) getOrElse "_",
-                                   Option( description    ) getOrElse "_",
-                                   Option( violations ) getOrElse "_" ).mkString( "GroupViolation(", ", ", ")" )
+    override def toString() = Seq( Option( value       ) getOrElse "_",
+                                   Option( constraint  ) getOrElse "_",
+                                   Option( description ) getOrElse "_",
+                                   Option( violations  ) getOrElse "_" ).mkString( "GroupViolation(", ", ", ")" )
   }
 
   /** A matcher over validation [[com.tomergabel.accord.Result]]s. Takes a set of expected violations
