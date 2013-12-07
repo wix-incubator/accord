@@ -18,7 +18,6 @@ package com.tomergabel.accord.specs2
 
 import org.specs2.mutable.Specification
 import com.tomergabel.accord._
-import org.specs2.matcher.{MatchResult, Matcher}
 import com.tomergabel.accord.GroupViolation
 import com.tomergabel.accord.RuleViolation
 
