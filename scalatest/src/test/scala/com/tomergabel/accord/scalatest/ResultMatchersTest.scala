@@ -17,7 +17,10 @@
 package com.tomergabel.accord.scalatest
 
 import org.scalatest.{WordSpec, Matchers}
-import com.tomergabel.accord.{GroupViolation, RuleViolation}
+import com.tomergabel.accord._
+import com.tomergabel.accord.GroupViolation
+import com.tomergabel.accord.RuleViolation
+import com.tomergabel.accord.Failure
 
 class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
 
@@ -102,4 +105,38 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
     }
   }
 
+  "failWith matcher" should {
+
+    val result: Result = Failure( Seq( RuleViolation( "value", "constraint", "description" ) ) )
+
+    "succeed if a validation rule matches successfully" in {
+      result should failWith( "description" -> "constraint" )
+    }
+
+    "fail if a validation rule does not match" in {
+      result should not( failWith( "invalid" -> "invalid" ) )
+    }
+  }
+
+  "aSuccess matcher" should {
+
+    "succeed if matching a Success" in {
+      Success should be( aSuccess )
+    }
+
+    "fail if matching a Failure" in {
+      Failure( Seq.empty ) shouldNot be( aSuccess )
+    }
+  }
+
+  "aFailure matcher" should {
+
+    "fail if matching a Success" in {
+      Success shouldNot be( aFailure )
+    }
+
+    "succeed if matching a Failure" in {
+      Failure( Seq.empty ) should be( aFailure )
+    }
+  }
 }

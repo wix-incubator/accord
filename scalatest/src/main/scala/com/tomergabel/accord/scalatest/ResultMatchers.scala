@@ -54,12 +54,12 @@ trait ResultMatchers {
                     ( constraint  == null || rv.constraint  == constraint  ) &&
                     ( description == null || rv.description == description ),
           s"Rule violation $rv did not match pattern $this",
-          s"Got unexpected rule violation $rv"
+          s"Rule violation $rv matches pattern $this"
         )
       case _ =>
         MatchResult( matches = false,
-          s"Unexpected violation '$left', expected a rule violation", 
-          s"Got unexpected rule violation '$left'" )
+          s"$left is not a rule violation",
+          s"$left is a rule violation" )
     }
 
     override def toString() = Seq( Option( value       ) getOrElse "_",
@@ -114,12 +114,12 @@ trait ResultMatchers {
                     ( description == null || gv.description == description ) &&
                     rulesMatch,
           s"Group violation $gv did not match pattern $this",
-          s"Got unexpected group violation $gv"
+          s"Group violation $gv matches pattern $this"
         )
       case _ =>
         MatchResult( matches = false,
-          s"Unexpected violation '$left', expected a group violation",
-          s"Got unexpected group violation '$left'" )
+          s"$left is not a group violation",
+          s"$left is a group violation" )
     }
 
     override def toString() = Seq( Option( value       ) getOrElse "_",
@@ -145,13 +145,13 @@ trait ResultMatchers {
 
         MatchResult( matches = unexpected.isEmpty && unmatched.isEmpty,
           s"""
-             |Validation failed!
+             |Validation of $left failed!
              |Unexpected violations:
              |${unexpected.mkString( "\t", "\n\t", "" )}
              |Expected violations that weren't found:
              |${unmatched.mkString( "\t", "\n\t", "" )}
            """.stripMargin,
-          "Stub negated message (negations not supported yet)"   // TODO complete this? Not sure negation makes sense in this context
+          s"Validation of $left successful"
         )
     }
   }
@@ -188,17 +188,23 @@ trait ResultMatchers {
 
   /** Enables syntax like `someResult should be( aFailure )` */
   val aFailure = new BeMatcher[ Result ] {
-    def apply( left: Result ) = MatchResult( left.isInstanceOf[ Failure ], "not a failure", "is a failure" )
+    def apply( left: Result ) =
+      MatchResult( left.isInstanceOf[ Failure ],
+        s"$left is not a failure",
+        s"$left is a failure"
+      )
   }
 
   /** Enables syntax like `someResult should be( aSuccess )` */
   val aSuccess = new BeMatcher[ Result ] {
     def apply( left: Result ) = {
-      val violations = left match {
-        case Success => Seq.empty
-        case f: Failure => f.violations
+      val ( success, violations ) = left match {
+        case Success => ( true, Seq.empty )
+        case f: Failure => ( false, f.violations )
       }
-      MatchResult( violations.isEmpty, s"not a success (violations: ${violations.mkString( ", " )})", "is a success" )
+      MatchResult( success,
+        s"$left is not a success (violations: ${violations.mkString( ", " )})",
+        s"$left is a success" )
     }
   }
 }
