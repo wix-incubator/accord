@@ -51,14 +51,14 @@ trait ResultMatchers {
           test = ( value       == null || rv.value       == value       ) &&
                  ( constraint  == null || rv.constraint  == constraint  ) &&
                  ( description == null || rv.description == description ),
+          s"Rule violation $rv matches pattern $this",
           s"Rule violation $rv did not match pattern $this",
-          s"Got unexpected rule violation $rv",
           left
         )
       case _ =>
         result( test = false,
-          s"Unexpected violation '$left', expected a rule violation",
-          s"Got unexpected rule violation '$left'",
+          s"${left.description} is a rule violation",
+          s"${left.description} is not a rule violation",
           left )
     }
 
@@ -112,14 +112,14 @@ trait ResultMatchers {
                  ( constraint  == null || gv.constraint  == constraint  ) &&
                  ( description == null || gv.description == description ) &&
                  rulesMatch,
+          s"Group violation $gv matches pattern $this",
           s"Group violation $gv did not match pattern $this",
-          s"Got unexpected group violation $gv",
           left
         )
       case _ =>
         result( test = false,
-          s"Unexpected violation '$left', expected a group violation",
-          s"Got unexpected group violation '$left'",
+          s"${left.description} is a group violation",
+          s"${left.description} is not a group violation",
           left )
     }
 
@@ -145,14 +145,14 @@ trait ResultMatchers {
         val unmatched = expectedViolations.diff( matched collect { case ( _, Some( rule ) ) => rule } )
 
         result( test = unexpected.isEmpty && unmatched.isEmpty,
+          s"Validation of ${left.description} successful",
           s"""
-             |Validation failed!
+             |Validation of ${left.description} failed!
              |Unexpected violations:
              |${unexpected.mkString( "\t", "\n\t", "" )}
              |Expected violations that weren't found:
              |${unmatched.mkString( "\t", "\n\t", "" )}
            """.stripMargin,
-          "Stub negated message (negations not supported yet)",  // TODO complete this? Not sure negation makes sense in this context
           left
         )
     }
@@ -188,20 +188,26 @@ trait ResultMatchers {
       description = description,
       violations  = expectedViolations map stringTuple2RuleMatcher )
 
-  /** Enables syntax like `someResult should be( aFailure )` */
-  val aFailure = new Matcher[ Result ] {
+  /** Enables syntax like `someResult should fail` */
+  val fail = new Matcher[ Result ] {
     def apply[ T <: Result ]( left: Expectable[ T ] ) =
-      result( test = left.value.isInstanceOf[ Failure ], "not a failure", "is a failure", left )
+      result( test = left.value.isInstanceOf[ Failure ],
+        s"${left.description} is a failure",
+        s"${left.description} is not a failure",
+        left )
   }
 
-  /** Enables syntax like `someResult should be( aSuccess )` */
-  val aSuccess = new Matcher[ Result ] {
+  /** Enables syntax like `someResult should succeed` */
+  val succeed = new Matcher[ Result ] {
     def apply[ T <: Result ]( left: Expectable[ T ] ) = {
-      val violations = left.value match {
-        case Success => Seq.empty
-        case f: Failure => f.violations
+      val ( success, violations ) = left.value match {
+        case Success => ( true, Seq.empty )
+        case f: Failure => ( false, f.violations )
       }
-      result( test = violations.isEmpty, s"not a success (violations: ${violations.mkString( ", " )})", "is a success", left )
+      result( test = success,
+        s"${left.description} is a success",
+        s"${left.description} is not a success (violations: ${violations.mkString( ", " )})",
+        left )
     }
   }
 }

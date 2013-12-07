@@ -17,8 +17,10 @@
 package com.tomergabel.accord.specs2
 
 import org.specs2.mutable.Specification
-import com.tomergabel.accord.{Violation, GroupViolation, RuleViolation}
+import com.tomergabel.accord._
 import org.specs2.matcher.{MatchResult, Matcher}
+import com.tomergabel.accord.GroupViolation
+import com.tomergabel.accord.RuleViolation
 
 class ResultMatchersSpec extends Specification with ResultMatchers {
 
@@ -109,4 +111,38 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
     }
   }
 
+  "failWith matcher" should {
+
+    val result: Result = Failure( Seq( RuleViolation( "value", "constraint", "description" ) ) )
+
+    "succeed if a validation rule matches successfully" in {
+      result should failWith( "description" -> "constraint" )
+    }
+
+    "fail if a validation rule does not match" in {
+      result should not( failWith( "invalid" -> "invalid" ) )
+    }
+  }
+
+  "succeed matcher" should {
+
+    "succeed if matching a Success" in {
+      Success should succeed
+    }
+
+    "fail if matching a Failure" in {
+      Failure( Seq.empty ) should not( succeed )
+    }
+  }
+
+  "fail matcher" should {
+
+    "fail if matching a Success" in {
+      Success should not( fail )
+    }
+
+    "succeed if matching a Failure" in {
+      Failure( Seq.empty ) should fail
+    }
+  }
 }
