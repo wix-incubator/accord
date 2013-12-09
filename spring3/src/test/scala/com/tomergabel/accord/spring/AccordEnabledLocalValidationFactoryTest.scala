@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.{BeanPropertyBindingResult, Validator}
 
 import AccordEnabledLocalValidationFactoryTest._
-import javax.validation.Valid
 
 @ContextConfiguration( classes = Array( classOf[ SpringValidationConfiguration ] ) )
 class AccordEnabledLocalValidationFactoryTest extends WordSpec with Matchers {
@@ -51,7 +50,7 @@ object AccordEnabledLocalValidationFactoryTest {
 
   @Configuration
   class SpringValidationConfiguration {
-    @Bean def resolver: AccordValidatorResolver = CompanionObjectAccordValidatorResolver
-    @Bean def validator = new AccordEnabledLocalValidationFactory( resolver )
+    @Bean def resolver: AccordValidatorResolver = new CompanionObjectAccordValidatorResolver
+    @Bean def validator = new AccordEnabledLocalValidationFactory
   }
 }

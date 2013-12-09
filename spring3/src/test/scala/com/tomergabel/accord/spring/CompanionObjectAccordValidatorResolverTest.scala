@@ -26,8 +26,10 @@ class CompanionObjectAccordValidatorResolverTest extends WordSpec with Matchers 
 
   "CompanionObjectAccordResolver" should {
 
+    def resolver = new CompanionObjectAccordValidatorResolver
+
     "successfully resolve a validator when available on a test class companion" in {
-      val resolved = CompanionObjectAccordValidatorResolver.lookupValidator[ Test1 ]
+      val resolved = resolver.lookupValidator[ Test1 ]
       resolved should not be empty
 
       // Quick sanity tests to make sure the resolved validator is functional
@@ -39,7 +41,7 @@ class CompanionObjectAccordValidatorResolverTest extends WordSpec with Matchers 
     }
 
     "return None when no validator is available on the test class companion" in {
-      val resolved = CompanionObjectAccordValidatorResolver.lookupValidator[ Test2 ]
+      val resolved = resolver.lookupValidator[ Test2 ]
       resolved shouldBe empty
     }
   }

@@ -32,7 +32,7 @@ trait AccordValidatorResolver {
 }
 
 /** A resolver that looks up validator definitions in the companion object of the class under validation. */
-object CompanionObjectAccordValidatorResolver extends AccordValidatorResolver {
+class CompanionObjectAccordValidatorResolver extends AccordValidatorResolver {
   // TODO memoize companion lookup
 
   /** Takes a class and returns its companion object, if available.

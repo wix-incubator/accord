@@ -19,9 +19,11 @@ package com.tomergabel.accord.spring
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean
 import org.springframework.validation.Errors
 import scala.reflect.ClassTag
+import javax.annotation.Resource
 
-class AccordEnabledLocalValidationFactory( resolver: AccordValidatorResolver )
-  extends LocalValidatorFactoryBean with SpringAdapterBase {
+class AccordEnabledLocalValidationFactory extends LocalValidatorFactoryBean with SpringAdapterBase {
+
+  @Resource private val resolver: AccordValidatorResolver = null
 
   // Need an indirection through a separate method to get a type T in a way that's consistently usable
   // across multiple expressions. There might be a better way to do this.
