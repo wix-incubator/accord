@@ -73,11 +73,11 @@ package object dsl {
     * @tparam U The type of the provided expression.
     */
   implicit class Contextualizer[ U ]( value: U ) {
-    def is( validator: Validator[ U ] ) = validator
-    def has( validator: Validator[ U ] ) = validator
-    def have( validator: Validator[ U ] ) = validator
-    def should( validator: Validator[ U ] ) = validator
-    def must( validator: Validator[ U ] ) = validator
+    def is( validator: Validator[ _ >: U ] ) = validator
+    def has( validator: Validator[ _ >: U ] ) = validator
+    def have( validator: Validator[ _ >: U ] ) = validator
+    def should( validator: Validator[ _ >: U ] ) = validator
+    def must( validator: Validator[ _ >: U ] ) = validator
 
     /** Provides extended syntax for collections; enables validation rules such as `c.students.each is valid`.
       *
@@ -86,7 +86,7 @@ package object dsl {
       * @return Additional syntax (see implementation).
       */
     def each[ E ]( implicit ev: U <:< Traversable[ E ] ) = new {
-      def is( validator: Validator[ E ] ): Validator[ U ] = Aggregates.all( validator )
+      def is( validator: Validator[ _ >: E ] ): Validator[ U ] = Aggregates.all( validator )
     }
   }
 
