@@ -76,4 +76,49 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
       validator( "whatever" ) should be( aSuccess )
     }
   }
+
+  "EqualTo validator" should {
+    "successfully validate an equal object" in {
+      val validator = new EqualTo[ String ]( "test" )
+      validator( "test" ) should be( aSuccess )
+    }
+    "render a correct rule violation" in {
+      val validator = new EqualTo[ String ]( "test" )
+      validator( "invalid" ) should failWith( testContext -> "does not equal test" )
+    }
+  }
+
+
+  "NotEqualTo validator" should {
+    "successfully validate an unequal object" in {
+      val validator = new NotEqualTo[ String ]( "test" )
+      validator( "other" ) should be( aSuccess )
+    }
+    "render a correct rule violation" in {
+      val validator = new NotEqualTo[ String ]( "test" )
+      validator( "test" ) should failWith( testContext -> "equals test" )
+    }
+  }
+
+  "IsNull validator" should {
+    "successfully validate a null of an arbitrary type" in {
+      val validator = new IsNull
+      validator( null ) should be( aSuccess )
+    }
+    "render a correct rule violation" in {
+      val validator = new IsNull
+      validator( "test" ) should failWith( testContext -> "is not a null" )
+    }
+  }
+
+  "IsNotNull validator" should {
+    "successfully validate an instance of an arbitrary type" in {
+      val validator = new IsNotNull
+      validator( "test" ) should be( aSuccess )
+    }
+    "render a correct rule violation" in {
+      val validator = new IsNotNull
+      validator( null ) should failWith( testContext -> "is a null" )
+    }
+  }
 }

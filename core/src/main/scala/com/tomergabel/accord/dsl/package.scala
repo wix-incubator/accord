@@ -198,6 +198,14 @@ package object dsl {
     * for a full explanation of the difference between partial and full matching.
     */
   def fullyMatches( regex: String ): Validator[ String ] = fullyMatches( regex.r.pattern )
+  
+  def aNull: Validator[ AnyRef ] = new IsNull
+  
+  def notNull: Validator[ AnyRef ] = new IsNotNull
+  
+  def equalTo[ T ]( to: T ): Validator[ T ] = new EqualTo[ T ]( to )
+  
+  def notEqualTo[ T ]( to: T ): Validator[ T ] = new NotEqualTo[ T ]( to )
 
   /** A proxy for ordering ops. Enables syntax such as `p.age should be > 5`. */
   val be = new OrderingOps

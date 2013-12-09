@@ -60,6 +60,24 @@ trait GeneralPurposeCombinators {
     def apply( x: T ) = Success
   }
 
+  class IsNull extends Validator[ AnyRef ] {
+    def apply( x: AnyRef ) = result( test = x == null, RuleViolation( x, "is not a null", description ) )
+  }
+
+  class IsNotNull extends Validator[ AnyRef ] {
+    def apply( x: AnyRef ) = result( test = x != null, RuleViolation( x, "is a null", description ) )
+  }
+
+  class EqualTo[ T ]( to: T ) extends Validator[ T ] {
+    private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
+    def apply( x: T ) = result( test = safeEq( x, to ), RuleViolation( x, s"does not equal $to", description ) )
+  }
+
+  class NotEqualTo[ T ]( to: T ) extends Validator[ T ] {
+    private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
+    def apply( x: T ) = result( test = !safeEq( x, to ), RuleViolation( x, s"equals $to", description ) )
+  }
+
   /** A validator which merely delegates to another, implicitly available validator. This is necessary for the
     * description generation to work correctly, e.g. in the case where:
     *
