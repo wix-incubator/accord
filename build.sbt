@@ -31,7 +31,13 @@ pomExtra in ThisBuild :=
     </developer>
   </developers>
 
-scalacOptions in ThisBuild ++= Seq( "-feature", "-language:reflectiveCalls" )
+scalacOptions in ThisBuild ++= Seq(
+  "-language:reflectiveCalls",
+  "-feature",
+  "-deprecation",
+  "-unchecked",
+  "-Xfatal-warnings"
+)
 
 lazy val api = project in file( "api" )
 

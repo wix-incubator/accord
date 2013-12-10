@@ -93,14 +93,14 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
       val rv: RuleViolationMatcher = "description" -> "constraint"
       rv.description shouldEqual "description"
       rv.constraint shouldEqual "constraint"
-      rv.value should be === null
+      rv.value should ===( null )
     }
 
     "generate a correct group violation via group()" in {
       val gv = group( "description", "constraint", "description" -> "constraint" )
       gv.description shouldEqual "description"
       gv.constraint shouldEqual "constraint"
-      gv.value should be === null
+      gv.value should ===( null )
       gv.violations should contain only RuleViolationMatcher( description = "description", constraint = "constraint" )
     }
   }
