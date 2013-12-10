@@ -1,4 +1,4 @@
-organization in ThisBuild := "com.tomergabel"
+organization in ThisBuild := "com.wix"
 
 version in ThisBuild := "0.1-SNAPSHOT"
 
@@ -14,15 +14,11 @@ publishTo in ThisBuild := {
 
 publishMavenStyle in ThisBuild := true
 
+licenses in ThisBuild := Seq( "Apache 2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) )
+
+homepage := Some( url( "https://github.com/holograph/accord" ) )
+
 pomExtra in ThisBuild :=
-  <url>https://github.com/holograph/accord</url>
-  <licenses>
-    <license>
-      <name>Apache</name>
-      <url>http://www.opensource.org/licenses/Apache-2.0</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
   <scm>
     <url>git@github.com:holograph/accord.git</url>
     <connection>scm:git@github.com:holograph/accord.git</connection>

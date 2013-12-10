@@ -18,7 +18,7 @@ Example
 Importing the library for use:
 
 ```scala
-import com.tomergabel.accord._
+import com.wix.accord._
 ```
 
 Defining a validator:
@@ -49,25 +49,25 @@ scala> val validPerson = Person( "Wernher", "von Braun" )
 validPerson: Person = Person(Wernher,von Braun)
 
 scala> validate( validPerson )
-res0: com.tomergabel.accord.Result = Success
+res0: com.wix.accord.Result = Success
 
 scala> val invalidPerson = Person( "", "No First Name" )
 invalidPerson: Person = Person(,No First Name)
 
 scala> validate( invalidPerson )
-res1: com.tomergabel.accord.Result = Failure(List(RuleViolation(,must not be empty,firstName)))
+res1: com.wix.accord.Result = Failure(List(RuleViolation(,must not be empty,firstName)))
 
 scala> val explicitDescription = Person( "No Last Name", "" )
 explicitDescription: Person = Person(No Last Name,)
 
 scala> validate( explicitDescription )
-res2: com.tomergabel.accord.Result = Failure(List(RuleViolation(,must not be empty,last name)))
+res2: com.wix.accord.Result = Failure(List(RuleViolation(,must not be empty,last name)))
 
 scala> val invalidClassroom = Classroom( Person( "Alfred", "Aho" ), Seq.empty )
 invalidClassroom: Classroom = Classroom(Person(Alfred,Aho),List())
 
 scala> validate( invalidClassroom )
-res3: com.tomergabel.accord.Result = Failure(List(RuleViolation(List(),has size 0, expected more than 0,students)))
+res3: com.wix.accord.Result = Failure(List(RuleViolation(List(),has size 0, expected more than 0,students)))
 ```
 
 Getting Started
@@ -83,7 +83,7 @@ To use Accord, add the Sonatype snapshot repository to your resolvers and add th
 ```scala
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
-libraryDependencies += "com.tomergabel" %% "accord" % "0.1-SNAPSHOT"
+libraryDependencies += "com.wix" %% "accord" % "0.1-SNAPSHOT"
 
 scalaVersion := "2.10.3"
 ```
@@ -106,7 +106,7 @@ To use Accord, add the Sonatype snapshot repository and a dependency on Accord t
 
 <dependencies>
   <dependency>
-    <groupId>com.tomergabel</groupId>
+    <groupId>com.wix</groupId>
     <artifactId>accord_${scala.tools.version}</artifactId>
     <version>0.1-SNAPSHOT</version>
   </dependency>
