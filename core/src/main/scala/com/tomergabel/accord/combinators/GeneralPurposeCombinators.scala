@@ -60,19 +60,25 @@ trait GeneralPurposeCombinators {
     def apply( x: T ) = Success
   }
 
+  /** A validator that succeeds only if the provided object is `null`. */
   class IsNull extends Validator[ AnyRef ] {
     def apply( x: AnyRef ) = result( test = x == null, RuleViolation( x, "is not a null", description ) )
   }
 
+  /** A validator that succeeds only if the provided object is not `null`. */
   class IsNotNull extends Validator[ AnyRef ] {
     def apply( x: AnyRef ) = result( test = x != null, RuleViolation( x, "is a null", description ) )
   }
 
+  /** A validator that succeeds only if the validated object is equal to the specified value. Respects nulls
+    * and delegates equality checks to [[java.lang.Object.equals]]. */
   class EqualTo[ T ]( to: T ) extends Validator[ T ] {
     private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
     def apply( x: T ) = result( test = safeEq( x, to ), RuleViolation( x, s"does not equal $to", description ) )
   }
 
+  /** A validator that succeeds only if the validated object is not equal to the specified value. Respects nulls
+    * and delegates equality checks to [[java.lang.Object.equals]]. */
   class NotEqualTo[ T ]( to: T ) extends Validator[ T ] {
     private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
     def apply( x: T ) = result( test = !safeEq( x, to ), RuleViolation( x, s"equals $to", description ) )

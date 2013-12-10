@@ -198,13 +198,21 @@ package object dsl {
     * for a full explanation of the difference between partial and full matching.
     */
   def fullyMatches( regex: String ): Validator[ String ] = fullyMatches( regex.r.pattern )
-  
+
+  /** Specifies a validator that succeeds only if the validation expression is null. */
   def aNull: Validator[ AnyRef ] = new IsNull
-  
+
+  /** Specifies a validator that succeeds only if the validation expression is not null. */
   def notNull: Validator[ AnyRef ] = new IsNotNull
-  
+
+  /** Specifies a validator that succeeds only if the validation expression is equal to the specified value. Respects
+    * nulls an performs equality checks via [[java.lang.Object.equals]].
+    */
   def equalTo[ T ]( to: T ): Validator[ T ] = new EqualTo[ T ]( to )
-  
+
+  /** Specifies a validator that succeeds only if the validation expression is not equal to the specified value.
+    * Respects nulls an performs equality checks via [[java.lang.Object.equals]].
+    */
   def notEqualTo[ T ]( to: T ): Validator[ T ] = new NotEqualTo[ T ]( to )
 
   /** A proxy for ordering ops. Enables syntax such as `p.age should be > 5`. */
