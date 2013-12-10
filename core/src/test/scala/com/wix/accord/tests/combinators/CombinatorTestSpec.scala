@@ -1,5 +1,5 @@
 /*
-  Copyright 2013 Tomer Gabel
+  Copyright 2013 Wix.com
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
