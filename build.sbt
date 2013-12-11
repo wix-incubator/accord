@@ -16,12 +16,12 @@ publishMavenStyle in ThisBuild := true
 
 licenses in ThisBuild := Seq( "Apache 2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) )
 
-homepage := Some( url( "https://github.com/holograph/accord" ) )
+homepage := Some( url( "https://github.com/wix/accord" ) )
 
 pomExtra in ThisBuild :=
   <scm>
-    <url>git@github.com:holograph/accord.git</url>
-    <connection>scm:git@github.com:holograph/accord.git</connection>
+    <url>git@github.com:wix/accord.git</url>
+    <connection>scm:git@github.com:wix/accord.git</connection>
   </scm>
   <developers>
     <developer>
