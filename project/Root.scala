@@ -1,11 +1,11 @@
 import sbt._
 import Keys._
+import sbtrelease.ReleasePlugin._
 
 object Root extends Build {
 
-  lazy val baseSettings = Project.defaultSettings ++ Seq(
+  lazy val baseSettings = Project.defaultSettings ++ releaseSettings ++ Seq(
     organization := "com.wix",
-    version := "0.1-SNAPSHOT",
     scalaVersion := "2.10.3",
     publishTo  := {
       val nexus = "https://oss.sonatype.org/"
