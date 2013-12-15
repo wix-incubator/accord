@@ -81,7 +81,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
   if ( prototype.size != 1 )
     abort( prototype.tail.head.pos, "Only single-parameter validators are supported!" )
 
-  private case class Subvalidator( description: Tree, extractor: Tree, validation: Tree, ouvtpe: Type )
+  private case class Subvalidator( description: Tree, ouv: Tree, validation: Tree )
 
   private val validatorType = typeOf[ Validator[_] ]
 
@@ -149,7 +149,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
               |  svraw=${showRaw(sv)}
               |  desc=$desc
               |""".stripMargin, ouv.pos )
-        Some( Subvalidator( desc, extractor, sv, ouvtpe ) )
+        Some( Subvalidator( desc, extractor, sv ) )
 
       case _ => None
     }
@@ -189,7 +189,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
     // Define the apply() function body (recall that we're in practice implementing Function1[ T, Result ])
     val applydef = {
-      val Function( _, extractorImpl ) = sv.extractor   // TODO extractor as a function probably unnecessary. Clean up
+      val Function( _, extractorImpl ) = sv.ouv   // TODO extractor as a function probably unnecessary. Clean up
       val svdef = ValDef( NoMods, newTermName( "sv" ), TypeTree(), sv.validation )
       val applysel = Apply( Ident( svdef.name ), extractorImpl :: Nil )
 
@@ -224,7 +224,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     // Report and return the rewritten validator
     log( s"""|Subvalidator:
              |  Description: ${sv.description}
-             |  Extractor  : ${sv.extractor}
+             |  Extractor  : ${sv.ouv}
              |  Validation : ${sv.validation}
              |
              |Rewritten as:
