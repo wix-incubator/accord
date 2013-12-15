@@ -49,27 +49,6 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     context.resetAllAttrs( transformed )
   }
 
-  def defaultCtor( argsToSuper: List[ Tree ] = Nil ) = {
-    DefDef(
-      mods     = NoMods,
-      name     = nme.CONSTRUCTOR,
-      tparams  = Nil,
-      vparamss = List( List.empty ),
-      tpt      = TypeTree(),
-      rhs      = Block(
-        Apply( Select( Super( This( tpnme.EMPTY ), tpnme.EMPTY ), nme.CONSTRUCTOR ), argsToSuper ) :: Nil,
-        Literal( Constant( () ) ) )
-    )
-  }
-
-  implicit class ListOfExprConversions[ E : WeakTypeTag ]( seq: List[ Expr[ E ] ] ) {
-    def consolidate: Expr[ Seq[ E ] ] =
-      context.Expr[ Seq[ E ] ](
-        Apply( Select( Ident( newTermName( "Seq" ) ), newTermName( "apply" ) ),
-        seq map { _.tree } )
-      )
-  }
-
   private val verboseValidatorRewrite = context.settings.contains( "verboseValidationTransform" )
   def log( s: String, pos: Position = context.enclosingPosition ) =
     if ( verboseValidatorRewrite ) info( pos, s, force = false )
@@ -96,6 +75,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     def unapply( ouv: Tree ): Option[ Tree ] = ouv match {
       case Apply( Select( Apply( TypeApply( Select( _, `descriptorTerm` ), _ ), _ ), `asTerm` ), literal :: Nil ) =>
         Some( literal )
+//      case q"dsl.Descriptor( $body ).as( $literal )" => Some( literal )
       case _ => None
     }
   }
@@ -135,7 +115,6 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     def unapply( expr: Tree ): Option[ Subvalidator ] = expr match {
       case t if t.tpe <:< validatorType =>
         val ( ouv, ouvtpe ) = extractObjectUnderValidation( expr )
-        val extractor = Function( prototype, ouv )
         val sv = rewriteContextExpressionAsValidator( expr, ouv )
         val desc = renderDescriptionTree( ouv )
         log( s"""
@@ -143,13 +122,11 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
               |  ouv=$ouv
               |  ouvraw=${showRaw(ouv)}
               |  ouvtpe=$ouvtpe
-              |  extractor=${show(extractor)}
-              |  extractorraw=${showRaw(extractor)}
               |  sv=${show(sv)}
               |  svraw=${showRaw(sv)}
               |  desc=$desc
               |""".stripMargin, ouv.pos )
-        Some( Subvalidator( desc, extractor, sv ) )
+        Some( Subvalidator( desc, ouv, sv ) )
 
       case _ => None
     }
@@ -174,13 +151,13 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
   private def rewriteOne( sv: Subvalidator ): Tree = {
     val rewrite =
       q"""
-          new Validator[ ${weakTypeOf[ T ] } ] {
+          new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
             def apply( ..$prototype ) = {
               val sv = ${sv.validation}
               sv( ${sv.ouv} ) match {
-                case Success => Success
-                case f @ Failure( violations ) =>
-                  Failure( violations map { f => f withDescription ${sv.description} } )
+                case com.wix.accord.Success => com.wix.accord.Success
+                case f @ com.wix.accord.Failure( violations ) =>
+                  com.wix.accord.Failure( violations map { f => f withDescription ${sv.description} } )
               }
             }
           }
@@ -205,7 +182,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
   def transformed: Expr[ Validator[ T ] ] = {
     // Rewrite all validators
     val subvalidators = findSubvalidators( vimpl ) map rewriteOne
-    val result = context.Expr[ Validator[ T ] ]( q"new combinators.And( ..$subvalidators )" )
+    val result = context.Expr[ Validator[ T ] ]( q"new com.wix.accord.combinators.And( ..$subvalidators )" )
 
     log( s"""|Result of validation transform:
              |  Clean: ${show( result )}
