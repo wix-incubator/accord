@@ -1,0 +1,9 @@
+Version 0.1 is the first public milestone release of Accord. It includes:
+
+* A reasonably complete complete validator library and DSL;
+* [Specs²](http://etorreborre.github.io/specs2/) validation result matchers;
+* [ScalaTest](http://www.scalatest.org/) validation result matchers;
+* Integration with [Spring Validation](http://docs.spring.io/spring/docs/current/spring-framework-reference/html/validation.html).
+
+Feedback, bug reports and improvements are welcome!
+
