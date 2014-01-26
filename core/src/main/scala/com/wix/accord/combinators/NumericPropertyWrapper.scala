@@ -95,33 +95,53 @@ abstract class NumericPropertyWrapper[ T, P, Repr ]( extractor: Repr => P, snipp
   * Implementation note: All methods here should only require [[scala.math.PartialOrdering]], but then the default
   * implicits are defined in the Ordering companion and would therefore not be imported by default at the call site.
   *
-  * @param snippet A prefix for violation messages, e.g. "got 5, expected more than 10" ("got" is the default).
+//  * @param snippet A prefix for violation messages, e.g. "got 5, expected more than 10" ("got" is the default).
   */
-class OrderingOps( snippet: String = "got" ) {
-  /** Generates a validator that succeeds only if the property value is greater than the specified bound. */
+trait OrderingOps {
+  protected def snippet: String = "got"
+
+  /** Generates a validator that succeeds only if the provided value is greater than the specified bound. */
   def >[ T ]( other: T )( implicit ev: Ordering[ T ] ) = new Validator[ T ] {
     def apply( x: T ) =
       result( ev.gt( x, other ), RuleViolation( x, s"$snippet $x, expected more than $other", description ) )
   }
-  /** Generates a validator that succeeds only if the property value is less than the specified bound. */
+  /** Generates a validator that succeeds only if the provided value is less than the specified bound. */
   def <[ T ]( other: T )( implicit ev: Ordering[ T ] ) = new Validator[ T ] {
     def apply( x: T ) =
       result( ev.lt( x, other ), RuleViolation( x, s"$snippet $x, expected less than $other", description ) )
   }
-  /** Generates a validator that succeeds if the property value is greater than or equal to the specified bound. */
+  /** Generates a validator that succeeds if the provided value is greater than or equal to the specified bound. */
   def >=[ T ]( other: T )( implicit ev: Ordering[ T ] ) = new Validator[ T ] {
     def apply( x: T ) =
       result( ev.gteq( x, other ), RuleViolation( x, s"$snippet $x, expected $other or more", description ) )
   }
-  /** Generates a validator that succeeds if the property value is less than or equal to the specified bound. */
+  /** Generates a validator that succeeds if the provided value is less than or equal to the specified bound. */
   def <=[ T ]( other: T )( implicit ev: Ordering[ T ] ) = new Validator[ T ] {
     def apply( x: T ) =
       result( ev.lteq( x, other ), RuleViolation( x, s"$snippet $x, expected $other or less", description ) )
   }
 
-  /** Generates a validator that succeeds if the property value is exactly equal to the specified value. */
+  /** Generates a validator that succeeds if the provided value is exactly equal to the specified value. */
   def ==[ T ]( other: T )( implicit ev: Ordering[ T ] ) = new Validator[ T ] {
     def apply( x: T ) =
       result( ev.equiv( x, other ), RuleViolation( x, s"$snippet $x, expected $other", description ) )
+  }
+
+  /** Generates a validator that succeeds if the provided value is between (inclusive) the specified bounds.
+    * The method `exclusive` is provided to specify an exclusive upper bound.
+    */
+  def between[ T : Ordering ]( lowerBound: T, upperBound: T ) = new Between[ T ]( lowerBound, upperBound )
+
+  class Between[ T ]( lowerBound: T, upperBound: T )( implicit ev: Ordering[ T ] ) extends Validator[ T ]{
+    def apply( x: T ) =
+      result( ev.gteq( x, lowerBound ) && ev.lteq( x, upperBound ),
+        RuleViolation( x, s"$snippet $x, expected between $lowerBound and $upperBound", description ) )
+
+    /** Returns a new validator with an exclusive upper bound. */
+    def exclusive = new Validator[ T ] {
+      def apply( x: T ) =
+        result( ev.gteq( x, lowerBound ) && ev.lt( x, upperBound ),
+          RuleViolation( x, s"$snippet $x, expected between $lowerBound and (exclusive) $upperBound", description ) )
+    }
   }
 }

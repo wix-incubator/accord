@@ -28,7 +28,7 @@ class OrderingOpsSpec extends CombinatorTestSpec with Matchers {
   }
 
   "Base OrderingOps" should {
-    val ops = new OrderingOps
+    val ops = new OrderingOps {}
 
     "successfully validate a greater-than rule" in {
       val left = Test( 10 )
@@ -80,10 +80,30 @@ class OrderingOpsSpec extends CombinatorTestSpec with Matchers {
       val validator = ops.==( Test( 5 ) )
       validator( left ) should failWith( testContext -> "got Test(10), expected Test(5)" )
     }
+    "successfully validate a between rule" in {
+      val left = Test( 10 )
+      val validator = ops between( Test( 5 ), Test( 10 ) )
+      validator( left ) should be( aSuccess )
+    }
+    "render a correct between rule violation" in {
+      val left = Test( 1 )
+      val validator = ops between( Test( 5 ), Test( 10 ) )
+      validator( left ) should failWith( testContext -> "got Test(1), expected between Test(5) and Test(10)" )
+    }
+    "successfully validate an exclusive between rule" in {
+      val left = Test( 5 )
+      val validator = ops.between( Test( 5 ), Test( 10 ) ).exclusive
+      validator( left ) should be( aSuccess )
+    }
+    "render a correct exclusive between rule violation" in {
+      val left = Test( 10 )
+      val validator = ops.between( Test( 5 ), Test( 10 ) ).exclusive
+      validator( left ) should failWith( testContext -> "got Test(10), expected between Test(5) and (exclusive) Test(10)" )
+    }
   }
   
   "OrderingOps with specific snippet" should {
-    val ops = new OrderingOps( "has value" )
+    val ops = new OrderingOps { override def snippet = "has value" }
 
     "render a correctly modified rule violation" in {
       val left = Test( 0 )

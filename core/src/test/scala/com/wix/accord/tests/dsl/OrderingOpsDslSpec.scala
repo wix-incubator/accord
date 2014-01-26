@@ -24,7 +24,10 @@ object OrderingOpsDslSpec {
   import dsl._
 
   case class IntTest( i: Int )
-  implicit val intTestValidator = validator[ IntTest ] { _.i should be > 0 }
+  implicit val intTestValidator = validator[ IntTest ] {
+    _.i should be > 0
+
+  }
 
   case class FloatTest( f: Float )
   implicit val floatTestValidator = validator[ FloatTest ] { _.f should be > 0.0f }
@@ -44,6 +47,15 @@ object OrderingOpsDslSpec {
   }
   case class OrderedTest( o: OrderedThing )
   implicit val orderedTestValidator = validator[ OrderedTest ] { _.o should be > OrderedThing( 0 ) }
+
+  val b: BetweenBounds[ Int ] = 5 and 10
+  val v = dsl.between(b)(implicitly[Ordering[Int]])
+
+  case class BetweenTest( i: Int, e: Int )
+  implicit val betweenTestValidator = validator[ BetweenTest ] { bt =>
+    bt.i is v
+//    bt.e should be between( 5 and 10 ) exclusive
+  }
 }
 
 import OrderingOpsDslSpec._
@@ -83,6 +95,12 @@ class OrderingOpsDslSpec extends WordSpec with Matchers with ResultMatchers {
     "correctly evaluate a rule on an arbitrary class with Ordering" in {
       validate( OrderedTest( OrderedThing( 5 ) ) ) should be( aSuccess )
       validate( OrderedTest( OrderedThing( 0 ) ) ) should be( aFailure )
+    }
+  }
+
+  "Between DSL extensions for OrderingOps" should {
+    "correctly evaluate an inclusive rule" in {
+
     }
   }
 }
