@@ -36,7 +36,7 @@ package object accord {
   @implicitNotFound( "A validator for type ${T} not found. Did you forget to import an implicit validator for " +
                      "this type? (alternatively, if you own the code, you may want to move the validator to " +
                      "the companion object for ${T} so it's automatically imported)." )
-  trait Validator[ T ] extends ( T => Result ) {
+  trait Validator[ -T ] extends ( T => Result ) {
     /** Provides a textual description of the expression being evaluated. For example, a validation rule like
       * `p.firstName is notEmpty` might have the context `firstName`. The initial value is a stub and is later
       * rewritten by the validation transform.

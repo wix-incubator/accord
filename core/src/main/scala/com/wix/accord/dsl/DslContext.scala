@@ -21,20 +21,25 @@ import com.wix.accord.{Success, Result, Validator}
 
 trait DslContext[ U ]
 
-trait BaseDslVerbs[ U ] {
-  def is( validator: Validator[ _ >: U ] ) = validator
-  def has( validator: Validator[ _ >: U ] ) = validator
-  def have( validator: Validator[ _ >: U ] ) = validator
-  def should( validator: Validator[ _ >: U ] ) = validator
-  def must( validator: Validator[ _ >: U ] ) = validator
+trait BaseDslVerbs[ U, V ] {
+  protected def transform: Validator[ U ] => Validator[ V ]
+  def is( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
+  def has( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
+  def have( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
+  def should( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
+  def must( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
+}
+
+trait DelegatedDslVerbs[ U ] extends BaseDslVerbs[ U, U ] {
+  override def transform = identity
 }
 
 private object Aggregates {
   private def aggregate[ U, E ]( validator: Validator[ E ], aggregator: Traversable[ Result ] => Result )
-                               ( implicit ev: U <:< Traversable[ E ] ) =
+                               ( implicit ev: U => Traversable[ E ] ) =
     new Validator[ U ] { def apply( col: U ) = aggregator( col map validator ) }
 
-  def all[ U, E ]( validator: Validator[ E ] )( implicit ev: U <:< Traversable[ E ] ): Validator[ U ] =
+  def all[ U, E ]( validator: Validator[ E ] )( implicit ev: U => Traversable[ E ] ): Validator[ U ] =
     aggregate( validator, r => ( r fold Success )( _ and _ ) )
 }
 
@@ -48,8 +53,8 @@ trait CollectionContext[ U ] {
     * @tparam E The element type of the specified collection.
     * @return Additional syntax (see implementation).
     */
-  def each[ E ]( implicit ev: U <:< Traversable[ E ] ) = new {
-    def is( validator: Validator[ _ >: E ] ): Validator[ U ] = Aggregates.all( validator )
+  def each[ E ]( implicit ev: U => Traversable[ E ] ) = new BaseDslVerbs[ E, U ] {
+    protected override def transform = Aggregates.all[ U, E ]
   }
 }
 

@@ -21,7 +21,7 @@ import com.wix.accord.scalatest.ResultMatchers
 
 class CompilationSanityTests extends FlatSpec with Matchers with ResultMatchers {
 
-  "Validation" should "be covariant" in {
+  "Validation" should "be contravariant" in {
     val validator = {
       import com.wix.accord.dsl._
       "test" is notNull
