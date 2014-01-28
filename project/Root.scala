@@ -37,7 +37,9 @@ object Root extends Build {
       "-unchecked",
       "-Xfatal-warnings"
     ),
-    scalacOptions in ( Compile, doc ) := Seq.empty
+    // Warnings aren't considered fatal on document generation. There's probably a cleaner way to do this
+    scalacOptions in ( Compile, doc ) :=
+      ( scalacOptions in ( Compile, compile ) ).value filterNot { _ == "-Xfatal-warnings" }
   )
 
   lazy val noPublish = Seq( publish := {}, publishLocal := {}, publishArtifact := false )
