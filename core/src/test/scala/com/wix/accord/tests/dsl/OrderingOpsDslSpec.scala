@@ -45,18 +45,19 @@ object OrderingOpsDslSpec {
   case class OrderedTest( o: OrderedThing )
   implicit val orderedTestValidator = validator[ OrderedTest ] { _.o should be > OrderedThing( 0 ) }
 
-  case class BetweenTest( i: Int )
-  implicit val betweenTestValidator = validator[ BetweenTest ] { _.i should be.between ( 5 and 10 ) }
+  val betweenInclusiveRule = validator[ Int ] { _ is between( 5, 10 ) }
+  val betweenExclusiveRule = validator[ Int ] { _ is between( 5, 10 ).exclusive }
+  val withinInclusiveRangeRule = validator[ Int ] { _ is within( 5 to 10 ) }
+  val withinExclusiveRangeRule = validator[ Int ] { _ is within( 5 until 10 ) }
 }
 
 import OrderingOpsDslSpec._
 class OrderingOpsDslSpec extends WordSpec with Matchers with ResultMatchers {
 
   "OrderingOps as exposed by dsl" should {
-
     // The following are all just sanity checks (the real tests are in tests.combinators.OrderingOpsSpec);
     // the primary purpose of this spec is to ensure that a call site with ordering-oriented DSL calls compiles
-    // correctly.
+    // and executes correctly.
 
     "correctly evaluate an int-based rule" in {
       validate( IntTest( 5 ) ) should be( aSuccess )
@@ -89,9 +90,22 @@ class OrderingOpsDslSpec extends WordSpec with Matchers with ResultMatchers {
     }
   }
 
-  "Between DSL extensions for OrderingOps" should {
+  "OrderingOps between combinator extensions" should {
     "correctly evaluate an inclusive rule" in {
-
+      validate( 10 )( betweenInclusiveRule ) should be( aSuccess )
+      validate( 0 )( betweenInclusiveRule ) should be( aFailure )
+    }
+    "correctly evaluate an exclusive rule" in {
+      validate( 5 )( betweenExclusiveRule ) should be( aSuccess )
+      validate( 10 )( betweenExclusiveRule ) should be( aFailure )
+    }
+    "correctly evaluate an inclusive range rule" in {
+      validate( 10 )( withinInclusiveRangeRule ) should be( aSuccess )
+      validate( 0 )( withinInclusiveRangeRule ) should be( aFailure )
+    }
+    "correctly evaluate an exculsive range rule" in {
+      validate( 5 )( withinExclusiveRangeRule ) should be( aSuccess )
+      validate( 10 )( withinExclusiveRangeRule ) should be( aFailure )
     }
   }
 }

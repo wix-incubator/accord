@@ -98,12 +98,5 @@ package object dsl extends StringOps with CollectionOps with GenericOps with Ord
   }
 
   /** A proxy for ordering ops. Enables syntax such as `p.age should be > 5`. */
-  val be = new OrderingOps {}
-
-//  val is = new OrderingOps {
-//    def apply[ T ]( validator: Validator[ T ] ) = validator
-//  }
-
-
-
+  val be: OrderingOps = this
 }

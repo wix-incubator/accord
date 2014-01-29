@@ -23,11 +23,11 @@ trait DslContext[ U ]
 
 trait BaseDslVerbs[ U, V ] {
   protected def transform: Validator[ U ] => Validator[ V ]
-  def is( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
-  def has( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
-  def have( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
+  def is    ( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
+  def has   ( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
+  def have  ( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
   def should( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
-  def must( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
+  def must  ( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
 }
 
 trait DelegatedDslVerbs[ U ] extends BaseDslVerbs[ U, U ] {

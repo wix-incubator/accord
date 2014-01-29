@@ -19,6 +19,7 @@ package com.wix.accord.dsl
 
 import com.wix.accord.{RuleViolation, Validator}
 import com.wix.accord.combinators._
+import scala.collection.immutable.NumericRange
 
 /**
  * A useful helper class when validating numerical properties (size, length, arity...). Provides the usual
@@ -95,8 +96,6 @@ abstract class NumericPropertyWrapper[ T, P, Repr ]( extractor: Repr => P, snipp
   *
   * Implementation note: All methods here should only require [[scala.math.PartialOrdering]], but then the default
   * implicits are defined in the Ordering companion and would therefore not be imported by default at the call site.
-  *
-//  * @param snippet A prefix for violation messages, e.g. "got 5, expected more than 10" ("got" is the default).
   */
 trait OrderingOps {
   protected def snippet: String = "got"
@@ -119,13 +118,17 @@ trait OrderingOps {
   /** Generates a validator that succeeds if the provided value is between (inclusive) the specified bounds.
     * The method `exclusive` is provided to specify an exclusive upper bound.
     */
-  def between[ T : Ordering ]( lowerBound: T, upperBound: T ) = new Between( lowerBound, upperBound, snippet )
+  def between[ T : Ordering ]( lowerBound: T, upperBound: T ): Between[ T ] = new Between( lowerBound, upperBound, snippet )
 
-  // TODO clean this shit up
-  implicit class OrderingExtendedForBounds[ T ]( lower: T ) {
-    def and( upper: T )( implicit ev: Ordering[ T ] ) = BetweenBounds( lower, upper )
+  /** Generates a validator that succeeds if the provided value is within the specified range. */
+  def within( range: Range ): Validator[ Int ] = {
+    val v = between( range.start, range.end )
+    if ( range.isInclusive ) v else v.exclusive
   }
-  def between[ T : Ordering ]( bounds: BetweenBounds[ T ] ): Between[ T ] = between( bounds.lower, bounds.upper )
-}
 
-case class BetweenBounds[ T ]( lower: T, upper: T )
+  /** Generates a validator that succeeds if the provided value is within the specified range. */
+  def within[ T : Ordering ]( range: NumericRange[ T ] ): Validator[ T ] = {
+    val v = between( range.start, range.end )
+    if ( range.isInclusive ) v else v.exclusive
+  }
+}
