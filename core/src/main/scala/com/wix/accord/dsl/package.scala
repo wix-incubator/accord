@@ -19,7 +19,7 @@ package com.wix.accord
 import scala.language.implicitConversions
 import scala.language.experimental.macros
 import com.wix.accord.transform.ValidationTransform
-import com.wix.accord.combinators.OrderingOps
+import com.wix.accord.dsl.OrderingOps
 
 /** Provides a DSL for defining validation rules. For example:
   *
@@ -47,7 +47,6 @@ import com.wix.accord.combinators.OrderingOps
   * will generate the violation message "firstName must not be empty" automatically.
   */
 package object dsl extends StringOps with CollectionOps with GenericOps with OrderingOps {
-  import combinators._
 
   /** Takes a code block and rewrites it into a validation chain (see description in [[com.wix.accord.dsl]].
     *
@@ -98,18 +97,13 @@ package object dsl extends StringOps with CollectionOps with GenericOps with Ord
     def as( description: String ) = value
   }
 
-  // between 5 and 10 (exclusive)*
-  case class BetweenBounds[ T ]( lower: T, upper: T )
-  implicit class OrderingExtendedForBounds[ T ]( lower: T ) {
-    def and( upper: T ) = BetweenBounds( lower, upper )
-  }
-
-  def between[ T : Ordering ]( bounds: BetweenBounds[ T ] ): Between[ T ] = between( bounds.lower, bounds.upper )
-
   /** A proxy for ordering ops. Enables syntax such as `p.age should be > 5`. */
   val be = new OrderingOps {}
 
 //  val is = new OrderingOps {
 //    def apply[ T ]( validator: Validator[ T ] ) = validator
 //  }
+
+
+
 }

@@ -21,7 +21,7 @@ import com.wix.accord.Validator
 import com.wix.accord.combinators.HasEmpty
 import com.wix.accord.combinators.Empty
 import com.wix.accord.combinators.NotEmpty
-import com.wix.accord.combinators.Size
+import scala.language.implicitConversions
 
 trait CollectionOps {
   /** Specifies a validator that succeeds on empty instances; the object under validation must implement
@@ -33,6 +33,34 @@ trait CollectionOps {
     * `def isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
     */
   def notEmpty[ T <% HasEmpty ]: Validator[ T ] = new NotEmpty[ T ]
+
+  /** A structural type representing any object that has a size. */
+  type HasSize = { def size: Int }
+
+  /**
+   * An implicit conversion to enable any collection-like object (e.g. strings, options) to be handled by the
+   * [[com.wix.accord.combinators.Size]] combinator.
+   *
+   * [[java.lang.String]] does not directly implement `size` (in practice it is implemented in
+   * [[scala.collection.IndexedSeqOptimized]], via an implicit conversion and an inheritance stack), and this is
+   * a case where the Scala compiler does not always infer structural types correctly. By requiring
+   * a view bound from `T` to [[scala.collection.GenTraversableOnce]] we can force any collection-like structure
+   * to conform to the structural type [[com.wix.accord.combinators.HasSize]], and by requiring
+   * a view bound from `T` to [[com.wix.accord.combinators.HasSize]] at the call site (i.e.
+   * [[com.wix.accord.dsl.size]]) we additionally support any class that directly conforms to the
+   * structural type as well.
+   *
+   * @param gto An object that is, or is implicitly convertible to, [[scala.collection.GenTraversableOnce]].
+   * @tparam T The type that conforms, directly or implicitly, to [[com.wix.accord.combinators.HasSize]].
+   * @return The specified object, strictly-typed as [[com.wix.accord.combinators.HasSize]].
+   */
+  implicit def genericTraversableOnce2HasSize[ T <% scala.collection.GenTraversableOnce[_] ]( gto: T ): HasSize = gto
+
+  /** A wrapper that operates on objects that provide a size, and provides validators based on te size of the
+    * provided instance.
+    * @tparam T A type that implements `size: Int` (see [[com.wix.accord.combinators.HasSize]]).
+    */
+  class Size[ T ] extends NumericPropertyWrapper[ T, Int, HasSize ]( _.size, "has size" )
 
   /** Provides access to size-based validators (where the object under validation must implement
     * `def size: Int`, see [[com.wix.accord.combinators.HasSize]]). Enables syntax such as

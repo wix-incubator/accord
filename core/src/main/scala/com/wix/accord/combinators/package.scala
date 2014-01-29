@@ -24,3 +24,4 @@ package object combinators
   extends GeneralPurposeCombinators
   with CollectionCombinators
   with StringCombinators
+  with OrderingCombinators

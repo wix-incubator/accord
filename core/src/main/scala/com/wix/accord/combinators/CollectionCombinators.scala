@@ -14,7 +14,6 @@
   limitations under the License.
  */
 
-
 package com.wix.accord.combinators
 
 import com.wix.accord.{RuleViolation, Validator}
@@ -63,32 +62,4 @@ trait CollectionCombinators {
   class NotEmpty[ T <% HasEmpty ] extends Validator[ T ] {
     def apply( x: T ) = result( !x.isEmpty, RuleViolation( x, "must not be empty", description ) )
   }
-
-  /** A structural type representing any object that has a size. */
-  type HasSize = { def size: Int }
-
-  /**
-    * An implicit conversion to enable any collection-like object (e.g. strings, options) to be handled by the
-    * [[com.wix.accord.combinators.Size]] combinator.
-    *
-    * [[java.lang.String]] does not directly implement `size` (in practice it is implemented in
-    * [[scala.collection.IndexedSeqOptimized]], via an implicit conversion and an inheritance stack), and this is
-    * a case where the Scala compiler does not always infer structural types correctly. By requiring
-    * a view bound from `T` to [[scala.collection.GenTraversableOnce]] we can force any collection-like structure
-    * to conform to the structural type [[com.wix.accord.combinators.HasSize]], and by requiring
-    * a view bound from `T` to [[com.wix.accord.combinators.HasSize]] at the call site (i.e.
-    * [[com.wix.accord.dsl.size]]) we additionally support any class that directly conforms to the
-    * structural type as well.
-    *
-    * @param gto An object that is, or is implicitly convertible to, [[scala.collection.GenTraversableOnce]].
-    * @tparam T The type that conforms, directly or implicitly, to [[com.wix.accord.combinators.HasSize]].
-    * @return The specified object, strictly-typed as [[com.wix.accord.combinators.HasSize]].
-    */
-  implicit def genericTraversableOnce2HasSize[ T <% scala.collection.GenTraversableOnce[_] ]( gto: T ): HasSize = gto
-
-  /** A wrapper that operates on objects that provide a size, and provides validators based on te size of the
-    * provided instance.
-    * @tparam T A type that implements `size: Int` (see [[com.wix.accord.combinators.HasSize]]).
-    */
-  class Size[ T ] extends NumericPropertyWrapper[ T, Int, HasSize ]( _.size, "has size" )
 }

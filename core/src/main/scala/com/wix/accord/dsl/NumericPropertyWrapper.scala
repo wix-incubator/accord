@@ -15,9 +15,10 @@
  */
 
 
-package com.wix.accord.combinators
+package com.wix.accord.dsl
 
 import com.wix.accord.{RuleViolation, Validator}
+import com.wix.accord.combinators._
 
 /**
  * A useful helper class when validating numerical properties (size, length, arity...). Provides the usual
@@ -36,7 +37,7 @@ import com.wix.accord.{RuleViolation, Validator}
  * until the leaf node of the expression tree (in this case, the method call `> 0`). That means all constraints,
  * view bounds and the like have to exist at the leaf node, or in other words on the method call itself; to
  * generalize this, each arithmetic method requires an implicit `T => Repr` conversion, and because `Repr`
- * is specified by whomever instantiates [[com.wix.accord.combinators.NumericPropertyWrapper]] the
+ * is specified by whomever instantiates [[NumericPropertyWrapper]] the
  * view bound is placed correctly at the call site. (*whew*, hope that made sense)
  *
  * @param extractor A function which extracts the property value from the representation of the object under
@@ -101,47 +102,30 @@ trait OrderingOps {
   protected def snippet: String = "got"
 
   /** Generates a validator that succeeds only if the provided value is greater than the specified bound. */
-  def >[ T ]( other: T )( implicit ev: Ordering[ T ] ) = new Validator[ T ] {
-    def apply( x: T ) =
-      result( ev.gt( x, other ), RuleViolation( x, s"$snippet $x, expected more than $other", description ) )
-  }
+  def >[ T : Ordering ]( other: T ) = new GreaterThan( other, snippet )
+
   /** Generates a validator that succeeds only if the provided value is less than the specified bound. */
-  def <[ T ]( other: T )( implicit ev: Ordering[ T ] ) = new Validator[ T ] {
-    def apply( x: T ) =
-      result( ev.lt( x, other ), RuleViolation( x, s"$snippet $x, expected less than $other", description ) )
-  }
+  def <[ T : Ordering ]( other: T ) = new LesserThan( other, snippet )
+
   /** Generates a validator that succeeds if the provided value is greater than or equal to the specified bound. */
-  def >=[ T ]( other: T )( implicit ev: Ordering[ T ] ) = new Validator[ T ] {
-    def apply( x: T ) =
-      result( ev.gteq( x, other ), RuleViolation( x, s"$snippet $x, expected $other or more", description ) )
-  }
+  def >=[ T : Ordering ]( other: T ) = new GreaterThanOrEqual( other, snippet )
+
   /** Generates a validator that succeeds if the provided value is less than or equal to the specified bound. */
-  def <=[ T ]( other: T )( implicit ev: Ordering[ T ] ) = new Validator[ T ] {
-    def apply( x: T ) =
-      result( ev.lteq( x, other ), RuleViolation( x, s"$snippet $x, expected $other or less", description ) )
-  }
+  def <=[ T : Ordering ]( other: T ) = new LesserThanOrEqual( other, snippet )
 
   /** Generates a validator that succeeds if the provided value is exactly equal to the specified value. */
-  def ==[ T ]( other: T )( implicit ev: Ordering[ T ] ) = new Validator[ T ] {
-    def apply( x: T ) =
-      result( ev.equiv( x, other ), RuleViolation( x, s"$snippet $x, expected $other", description ) )
-  }
+  def ==[ T : Ordering ]( other: T ) = new EqualTo( other, snippet )
 
   /** Generates a validator that succeeds if the provided value is between (inclusive) the specified bounds.
     * The method `exclusive` is provided to specify an exclusive upper bound.
     */
-  def between[ T : Ordering ]( lowerBound: T, upperBound: T ) = new Between[ T ]( lowerBound, upperBound )
+  def between[ T : Ordering ]( lowerBound: T, upperBound: T ) = new Between( lowerBound, upperBound, snippet )
 
-  class Between[ T ]( lowerBound: T, upperBound: T )( implicit ev: Ordering[ T ] ) extends Validator[ T ]{
-    def apply( x: T ) =
-      result( ev.gteq( x, lowerBound ) && ev.lteq( x, upperBound ),
-        RuleViolation( x, s"$snippet $x, expected between $lowerBound and $upperBound", description ) )
-
-    /** Returns a new validator with an exclusive upper bound. */
-    def exclusive = new Validator[ T ] {
-      def apply( x: T ) =
-        result( ev.gteq( x, lowerBound ) && ev.lt( x, upperBound ),
-          RuleViolation( x, s"$snippet $x, expected between $lowerBound and (exclusive) $upperBound", description ) )
-    }
+  // TODO clean this shit up
+  implicit class OrderingExtendedForBounds[ T ]( lower: T ) {
+    def and( upper: T )( implicit ev: Ordering[ T ] ) = BetweenBounds( lower, upper )
   }
+  def between[ T : Ordering ]( bounds: BetweenBounds[ T ] ): Between[ T ] = between( bounds.lower, bounds.upper )
 }
+
+case class BetweenBounds[ T ]( lower: T, upper: T )

@@ -21,44 +21,45 @@ import com.wix.accord.combinators._
 class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
 
   "And combinator with a two-clause rule" should {
-    val clause1 = new Size[ String ] >= 4
-    val clause2 = new StartsWith( "ok" )
+    val clause1 = new StartsWith( "ok" )
+    val clause2 = new EndsWith( "ay" )
     val validator = new And[ String ]( clause1, clause2 )
 
     "successfully validate a object that satisfies both clauses" in {
       validator( "okay" ) should be( aSuccess )
     }
     "render a correct rule violation when the first clause is not satisfied" in {
-      validator( "ok" ) should failWith( testContext -> "has size 2, expected 4 or more" )
+      validator( "ok" ) should failWith( testContext -> "must end with 'ay'" )
     }
     "render a correct rule violation when the second clause is not satisfied" in {
-      validator( "no such luck" ) should failWith( testContext -> "must start with 'ok'" )
+      validator( "gray" ) should failWith( testContext -> "must start with 'ok'" )
     }
     "render a correct rule violation when both clauses are not satisfied" in {
       validator( "no" ) should failWith(
-        testContext -> "has size 2, expected 4 or more",
-        testContext -> "must start with 'ok'" )
+        testContext -> "must start with 'ok'",
+        testContext -> "must end with 'ay'"
+      )
     }
   }
 
   "Or combinator with a two-clause rule" should {
-    val clause1 = new Size[ String ] >= 4
-    val clause2 = new StartsWith( "ok" )
+    val clause1 = new StartsWith( "ok" )
+    val clause2 = new EndsWith( "ay" )
     val validator = new Or[ String ]( clause1, clause2 )
 
     "successfully validate a object that satisfies both clauses" in {
       validator( "okay" ) should be( aSuccess )
     }
     "successfully validate an object that only satisfies the first clause" in {
-      validator( "dokey" ) should be( aSuccess )
+      validator( "okapi" ) should be( aSuccess )
     }
     "successfully validate an object that only satisfies the second clause" in {
-      validator( "ok" ) should be( aSuccess )
+      validator( "gray" ) should be( aSuccess )
     }
     "render a correct rule violation when both clauses are not satisfied" in {
       validator( "no" ) should failWith( group( testContext, "doesn't meet any of the requirements",
-        testContext -> "has size 2, expected 4 or more",
-        testContext -> "must start with 'ok'"
+        testContext -> "must start with 'ok'",
+        testContext -> "must end with 'ay'"
       ) )
     }
   }
