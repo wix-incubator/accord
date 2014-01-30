@@ -24,10 +24,9 @@ trait DslContext[ U ]
 trait BaseDslVerbs[ U, V ] {
   protected def transform: Validator[ U ] => Validator[ V ]
   def is    ( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
-  def has   ( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
-  def have  ( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
   def should( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
   def must  ( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
+
 }
 
 trait DelegatedDslVerbs[ U ] extends BaseDslVerbs[ U, U ] {
@@ -43,6 +42,9 @@ private object Aggregates {
     aggregate( validator, r => ( r fold Success )( _ and _ ) )
 }
 
+trait SizeContext[ U ] {
+  def apply( validator: Validator[ Int ] )( implicit ev: U => HasSize ) = validator compose { u: U => u.size }
+}
 
 trait CollectionContext[ U ] {
   self: DslContext[ U ] =>
@@ -56,5 +58,7 @@ trait CollectionContext[ U ] {
   def each[ E ]( implicit ev: U => Traversable[ E ] ) = new BaseDslVerbs[ E, U ] {
     protected override def transform = Aggregates.all[ U, E ]
   }
-}
 
+  def has = new SizeContext[ U ] {}
+  def have = new SizeContext[ U ] {}
+}

@@ -55,15 +55,10 @@ trait CollectionOps {
    */
   implicit def genericTraversableOnce2HasSize[ T <% scala.collection.GenTraversableOnce[_] ]( gto: T ): HasSize = gto
 
-  /** A wrapper that operates on objects that provide a size, and provides validators based on te size of the
-    * provided instance.
-    * @tparam T A type that implements `size: Int` (see [[com.wix.accord.combinators.HasSize]]).
-    */
-  class Size[ T ] extends OrderedPropertyWrapper[ T, Int, HasSize ]( _.size, "has size" )
-
   /** Provides access to size-based validators (where the object under validation must implement
     * `def size: Int`, see [[com.wix.accord.combinators.HasSize]]). Enables syntax such as
     * `c.students has size > 0`.
     */
-  def size[ T ] = new Size[ T ]
+  val size = new OrderingOps { override def snippet = "has size" }
+
 }
