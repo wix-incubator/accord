@@ -57,7 +57,6 @@ case class RuleViolation( value: Any, constraint: String, description: String ) 
   */
 case class GroupViolation( value: Any, constraint: String, description: String, children: Seq[ Violation ] )
   extends Violation {
-
   def withDescription( rewrite: String ) = this.copy( description = rewrite )
 }
 
@@ -67,12 +66,20 @@ case class GroupViolation( value: Any, constraint: String, description: String, 
 sealed trait Result {
   def and( other: Result ): Result
   def or( other: Result ): Result
+
+  /** Rewrites the description for all violations, if applicable.
+    *
+    * @param rewrite The rewritten description.
+    * @return A modified copy of this result with the new description in place.
+    */
+  def withDescription( rewrite: String ): Result
 }
 
 /** An object representing a successful validation result. */
 case object Success extends Result {
   def and( other: Result ) = other
   def or( other: Result ) = this
+  def withDescription( rewrite: String ) = this
 }
 
 /** An object representing a failed validation result.
@@ -87,4 +94,5 @@ case class Failure( violations: Seq[ Violation ] ) extends Result {
     case Success => other
     case Failure(_) => this
   }
+  def withDescription( rewrite: String ) = Failure( violations map { _ withDescription rewrite } )
 }

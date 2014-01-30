@@ -19,7 +19,6 @@ package com.wix.accord
 import scala.language.implicitConversions
 import scala.language.experimental.macros
 import com.wix.accord.transform.ValidationTransform
-import com.wix.accord.dsl.OrderingOps
 
 /** Provides a DSL for defining validation rules. For example:
   *

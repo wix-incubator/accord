@@ -14,40 +14,19 @@
   limitations under the License.
  */
 
-
 package com.wix.accord.transform
 
 import scala.reflect.macros.Context
 import com.wix.accord._
 
-private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] ) {
+private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] )
+  extends PatternHelper[ C ] with ExpressionDescriber[ C ] {
+
   import context.universe._
   import context.{abort, info}
 
 
   // Macro helpers --
-
-  def extractFromPattern[ R ]( tree: Tree )( pattern: PartialFunction[ Tree, R ] ): Option[ R ] = {
-    var found: Option[ R ] = None
-    new Traverser {
-      override def traverse( subtree: Tree ) {
-        if ( pattern.isDefinedAt( subtree ) )
-          found = Some( pattern( subtree ) )
-        else
-          super.traverse( subtree )
-      }
-    }.traverse( tree )
-    found
-  }
-
-  def transformByPattern( tree: Tree )( pattern: PartialFunction[ Tree, Tree ] ): Tree = {
-    val transformed =
-      new Transformer {
-        override def transform( subtree: Tree ): Tree =
-          if ( pattern isDefinedAt subtree ) pattern.apply( subtree ) else super.transform( subtree )
-      }.transform( tree.duplicate )
-    context.resetAllAttrs( transformed )
-  }
 
   private val verboseValidatorRewrite = context.settings.contains( "verboseValidationTransform" )
   def log( s: String, pos: Position = context.enclosingPosition ) =
@@ -56,29 +35,13 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
   // Transformation logic --
 
-  private val Function( prototype, vimpl ) = v.tree
-  if ( prototype.size != 1 )
-    abort( prototype.tail.head.pos, "Only single-parameter validators are supported!" )
+  val Function( prototype :: prototypeTail, vimpl ) = v.tree
+  if ( !prototypeTail.isEmpty )
+    abort( prototypeTail.head.pos, "Only single-parameter validators are supported!" )
 
-  private case class Subvalidator( description: Tree, ouv: Tree, validation: Tree )
+  case class Subvalidator( description: Tree, ouv: Tree, validation: Tree )
 
-  private val validatorType = typeOf[ Validator[_] ]
-
-  /** An extractor for explicitly described validation rules. Applies to validator syntax such as
-    * `p.firstName as "described" is notEmpty`, where the `as` parameter (`"described"` in this case) is
-    * the extracted description tree.
-    */
-  private object ExplicitDescriptor {
-    private val descriptorTerm = typeOf[ dsl.Descriptor[_] ].typeSymbol.name.toTermName
-    private val asTerm = newTermName( "as" )
-
-    def unapply( ouv: Tree ): Option[ Tree ] = ouv match {
-      case Apply( Select( Apply( TypeApply( Select( _, `descriptorTerm` ), _ ), _ ), `asTerm` ), literal :: Nil ) =>
-        Some( literal )
-//      case q"dsl.Descriptor( $body ).as( $literal )" => Some( literal )
-      case _ => None
-    }
-  }
+  val validatorType = typeOf[ Validator[_] ]
 
   /** An extractor for validation rules. The object under validation is, by design, wrapped in the implicit
     * DSL construct [[com.wix.accord.dsl.Contextualizer]], so that a validation rule can be defined with
@@ -87,7 +50,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     * In the example above, `p.firstName` is the expression wrapped by [[com.wix.accord.dsl.Contextualizer]]
     * and yields the Object Under Validation (OUV).
     */
-  private object ValidatorApplication {
+  object ValidatorApplication {
     private val contextualizerTerm = typeOf[ dsl.Contextualizer[_] ].typeSymbol.name.toTermName
 
     def extractObjectUnderValidation( t: Tree ) =
@@ -102,26 +65,6 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
         case Apply( t @ TypeApply( Select( _, `contextualizerTerm` ), _ ), e :: Nil ) =>
           Apply( t, extractor :: Nil )
       }
-
-    object PrototypeSelectorChain {
-      val para = prototype.head.name
-
-      def unapplySeq( ouv: Tree ): Option[ Seq[ Name ] ] = ouv match {
-        case Select( Ident( `para` ), selector ) => Some( selector :: Nil )
-        case Select( PrototypeSelectorChain( elements @ _* ), selector ) => Some( elements :+ selector )
-        case _ => None
-      }
-    }
-
-    def renderDescriptionTree( ouv: Tree ) = {
-      val para = prototype.head.name
-      ouv match {
-        case ExplicitDescriptor( description )       => description
-        case PrototypeSelectorChain( elements @ _* ) => Literal( Constant( elements.mkString( "." ) ) )
-        case Ident( `para` )                         => Literal( Constant( "value" ) )    // Anonymous parameter reference: validator[...] { _ is... }
-        case _                                       => Literal( Constant( ouv.toString() ) )
-      }
-    }
 
     def unapply( expr: Tree ): Option[ Subvalidator ] = expr match {
       case t if t.tpe <:< validatorType =>
@@ -143,7 +86,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     }
   }
 
-  private def findSubvalidators( t: Tree ): List[ Subvalidator ] = t match {
+  def findSubvalidators( t: Tree ): List[ Subvalidator ] = t match {
     case Block( stats, expr ) => ( stats flatMap findSubvalidators ) ++ findSubvalidators( expr )
     case ValidatorApplication( validator ) => validator :: Nil
     case Literal( Constant(()) ) => Nil   // Ignored terminator
@@ -159,17 +102,13 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
    * @param sv The subvalidator to rewrite
    * @return A valid expression representing a [[com.wix.accord.Validator]] of `T`.
    */
-  private def rewriteOne( sv: Subvalidator ): Tree = {
+  def rewriteOne( sv: Subvalidator ): Tree = {
     val rewrite =
       q"""
           new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
-            def apply( ..$prototype ) = {
+            def apply( $prototype ) = {
               val sv = ${sv.validation}
-              sv( ${sv.ouv} ) match {
-                case com.wix.accord.Success => com.wix.accord.Success
-                case f @ com.wix.accord.Failure( violations ) =>
-                  com.wix.accord.Failure( violations map { f => f withDescription ${sv.description} } )
-              }
+              sv( ${sv.ouv} ) withDescription ${sv.description}
             }
           }
        """
