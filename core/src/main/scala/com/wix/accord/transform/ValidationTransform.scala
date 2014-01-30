@@ -136,13 +136,6 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     val subvalidators = findSubvalidators( vimpl ) map rewriteOne
     val result = context.Expr[ Validator[ T ] ](
       q"new com.wix.accord.transform.ValidationTransform.TransformedValidator( ..$subvalidators )" )
-//      q"""
-//         {
-//          import scala.language.experimental.macros
-//          override def compose[ U ]( g: U => ${weakTypeOf[ T ]} ): com.wix.accord.Validator[ U ] =
-//            macro com.wix.accord.transform.ValidationTransform.compose[ U, ${weakTypeOf[ T ]} ]
-//        }
-//      """ )
 
     trace( s"""|Result of validation transform:
              |  Clean: ${show( result )}
@@ -154,12 +147,8 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
 object ValidationTransform {
   class TransformedValidator[ T ]( predicates: Validator[ T ]* ) extends combinators.And[ T ]( predicates:_* ) {
-    private val self = this
-
     import scala.language.experimental.macros
     override def compose[ U ]( g: U => T ): Validator[ U ] = macro ValidationTransform.compose[ U, T ]
-    //          override def compose[ U ]( g: U => ${weakTypeOf[ T ]} ): com.wix.accord.Validator[ U ] =
-    //            macro com.wix.accord.transform.ValidationTransform.compose[ U, ${weakTypeOf[ T ]} ]
   }
 
   def apply[ T : c.WeakTypeTag ]( c: Context )( v: c.Expr[ T => Unit ] ): c.Expr[ Validator[ T ] ] =
@@ -167,17 +156,13 @@ object ValidationTransform {
 
   def compose[ U : c.WeakTypeTag, T : c.WeakTypeTag ]( c: Context )( g: c.Expr[ U => T ] ): c.Expr[ Validator[ U ] ] = {
     val description = ExpressionDescriber.apply( c )( g )
-//    {
-//      val context = c
-//      val q"{ $prototype => $impl }" = g.tree
-//      val description = renderDescriptionTree( impl.asInstanceOf[ context.universe.Tree ] ).asInstanceOf[ c.universe.Tree ]
-//    }.description
 
     import c.universe._
     val rewrite =
      q"""
         new com.wix.accord.Validator[ ${weakTypeOf[ U ]} ] {
-          override def apply( v1: ${weakTypeOf[ U ]} ): com.wix.accord.Result = ${c.enclosingClass} apply g( v1 ) withDescription $description
+          override def apply( v1: ${weakTypeOf[ U ]} ): com.wix.accord.Result =
+          ${c.prefix} apply $g( v1 ) withDescription $description
         }
       """
 
