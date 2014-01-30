@@ -65,7 +65,8 @@ private class ExpressionDescriberImpl[ C <: Context, T : C#WeakTypeTag, U : C#We
 
   val Function( prototype :: prototypeTail, fimpl ) = f.tree
   if ( !prototypeTail.isEmpty )
-    context.abort( prototypeTail.head.pos, "Only single-parameter validators are supported!" )
+    // Safety net
+    context.abort( prototypeTail.head.pos, "Only single-parameter functions are supported!" )
 
   def renderedDescription: Expr[ String ] = {
     val desc = renderDescriptionTree( fimpl )

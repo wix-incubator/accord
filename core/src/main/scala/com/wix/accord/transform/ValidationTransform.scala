@@ -25,12 +25,14 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
   import context.universe._
   import context.{abort, info}
 
-
   // Macro helpers --
 
-  private val verboseValidatorRewrite = context.settings.contains( "verboseValidationTransform" )
-  def log( s: String, pos: Position = context.enclosingPosition ) =
+  private val verboseValidatorRewrite = context.settings.contains( "debugValidationTransform" )
+  def debug( s: String, pos: Position = context.enclosingPosition ) =
     if ( verboseValidatorRewrite ) info( pos, s, force = false )
+  private val traceValidatorRewrite = context.settings.contains( "traceValidationTransform" )
+  def trace( s: String, pos: Position = context.enclosingPosition ) =
+    if ( traceValidatorRewrite ) info( pos, s, force = false )
 
 
   // Transformation logic --
@@ -71,7 +73,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
         val ( ouv, ouvtpe ) = extractObjectUnderValidation( expr )
         val sv = rewriteContextExpressionAsValidator( expr, ouv )
         val desc = renderDescriptionTree( ouv )
-        log( s"""
+        trace( s"""
               |Found subvalidator:
               |  ouv=$ouv
               |  ouvraw=${showRaw(ouv)}
@@ -106,6 +108,8 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     val rewrite =
       q"""
           new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
+            self =>
+
             def apply( $prototype ) = {
               val sv = ${sv.validation}
               sv( ${sv.ouv} ) withDescription ${sv.description}
@@ -114,14 +118,12 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
        """
 
     // Report and return the rewritten validator
-    log( s"""|Subvalidator:
+    debug( s"""|Subvalidator:
                |  Description: ${sv.description}
                |  Validation : ${sv.validation}
-               |
-               |Rewritten as:
-               |  Clean      : ${show( rewrite )}
-               |  Raw        : ${showRaw( rewrite )}
+               |  Rewrite    : ${show( rewrite )}
                |""".stripMargin, sv.validation.pos )
+    trace(    s"  Raw        : ${showRaw( rewrite )}" )
     rewrite
   }
 
@@ -132,9 +134,17 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
   def transformed: Expr[ Validator[ T ] ] = {
     // Rewrite all validators
     val subvalidators = findSubvalidators( vimpl ) map rewriteOne
-    val result = context.Expr[ Validator[ T ] ]( q"new com.wix.accord.combinators.And( ..$subvalidators )" )
+    val result = context.Expr[ Validator[ T ] ](
+      q"new com.wix.accord.transform.ValidationTransform.TransformedValidator( ..$subvalidators )" )
+//      q"""
+//         {
+//          import scala.language.experimental.macros
+//          override def compose[ U ]( g: U => ${weakTypeOf[ T ]} ): com.wix.accord.Validator[ U ] =
+//            macro com.wix.accord.transform.ValidationTransform.compose[ U, ${weakTypeOf[ T ]} ]
+//        }
+//      """ )
 
-    log( s"""|Result of validation transform:
+    trace( s"""|Result of validation transform:
              |  Clean: ${show( result )}
              |  Raw  : ${showRaw( result )}
              |""".stripMargin )
@@ -143,6 +153,34 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 }
 
 object ValidationTransform {
+  class TransformedValidator[ T ]( predicates: Validator[ T ]* ) extends combinators.And[ T ]( predicates:_* ) {
+    private val self = this
+
+    import scala.language.experimental.macros
+    override def compose[ U ]( g: U => T ): Validator[ U ] = macro ValidationTransform.compose[ U, T ]
+    //          override def compose[ U ]( g: U => ${weakTypeOf[ T ]} ): com.wix.accord.Validator[ U ] =
+    //            macro com.wix.accord.transform.ValidationTransform.compose[ U, ${weakTypeOf[ T ]} ]
+  }
+
   def apply[ T : c.WeakTypeTag ]( c: Context )( v: c.Expr[ T => Unit ] ): c.Expr[ Validator[ T ] ] =
     new ValidationTransform[ c.type, T ]( c, v ).transformed
+
+  def compose[ U : c.WeakTypeTag, T : c.WeakTypeTag ]( c: Context )( g: c.Expr[ U => T ] ): c.Expr[ Validator[ U ] ] = {
+    val description = ExpressionDescriber.apply( c )( g )
+//    {
+//      val context = c
+//      val q"{ $prototype => $impl }" = g.tree
+//      val description = renderDescriptionTree( impl.asInstanceOf[ context.universe.Tree ] ).asInstanceOf[ c.universe.Tree ]
+//    }.description
+
+    import c.universe._
+    val rewrite =
+     q"""
+        new com.wix.accord.Validator[ ${weakTypeOf[ U ]} ] {
+          override def apply( v1: ${weakTypeOf[ U ]} ): com.wix.accord.Result = ${c.enclosingClass} apply g( v1 ) withDescription $description
+        }
+      """
+
+    c.Expr[ Validator[ U ] ]( rewrite )
+  }
 }

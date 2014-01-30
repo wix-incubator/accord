@@ -94,9 +94,9 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       val obj = CompositeTest( FlatTest( null ) )
       validate( obj )( compositeValidator ) should failWith( group( "member", "is invalid", "field" -> "is a null" ) )
     }
-    "be propagated for an adapted validator" in {
-      validate( FlatTest( null ) )( adaptedValidator ) should failWith( "field" -> "is a null" )
-    }
+//    "be propagated for an adapted validator" in {
+//      validate( FlatTest( null ) )( adaptedValidator ) should failWith( "field" -> "is a null" )
+//    }
   }
 }
 
@@ -108,7 +108,7 @@ object ValidationTransformTests {
   val implicitlyDescribedAnonymousValidator = validator[ FlatTest ] { _.field is notNull }
   val explicitlyDescribedValidator = validator[ FlatTest ] { t => t.field as "described" is notNull }
   val implicitlyDescribedValueValidator = validator[ String ] { _ is notNull }
-  val adaptedValidator = implicitlyDescribedValueValidator compose { ( f: FlatTest ) => f.field }
+//  val adaptedValidator = implicitlyDescribedValueValidator compose { ( f: FlatTest ) => f.field }
 
   case class CompositeTest( member: FlatTest )
   val compositeValidator = {
