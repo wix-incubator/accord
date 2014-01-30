@@ -21,48 +21,100 @@ import com.wix.accord._
 import com.wix.accord.scalatest.ResultMatchers
 
 class ValidationTransformTests extends WordSpec with Matchers with ResultMatchers {
-  import PrimitiveSchema._
-  val personWithNoName = Person( "", "" )
-  val personWithNoFirstName = Person( "", "last" )
-  val personWithNoLastName = Person( "first", "" )
-  val legitPerson1 = Person( "first", "person" )
-  val legitPerson2 = Person( "second", "person" )
-  val legitPerson3 = Person( "third", "dude" )
-  val classWithInvalidTeacher = Classroom( personWithNoName, Seq( legitPerson1, legitPerson2, legitPerson3 ) )
-  val classWithNoStudents = Classroom( legitPerson1, Seq.empty )
-  val classWithInvalidStudent = Classroom( legitPerson1, Seq( legitPerson2, personWithNoLastName ) )
+  // TODO reconsider test and potentially remove
+//  import PrimitiveSchema._
+//  val personWithNoName = Person( "", "" )
+//  val personWithNoFirstName = Person( "", "last" )
+//  val personWithNoLastName = Person( "first", "" )
+//  val legitPerson1 = Person( "first", "person" )
+//  val legitPerson2 = Person( "second", "person" )
+//  val legitPerson3 = Person( "third", "dude" )
+//  val classWithInvalidTeacher = Classroom( personWithNoName, Seq( legitPerson1, legitPerson2, legitPerson3 ) )
+//  val classWithNoStudents = Classroom( legitPerson1, Seq.empty )
+//  val classWithInvalidStudent = Classroom( legitPerson1, Seq( legitPerson2, personWithNoLastName ) )
+//
+//  "personValidator" should {
+//    "fail a person with no first name" in {
+//      val result = validate( personWithNoFirstName )
+//      result should failWith( "firstName" -> "must not be empty" )
+//    }
+//    "fail a person with no last name" in {
+//      val result = validate( personWithNoLastName )
+//      result should failWith( "lastName" -> "must not be empty" )
+//    }
+//    "pass a person with a full name" in {
+//      val result = validate( legitPerson1 )
+//      result should be( aSuccess )
+//    }
+//  }
+//
+//  "classroomValidator" should {
+//    "fail a classroom with no students" in {
+//      val result = validate( classWithNoStudents )
+//      result should failWith( "students" -> "has size 0, expected more than 0" )
+//    }
+//    "fail a classroom with an invalid teacher" in {
+//      val result = validate( classWithInvalidTeacher )
+//      result should failWith( group( "teacher", "is invalid",
+//        "firstName" -> "must not be empty",
+//        "lastName" -> "must not be empty"
+//      ) )
+//    }
+//    "fail a classroom with an invalid student" in {
+//      val result = validate( classWithInvalidStudent )
+//      result should failWith( group( "students", "is invalid",
+//        "lastName" -> "must not be empty" ) )
+//    }
+//  }
 
-  "personValidator" should {
-    "fail a person with no first name" in {
-      val result = validate( personWithNoFirstName )
-      result should failWith( "firstName" -> "must not be empty" )
+  "Validator description" should {
+    import ValidationTransformTests._
+
+    "be generated for a fully-qualified field selector" in {
+      validate( FlatTest( null ) )( implicitlyDescribedNamedValidator ) should failWith( "field" -> "is a null" )
     }
-    "fail a person with no last name" in {
-      val result = validate( personWithNoLastName )
-      result should failWith( "lastName" -> "must not be empty" )
+    "be generated for an anonymously-qualified field selector" in {
+      validate( FlatTest( null ) )( implicitlyDescribedAnonymousValidator ) should failWith( "field" -> "is a null" )
     }
-    "pass a person with a full name" in {
-      val result = validate( legitPerson1 )
-      result should be( aSuccess )
+    "be generated for an anonymous value reference" in {
+      validate( null )( implicitlyDescribedValueValidator ) should failWith( "value" -> "is a null" )
+    }
+    "be generated for a fully-qualified selector with multiple indirections" in {
+      val obj = CompositeTest( FlatTest( null ) )
+      validate( obj )( namedIndirectValidator ) should failWith( "member.field" -> "is a null" )
+    }
+    "be generated for an anonymously-qualified selector with multiple indirections" in {
+      val obj = CompositeTest( FlatTest( null ) )
+      validate( obj )( anonymousIndirectValidator ) should failWith( "member.field" -> "is a null" )
+    }
+    "be propagated for an explicitly-described expression" in {
+      validate( FlatTest( null ) )( explicitlyDescribedValidator ) should failWith( "described" -> "is a null" )
+    }
+    "be propagated for a composite validator" in {
+      val obj = CompositeTest( FlatTest( null ) )
+      validate( obj )( compositeValidator ) should failWith( group( "member", "is invalid", "field" -> "is a null" ) )
+    }
+    "be propagated for an adapted validator" ignore {
+      validate( FlatTest( null ) )( adaptedValidator ) should failWith( group( "member", "is invalid", "field" -> "is a null" ) )
     }
   }
+}
 
-  "classroomValidator" should {
-    "fail a classroom with no students" in {
-      val result = validate( classWithNoStudents )
-      result should failWith( "students" -> "has size 0, expected more than 0" )
-    }
-    "fail a classroom with an invalid teacher" in {
-      val result = validate( classWithInvalidTeacher )
-      result should failWith( group( "teacher", "is invalid",
-        "firstName" -> "must not be empty",
-        "lastName" -> "must not be empty"
-      ) )
-    }
-    "fail a classroom with an invalid student" in {
-      val result = validate( classWithInvalidStudent )
-      result should failWith( group( "students", "is invalid",
-        "lastName" -> "must not be empty" ) )
-    }
+object ValidationTransformTests {
+  import dsl._
+  
+  case class FlatTest( field: String )
+  val implicitlyDescribedNamedValidator = validator[ FlatTest ] { t => t.field is notNull }
+  val implicitlyDescribedAnonymousValidator = validator[ FlatTest ] { _.field is notNull }
+  val explicitlyDescribedValidator = validator[ FlatTest ] { t => t.field as "described" is notNull }
+  val implicitlyDescribedValueValidator = validator[ String ] { _ is notNull }
+  val adaptedValidator = implicitlyDescribedValueValidator compose { ( f: FlatTest ) => f.field }
+
+  case class CompositeTest( member: FlatTest )
+  val compositeValidator = {
+    implicit val flatValidator = implicitlyDescribedAnonymousValidator
+    validator[ CompositeTest ] { _.member is valid }
   }
+  val namedIndirectValidator = validator[ CompositeTest ] { c => c.member.field is notNull }
+  val anonymousIndirectValidator = validator[ CompositeTest ] { _.member.field is notNull }
 }

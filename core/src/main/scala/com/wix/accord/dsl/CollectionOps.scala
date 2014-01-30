@@ -14,7 +14,6 @@
   limitations under the License.
  */
 
-
 package com.wix.accord.dsl
 
 import com.wix.accord.Validator
@@ -60,7 +59,7 @@ trait CollectionOps {
     * provided instance.
     * @tparam T A type that implements `size: Int` (see [[com.wix.accord.combinators.HasSize]]).
     */
-  class Size[ T ] extends NumericPropertyWrapper[ T, Int, HasSize ]( _.size, "has size" )
+  class Size[ T ] extends OrderedPropertyWrapper[ T, Int, HasSize ]( _.size, "has size" )
 
   /** Provides access to size-based validators (where the object under validation must implement
     * `def size: Int`, see [[com.wix.accord.combinators.HasSize]]). Enables syntax such as

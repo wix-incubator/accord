@@ -37,6 +37,8 @@ package object accord {
                      "this type? (alternatively, if you own the code, you may want to move the validator to " +
                      "the companion object for ${T} so it's automatically imported)." )
   trait Validator[ -T ] extends ( T => Result ) {
+    self =>
+
     /** Provides a textual description of the expression being evaluated. For example, a validation rule like
       * `p.firstName is notEmpty` might have the context `firstName`. The initial value is a stub and is later
       * rewritten by the validation transform.
@@ -54,6 +56,10 @@ package object accord {
       */
     protected def result( test: => Boolean, violation: => Violation ) =
       if ( test ) Success else Failure( Seq( violation ) )
+
+    override def compose[ U ]( g: U => T ): Validator[ U ] = new Validator[ U ] {
+      override def apply( v1: U ): Result = self apply g( v1 )
+    }
   }
 
   /** Validates the specified object and returns a validation [[com.wix.accord.Result]]. An implicit

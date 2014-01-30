@@ -18,7 +18,7 @@ package com.wix.accord.tests.dsl
 
 import org.scalatest.{FlatSpec, Matchers}
 import PrimitiveSchema._
-import com.wix.accord.{Implicits}
+import com.wix.accord.Implicits
 import com.wix.accord.scalatest.ResultMatchers
 
 class AlternativeValidationSyntaxTests extends FlatSpec with Matchers with ResultMatchers {

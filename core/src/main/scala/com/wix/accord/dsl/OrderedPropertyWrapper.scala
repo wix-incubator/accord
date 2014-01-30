@@ -38,58 +38,37 @@ import scala.collection.immutable.NumericRange
  * until the leaf node of the expression tree (in this case, the method call `> 0`). That means all constraints,
  * view bounds and the like have to exist at the leaf node, or in other words on the method call itself; to
  * generalize this, each arithmetic method requires an implicit `T => Repr` conversion, and because `Repr`
- * is specified by whomever instantiates [[NumericPropertyWrapper]] the
+ * is specified by whomever instantiates [[OrderedPropertyWrapper]] the
  * view bound is placed correctly at the call site. (*whew*, hope that made sense)
  *
  * @param extractor A function which extracts the property value from the representation of the object under
  *                  validation (e.g. `( p: String ) => p.length`)
  * @param snippet A textual snippet describing what the validator does (e.g. `has length`)
- * @param ev Evidence that the property is of a numeric type (normally filled in by the compiler automatically)
  * @tparam T The type of the object under validation
- * @tparam P The type of the property under validation
+ * @tparam P The type of the property under validation, must be numeric
  * @tparam Repr The runtime representation of the object under validation. When it differs from `T`, an implicit
  *              conversion `T => Repr` is required ''at the call site''.
  */
-abstract class NumericPropertyWrapper[ T, P, Repr ]( extractor: Repr => P, snippet: String )( implicit ev: Numeric[ P ] ) {
+abstract class OrderedPropertyWrapper[ T, P : Numeric, Repr ]( extractor: Repr => P, snippet: String ) {
   // TODO generalize so this can be implemented based on OrderingOps.
   // It's unclear whether or not this is even possible because of the extra required conversion step (T => Repr).
 
   /** Generates a validator that succeeds only if the property value is greater than the specified bound. */
-  def >( other: P )( implicit repr: T => Repr ) = new Validator[ T ] {
-    def apply( x: T ) = {
-      val v = ( repr andThen extractor )( x )
-      result( ev.gt( v, other ), RuleViolation( x, s"$snippet $v, expected more than $other", description ) )
-    }
-  }
+  def >( other: P )( implicit repr: T => Repr ) = new GreaterThan( other, snippet ) compose ( repr andThen extractor )
+
   /** Generates a validator that succeeds only if the property value is less than the specified bound. */
-  def <( other: P )( implicit repr: T => Repr ) = new Validator[ T ] {
-    def apply( x: T ) = {
-      val v = ( repr andThen extractor )( x )
-      result( ev.lt( v, other ), RuleViolation( x, s"$snippet $v, expected less than $other", description ) )
-    }
-  }
+  def <( other: P )( implicit repr: T => Repr ) = new LesserThan( other, snippet ) compose ( repr andThen extractor )
+
   /** Generates a validator that succeeds if the property value is greater than or equal to the specified bound. */
-  def >=( other: P )( implicit repr: T => Repr ) = new Validator[ T ] {
-    def apply( x: T ) = {
-      val v = ( repr andThen extractor )( x )
-      result( ev.gteq( v, other ), RuleViolation( x, s"$snippet $v, expected $other or more", description ) )
-    }
-  }
+  def >=( other: P )( implicit repr: T => Repr ) =
+    new GreaterThanOrEqual( other, snippet ) compose ( repr andThen extractor )
+
   /** Generates a validator that succeeds if the property value is less than or equal to the specified bound. */
-  def <=( other: P )( implicit repr: T => Repr ) = new Validator[ T ] {
-    def apply( x: T ) = {
-      val v = ( repr andThen extractor )( x )
-      result( ev.lteq( v, other ), RuleViolation( x, s"$snippet $v, expected $other or less", description ) )
-    }
-  }
+  def <=( other: P )( implicit repr: T => Repr ) =
+    new LesserThanOrEqual( other, snippet ) compose ( repr andThen extractor )
 
   /** Generates a validator that succeeds if the property value is exactly equal to the specified value. */
-  def ==( other: P )( implicit repr: T => Repr ) = new Validator[ T ] {
-    def apply( x: T ) = {
-      val v = ( repr andThen extractor )( x )
-      result( ev.equiv( v, other ), RuleViolation( x, s"$snippet $v, expected $other", description ) )
-    }
-  }
+  def ==( other: P )( implicit repr: T => Repr ) = new EquivalentTo( other, snippet ) compose ( repr andThen extractor )
 }
 
 /** Provides combinators over objects implementing [[scala.math.Ordering]].

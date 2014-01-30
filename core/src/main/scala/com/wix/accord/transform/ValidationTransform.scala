@@ -103,12 +103,23 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
           Apply( t, extractor :: Nil )
       }
 
+    object PrototypeSelectorChain {
+      val para = prototype.head.name
+
+      def unapplySeq( ouv: Tree ): Option[ Seq[ Name ] ] = ouv match {
+        case Select( Ident( `para` ), selector ) => Some( selector :: Nil )
+        case Select( PrototypeSelectorChain( elements @ _* ), selector ) => Some( elements :+ selector )
+        case _ => None
+      }
+    }
+
     def renderDescriptionTree( ouv: Tree ) = {
       val para = prototype.head.name
       ouv match {
-        case ExplicitDescriptor( description )   => description
-        case Select( Ident( `para` ), selector ) => Literal( Constant( selector.toString ) )
-        case _                                   => Literal( Constant( ouv.toString() ) )
+        case ExplicitDescriptor( description )       => description
+        case PrototypeSelectorChain( elements @ _* ) => Literal( Constant( elements.mkString( "." ) ) )
+        case Ident( `para` )                         => Literal( Constant( "value" ) )    // Anonymous parameter reference: validator[...] { _ is... }
+        case _                                       => Literal( Constant( ouv.toString() ) )
       }
     }
 

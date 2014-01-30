@@ -16,16 +16,38 @@
 
 package com.wix.accord.tests.dsl
 
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.{Matchers, WordSpec}
+import com.wix.accord._
 import com.wix.accord.scalatest.ResultMatchers
 
-class CompilationSanityTests extends FlatSpec with Matchers with ResultMatchers {
 
-  "Validation" should "be contravariant" in {
-    val validator = {
-      import com.wix.accord.dsl._
-      "test" is notNull
+object CompilationSanityTests {
+  import dsl._
+
+  case class Test( x: String )
+  implicit val stringValidator = validator[ String ] { _ is notNull }
+  implicit val adaptedValidator = stringValidator compose { ( t: Test ) => t.x }
+}
+
+class CompilationSanityTests extends WordSpec with Matchers with ResultMatchers {
+  import CompilationSanityTests._
+
+  "Validator" should {
+    "be contravariant" in {
+      validate( "test" ) should be( aSuccess )
     }
-    validator( "test" ) should be( aSuccess )
+  }
+
+  "Validator adapted via compose()" should {
+    "succeed on a valid object" in {
+      validate( Test( "test" ) ) should be( aSuccess )
+    }
+    "fail on an invalid object" in {
+      validate( Test( null ) ) should be( aFailure )
+    }
+
+    "retain a sensible description after adaptation" in {
+      validate( Test( null ) ) should failWith( "x" -> "is a null" )
+    }
   }
 }
