@@ -20,7 +20,7 @@ import org.scalatest.{WordSpec, Matchers}
 import com.wix.accord._
 import com.wix.accord.scalatest.ResultMatchers
 
-object OrderingOpsDslSpec {
+object OrderingOpsTests {
   import dsl._
 
   case class IntTest( i: Int )
@@ -51,8 +51,8 @@ object OrderingOpsDslSpec {
   val withinExclusiveRangeRule = validator[ Int ] { _ is within( 5 until 10 ) }
 }
 
-import OrderingOpsDslSpec._
-class OrderingOpsDslSpec extends WordSpec with Matchers with ResultMatchers {
+import OrderingOpsTests._
+class OrderingOpsTests extends WordSpec with Matchers with ResultMatchers {
 
   "OrderingOps as exposed by dsl" should {
     // The following are all just sanity checks (the real tests are in tests.combinators.OrderingOpsSpec);
