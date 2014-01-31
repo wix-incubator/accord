@@ -22,7 +22,7 @@ import com.wix.accord.combinators._
 import scala.collection.immutable.NumericRange
 
 
-/** Provides combinators over objects implementing [[scala.math.Ordering]].
+/** Provides a DSL for objects implementing [[scala.math.Ordering]].
   *
   * Implementation note: All methods here should only require [[scala.math.PartialOrdering]], but the canonical
   * implicits are defined in the Ordering companion and would therefore not be imported by default at the call site.

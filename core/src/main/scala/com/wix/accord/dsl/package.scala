@@ -40,7 +40,7 @@ import com.wix.accord.transform.ValidationTransform
   * }
   * ```
   *
-  * These validators can later be executed via [[com.wix.accord.validate]]. A macro rewrites each
+  * These validators can later be executed via [[com.wix.accord.validate]]. A macro transforms each
   * validation block into a chain of validation rules at compile-time, and annotates accesses to getters
   * so that violation messages are automatically generated; for instance, the rule `p.firstName is notEmpty`
   * will generate the violation message "firstName must not be empty" automatically.
