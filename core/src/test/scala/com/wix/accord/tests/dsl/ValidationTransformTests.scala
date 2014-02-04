@@ -21,52 +21,6 @@ import com.wix.accord._
 import com.wix.accord.scalatest.ResultMatchers
 
 class ValidationTransformTests extends WordSpec with Matchers with ResultMatchers {
-  // TODO reconsider test and potentially remove
-//  import PrimitiveSchema._
-//  val personWithNoName = Person( "", "" )
-//  val personWithNoFirstName = Person( "", "last" )
-//  val personWithNoLastName = Person( "first", "" )
-//  val legitPerson1 = Person( "first", "person" )
-//  val legitPerson2 = Person( "second", "person" )
-//  val legitPerson3 = Person( "third", "dude" )
-//  val classWithInvalidTeacher = Classroom( personWithNoName, Seq( legitPerson1, legitPerson2, legitPerson3 ) )
-//  val classWithNoStudents = Classroom( legitPerson1, Seq.empty )
-//  val classWithInvalidStudent = Classroom( legitPerson1, Seq( legitPerson2, personWithNoLastName ) )
-//
-//  "personValidator" should {
-//    "fail a person with no first name" in {
-//      val result = validate( personWithNoFirstName )
-//      result should failWith( "firstName" -> "must not be empty" )
-//    }
-//    "fail a person with no last name" in {
-//      val result = validate( personWithNoLastName )
-//      result should failWith( "lastName" -> "must not be empty" )
-//    }
-//    "pass a person with a full name" in {
-//      val result = validate( legitPerson1 )
-//      result should be( aSuccess )
-//    }
-//  }
-//
-//  "classroomValidator" should {
-//    "fail a classroom with no students" in {
-//      val result = validate( classWithNoStudents )
-//      result should failWith( "students" -> "has size 0, expected more than 0" )
-//    }
-//    "fail a classroom with an invalid teacher" in {
-//      val result = validate( classWithInvalidTeacher )
-//      result should failWith( group( "teacher", "is invalid",
-//        "firstName" -> "must not be empty",
-//        "lastName" -> "must not be empty"
-//      ) )
-//    }
-//    "fail a classroom with an invalid student" in {
-//      val result = validate( classWithInvalidStudent )
-//      result should failWith( group( "students", "is invalid",
-//        "lastName" -> "must not be empty" ) )
-//    }
-//  }
-
   "Validator description" should {
     import ValidationTransformTests._
 

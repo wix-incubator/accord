@@ -17,11 +17,12 @@
 package com.wix.accord.tests.dsl
 
 import org.scalatest.{FlatSpec, Matchers}
-import PrimitiveSchema._
 import com.wix.accord.Implicits
 import com.wix.accord.scalatest.ResultMatchers
 
 class AlternativeValidationSyntaxTests extends FlatSpec with Matchers with ResultMatchers {
+  case class Person( firstName: String, lastName: String )
+
   "Importing com.wix.accord.Implicits" should "enable alternative validation invocation syntax" in {
     import Implicits._
     val person = Person( "Edsger", "Dijkstra" )

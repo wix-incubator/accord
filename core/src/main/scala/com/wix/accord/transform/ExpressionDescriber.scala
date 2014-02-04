@@ -122,5 +122,6 @@ object ExpressionDescriber {
   def apply[ T : c.WeakTypeTag, U : c.WeakTypeTag ]( c: Context )( f: c.Expr[ T => U ] ): c.Expr[ String ] =
     new FunctionDescriber[ c.type, T, U ]( c, f ).renderedDescription
 
+  // TODO ScalaDocs
   def describe[ T, U ]( f: T => U ) = macro ExpressionDescriber[ T, U ]
 }

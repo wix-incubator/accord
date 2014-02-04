@@ -23,6 +23,7 @@ import com.wix.accord.combinators.MatchesRegex
 import scala.util.matching.Regex
 import java.util.regex.Pattern
 
+// TODO ScalaDocs
 trait StringOps {
   /** Specifies a validator that operates on strings and succeeds only if the validation expression starts with
     * the specified prefix.

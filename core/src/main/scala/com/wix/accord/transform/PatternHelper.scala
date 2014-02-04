@@ -18,6 +18,7 @@ package com.wix.accord.transform
 
 import scala.reflect.macros.Context
 
+// TODO ScalaDocs
 trait PatternHelper[ C <: Context ] {
   val context: C
 

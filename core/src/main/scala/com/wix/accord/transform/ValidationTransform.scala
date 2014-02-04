@@ -19,6 +19,7 @@ package com.wix.accord.transform
 import scala.reflect.macros.Context
 import com.wix.accord._
 
+// TODO ScalaDocs
 private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] )
   extends PatternHelper[ C ] with ExpressionDescriber[ C ] {
 

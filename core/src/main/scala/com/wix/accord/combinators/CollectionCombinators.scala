@@ -27,8 +27,8 @@ trait CollectionCombinators {
 
   /**
     * An implicit conversion to enable any collection-like object (e.g. strings, options) to be handled by the
-    * [[com.wix.accord.combinators.Empty]] and [[com.wix.accord.combinators..NotEmpty]]
-    * combinators.
+    * [[com.wix.accord.combinators.CollectionCombinators.Empty]]
+    * and [[com.wix.accord.combinators.CollectionCombinators.NotEmpty]] combinators.
     *
     * [[java.lang.String]] does not directly implement `isEmpty` (in practice it is implemented in
     * [[scala.collection.IndexedSeqOptimized]], via an implicit conversion and an inheritance stack), and this is

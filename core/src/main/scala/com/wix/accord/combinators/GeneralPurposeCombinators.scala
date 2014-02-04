@@ -14,7 +14,6 @@
   limitations under the License.
  */
 
-
 package com.wix.accord.combinators
 
 import com.wix.accord._

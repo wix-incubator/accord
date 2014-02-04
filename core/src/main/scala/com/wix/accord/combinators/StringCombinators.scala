@@ -14,11 +14,10 @@
   limitations under the License.
  */
 
-
 package com.wix.accord.combinators
 
 import com.wix.accord.{RuleViolation, Validator}
-import java.util.regex.{Pattern, Matcher}
+import java.util.regex.Pattern
 
 /** Combinators that operate specifically on strings. */
 trait StringCombinators {

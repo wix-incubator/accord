@@ -14,13 +14,11 @@
   limitations under the License.
  */
 
-
 package com.wix.accord.dsl
 
 import com.wix.accord.Validator
 import com.wix.accord.combinators._
 import scala.collection.immutable.NumericRange
-
 
 /** Provides a DSL for objects implementing [[scala.math.Ordering]].
   *

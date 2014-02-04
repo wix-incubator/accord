@@ -18,6 +18,7 @@ package com.wix.accord.combinators
 
 import com.wix.accord.{RuleViolation, Validator}
 
+// TODO ScalaDocs
 trait OrderingCombinators {
   class GreaterThan[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] ) extends Validator[ T ] {
     def apply( value: T ) =

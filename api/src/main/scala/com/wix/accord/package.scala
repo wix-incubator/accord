@@ -57,6 +57,7 @@ package object accord {
     protected def result( test: => Boolean, violation: => Violation ) =
       if ( test ) Success else Failure( Seq( violation ) )
 
+    // TODO ScalaDoc + reconsider API
     override def compose[ U ]( g: U => T ): Validator[ U ] = new Validator[ U ] {
       override def apply( v1: U ): Result = self apply g( v1 )
     }

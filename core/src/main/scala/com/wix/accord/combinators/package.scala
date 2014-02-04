@@ -14,7 +14,6 @@
   limitations under the License.
  */
 
-
 package com.wix.accord
 
 /** Aggregates all implemented combinators for use by the DSL. Can, though not intended to, be used

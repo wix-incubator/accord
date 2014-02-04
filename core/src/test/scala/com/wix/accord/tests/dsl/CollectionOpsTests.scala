@@ -21,6 +21,7 @@ import org.scalatest.{WordSpec, Matchers}
 import com.wix.accord.dsl
 
 class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers {
+  // TODO complete
 }
 
 object CollectionOpsTests {
