@@ -18,10 +18,35 @@ package com.wix.accord.tests.dsl
 
 import com.wix.accord.scalatest.ResultMatchers
 import org.scalatest.{WordSpec, Matchers}
-import com.wix.accord.dsl
+import com.wix.accord._
 
 class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers {
-  // TODO complete
+  import CollectionOpsTests._
+
+  "empty" should {
+    "successfully validate a empty collection" in {
+      validate( Seq.empty )( seqEmptyValidator ) should be( aSuccess )
+    }
+    "successfully validate a non-empty collection" in {
+      validate( Seq( 1, 2, 3 ) )( seqEmptyValidator ) should be( aFailure )
+    }
+  }
+  "notEmpty" should {
+    "successfully validate a non-empty collection" in {
+      validate( Seq( 1, 2, 3 ) )( seqNotEmptyValidator ) should be( aSuccess )
+    }
+    "successfully validate a empty collection" in {
+      validate( Seq.empty )( seqNotEmptyValidator ) should be( aFailure )
+    }
+  }
+  "size extensions" should {
+    // No need to test all extensions -- these should be covered in OrderingOpsTest. We only need to test
+    // one to ensure correct constraint generation.
+    "generate a correctly prefixed constraint" in {
+      validate( Seq.empty )( seqSizeValidator ) should
+        failWith( RuleViolationMatcher( constraint = "has size 0, expected more than 0" ) )
+    }
+  }
 }
 
 object CollectionOpsTests {
