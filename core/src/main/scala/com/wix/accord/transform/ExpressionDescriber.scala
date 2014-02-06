@@ -119,9 +119,10 @@ private class FunctionDescriber[ C <: Context, T : C#WeakTypeTag, U : C#WeakType
 }
 
 object ExpressionDescriber {
+  // TODO ScalaDocs
   def apply[ T : c.WeakTypeTag, U : c.WeakTypeTag ]( c: Context )( f: c.Expr[ T => U ] ): c.Expr[ String ] =
     new FunctionDescriber[ c.type, T, U ]( c, f ).renderedDescription
 
-  // TODO ScalaDocs
-  def describe[ T, U ]( f: T => U ) = macro ExpressionDescriber[ T, U ]
+  /** A test invoker for [[com.wix.accord.transform.ExpressionDescriber]] */
+  private[ accord ] def describe[ T, U ]( f: T => U ) = macro ExpressionDescriber[ T, U ]
 }

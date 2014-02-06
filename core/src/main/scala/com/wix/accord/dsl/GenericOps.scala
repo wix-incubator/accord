@@ -25,7 +25,7 @@ import com.wix.accord.combinators.IsNotNull
 import com.wix.accord.combinators.EqualTo
 import com.wix.accord.combinators.NotEqualTo
 
-// TODO ScalaDocs
+/** Provides a DSL for untyped validators. */
 trait GenericOps {
   /** Extends validators with useful helpers.
     *
@@ -36,7 +36,6 @@ trait GenericOps {
     def and( other: Validator[ T ] ) = new And( validator, other ) // TODO shortcut multiple ANDs
     def or( other: Validator[ T ] ) = new Or( validator, other )   // TODO shortcut multiple ORs
   }
-
 
   /** Delegates validation to a pre-defined validation rule, which is encoded as an implicit
     * [[com.wix.accord.Validator]] in scope. Enables composition of validation rules, as in:

@@ -18,12 +18,26 @@ package com.wix.accord.transform
 
 import scala.reflect.macros.Context
 
-// TODO ScalaDocs
+/** A macro helper mixin that provides simplified, pattern-based AST operations.
+  *
+  * @tparam C The type of the macro context
+  */
 trait PatternHelper[ C <: Context ] {
+  /** The macro context; inheritors must provide this */
   val context: C
 
   import context.universe._
 
+  /** Matches an AST pattern against a tree recursively. Patterns are encoded as a partial function from
+    * [[scala.reflect.api.Universe.Tree]] to a result object; this method returns the result of applying the partial
+    * function to the first AST subtree matching it.
+    *
+    * @param tree The AST tree to search.
+    * @param pattern The search pattern.
+    * @tparam R The return type as defined by the extraction clause of the search pattern.
+    * @return [[scala.None]] if no match was found, or a [[scala.Some]] containing the result of applying the
+    *         partial function to the first matching subtree.
+    */
   def extractFromPattern[ R ]( tree: Tree )( pattern: PartialFunction[ Tree, R ] ): Option[ R ] = {
     var found: Option[ R ] = None
     new Traverser {
@@ -37,6 +51,14 @@ trait PatternHelper[ C <: Context ] {
     found
   }
 
+  /** Transforms an AST based on the specified pattern. The transformation is specified as a partial function from
+    * [[scala.reflect.api.Universe.Tree]] to a another tree, where every subtree for which the function is defined
+    * is replaced with the result of its application.
+    *
+    * @param tree The AST tree to search.
+    * @param pattern The search-and-replace pattern.
+    * @return The transformed tree.
+    */
   def transformByPattern( tree: Tree )( pattern: PartialFunction[ Tree, Tree ] ): Tree = {
     val transformed =
       new Transformer {
