@@ -124,7 +124,7 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers with Orde
     "render a correct rule violation" in {
       val left = Test( 10 )
       val validator = new Between( Test( 5 ), Test( 10 ), "got" ).exclusive
-      validator( left ) should failWith( testContext -> "got Test(10), expected between Test(5) and (exclusive) Test(10)" )
+      validator( left ) should failWith( testContext -> "got Test(10), expected between Test(5) and Test(10) (exclusively)" )
     }
   }
 }

@@ -18,49 +18,110 @@ package com.wix.accord.combinators
 
 import com.wix.accord.{RuleViolation, Validator}
 
-// TODO ScalaDocs
+/** Provides combinators over objects implementing [[scala.math.Ordering]].
+  *
+  * Implementation note: All methods here should only require [[scala.math.PartialOrdering]], but then the default
+  * implicits are defined in the [[scala.math.Ordering]] companion and would therefore not be imported
+  * by default at the call site.
+  */
 trait OrderingCombinators {
+
+  /** A validator that succeeds only for values greater than the specified bound.
+    *
+    * @param bound The bound against which values are validated.
+    * @param prefix A prefix for violation messages; for example, specifying `"got"` will result in a
+    *               constraint violation like "got 5, expected more than 10".
+    * @param ev Evidence that `T` is ordered (i.e. a [[scala.math.Ordering]] of `T` is available).
+    * @tparam T The object type this validator operates on.
+    */
   class GreaterThan[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] ) extends Validator[ T ] {
     def apply( value: T ) =
       result( ev.gt( value, bound ), RuleViolation( value, s"$prefix $value, expected more than $bound", description ) )
   }
 
-  class GreaterThanOrEqual[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] ) 
+  /** A validator that succeeds only for values greater than, or equal to, the specified bound.
+    *
+    * @param bound The bound against which values are validated.
+    * @param prefix A prefix for violation messages; for example, specifying `"got"` will result in a
+    *               constraint violation like "got 5, expected 10 or more".
+    * @param ev Evidence that `T` is ordered (i.e. a [[scala.math.Ordering]] of `T` is available).
+    * @tparam T The object type this validator operates on.
+    */
+  class GreaterThanOrEqual[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] )
     extends Validator[ T ] {
     
     def apply( value: T ) =
       result( ev.gteq( value, bound ), RuleViolation( value, s"$prefix $value, expected $bound or more", description ) )
   }
 
+  /** A validator that succeeds only for values lesser than the specified bound.
+    *
+    * @param bound The bound against which values are validated.
+    * @param prefix A prefix for violation messages; for example, specifying `"got"` will result in a
+    *               constraint violation like "got 10, expected less than 10".
+    * @param ev Evidence that `T` is ordered (i.e. a [[scala.math.Ordering]] of `T` is available).
+    * @tparam T The object type this validator operates on.
+    */
   class LesserThan[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] ) extends Validator[ T ] {
     def apply( value: T ) =
       result( ev.lt( value, bound ), RuleViolation( value, s"$prefix $value, expected less than $bound", description ) )
   }
 
-  class LesserThanOrEqual[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] ) 
+  /** A validator that succeeds only for values less than, or equal to, the specified bound.
+    *
+    * @param bound The bound against which values are validated.
+    * @param prefix A prefix for violation messages; for example, specifying `"got"` will result in a
+    *               constraint violation like "got 10, expected 5 or less".
+    * @param ev Evidence that `T` is ordered (i.e. a [[scala.math.Ordering]] of `T` is available).
+    * @tparam T The object type this validator operates on.
+    */
+  class LesserThanOrEqual[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] )
     extends Validator[ T ] {
     
     def apply( value: T ) =
       result( ev.lteq( value, bound ), RuleViolation( value, s"$prefix $value, expected $bound or less", description ) )
   }
 
+  /** A validator that succeeds only for value equivalent (as determined by [[scala.math.Ordering.equiv]])
+    * to the specified bound.
+    *
+    * @param other The fixed value against which values are validated.
+    * @param prefix A prefix for violation messages; for example, specifying `"got"` will result in a
+    *               constraint violation like "got 10, expected 5".
+    * @param ev Evidence that `T` is ordered (i.e. a [[scala.math.Ordering]] of `T` is available).
+    * @tparam T The object type this validator operates on.
+    */
   class EquivalentTo[ T ]( other: T, prefix: String )( implicit ev: Ordering[ T ] ) extends Validator[ T ] {
     def apply( value: T ) =
       result( ev.equiv( value, other ), RuleViolation( value, s"$prefix $value, expected $other", description ) )
   }
 
-  class Between[ T ]( lowerBound: T, upperBound: T, prefix: String )( implicit ev: Ordering[ T ] ) 
+  /** A validator that succeeds only for values between the specified bounds (both bounds are inclusive). The
+    * [[com.wix.accord.combinators.OrderingCombinators.Between.exclusive]] method can be used to derive a
+    * validator that excludes the upper bound.
+    *
+    * @param lowerBound The lower bound against which values are validated.
+    * @param upperBound The lower bound against which values are validated.
+    * @param prefix A prefix for violation messages; for example, specifying `"got"` will result in a
+    *               constraint violation like "got 10, expected between 5 and 7".
+    * @param ev Evidence that `T` is ordered (i.e. a [[scala.math.Ordering]] of `T` is available).
+    * @tparam T The object type this validator operates on.
+    */
+  class Between[ T ]( lowerBound: T, upperBound: T, prefix: String )( implicit ev: Ordering[ T ] )
     extends Validator[ T ]{
     
     def apply( x: T ) =
       result( ev.gteq( x, lowerBound ) && ev.lteq( x, upperBound ),
         RuleViolation( x, s"$prefix $x, expected between $lowerBound and $upperBound", description ) )
 
-    /** Returns a new validator with an exclusive upper bound. */
+    /** Returns a new validator based on the provided bounds and prefix, but which treats the upper bound
+      * as exclusive. The resulting constraint violation will consequently look similar to
+      * "got 10, expected between 5 and 7 (exclusively)".
+      */
     def exclusive = new Validator[ T ] {
       def apply( x: T ) =
         result( ev.gteq( x, lowerBound ) && ev.lt( x, upperBound ),
-          RuleViolation( x, s"$prefix $x, expected between $lowerBound and (exclusive) $upperBound", description ) )
+          RuleViolation( x, s"$prefix $x, expected between $lowerBound and $upperBound (exclusively)", description ) )
     }
   }
 }
