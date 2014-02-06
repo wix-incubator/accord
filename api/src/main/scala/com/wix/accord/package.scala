@@ -57,7 +57,15 @@ package object accord {
     protected def result( test: => Boolean, violation: => Violation ) =
       if ( test ) Success else Failure( Seq( violation ) )
 
-    // TODO ScalaDoc + reconsider API
+    /** Adapts this validator to a type `U`. Each application of the new validator applies the the specified
+      * extractor function, and validates the resulting `T` via this validator. This enables explicit validator
+      * composition, which is especially useful for defining new, complex combinators. At the validator definition
+      * site, it is recommended to use the `valid` operation provided by the DSL instead.
+      *
+      * @param g An extractor function from `U => T`.
+      * @tparam U The target type of the adaption.
+      * @return An adapted validator of `U`.
+      */
     override def compose[ U ]( g: U => T ): Validator[ U ] = new Validator[ U ] {
       override def apply( v1: U ): Result = self apply g( v1 )
     }
