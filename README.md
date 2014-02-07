@@ -107,7 +107,7 @@ Accord is published to the Maven Central Repository, so you simply have to add t
 </dependencies>
 ```
 
-To use Accord, add the Sonatype snapshot repository and a dependency on Accord to your POM:
+If you want to evaluate the upcoming snapshot release, add the Sonatype snapshot repository and a dependency on Accord to your POM:
 
 ```xml
 <repositories>
@@ -136,7 +136,10 @@ Accord is still fairly rudimentary, and there's plenty of improvements to be mad
 
 * Major issues and improvements planned or under consideration for the 0.2 milestone release:
     * Clean up and extend documentation
-    * Additional combinators
+    * Additional combinators and DSL support (e.g. numerics)
+    * Code cleanup and additional tests
+* Major issues and improvements planned or under consideration for the 0.3 milestone release:
+    * Rethink description framework (possibly make Description optional and modify the rewrites accordingly)
     * Implement accord-hamcrest integration in a separate artifact
     * Add adapter for Specs² matcher module
     * Add syntax for custom violation message overrides (e.g. `p.firstName is notEmpty as "no first name!"`)
