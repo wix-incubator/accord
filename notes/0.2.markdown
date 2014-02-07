@@ -1,10 +1,11 @@
 Version 0.2 of Accord is out, featuring the following improvements:
 
 * String validation DSL rewritten to actually be useful;
+* Completely rewritten Ordering-targeted DSL (syntax should be backwards-compatible) and added a "between" combinator;
 * Collection DSL operations like `each` now apply to all collection-like structures; this is especially useful to define "none-or-valid" predicates for `Option`s;
-* Validator contract changed to properly reflect the fact that validators are contravariant (i.e. a `Validator[Animal]` is also a `Validator[Cat]`).
+* Validator contract changed to properly reflect the fact that validators are contravariant (i.e. a `Validator[Animal]` is also a `Validator[Cat]`);
+* Added experimental API for adapting validators via `compose`;
 * Transformation macro partially rewritten using [quasiquotes](http://docs.scala-lang.org/overviews/macros/quasiquotes.html). Consequently, it is leaner and much more readable;
-* DSL codebase refactored to make extension and modification easier.
+* Lots of behind-the-scenes refactoring, documentation and cleanup.
 
 Feedback, bug reports and improvements are welcome!
-
