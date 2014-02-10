@@ -1,13 +1,10 @@
 import sbt._
 import Keys._
-import sbtrelease.ReleasePlugin._
 
 object Root extends Build {
 
-  lazy val baseSettings = Project.defaultSettings ++ releaseSettings ++ Seq(
-    organization := "com.wix",
-    scalaVersion := "2.10.3",
-    publishTo  := {
+  lazy val publishSettings = Seq(
+    publishTo := {
       val nexus = "https://oss.sonatype.org/"
       if ( version.value.trim.endsWith( "SNAPSHOT" ) )
         Some( "snapshots" at nexus + "content/repositories/snapshots" )
@@ -15,9 +12,7 @@ object Root extends Build {
         Some( "releases"  at nexus + "service/local/staging/deploy/maven2" )
     },
     publishMavenStyle := true,
-    licenses := Seq( "Apache 2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) ),
-    homepage := Some( url( "https://github.com/wix/accord" ) ),
-    pomExtra in ThisBuild := (
+    pomExtra in ThisBuild :=
       <scm>
         <url>git@github.com:wix/accord.git</url>
         <connection>scm:git@github.com:wix/accord.git</connection>
@@ -29,7 +24,39 @@ object Root extends Build {
           <url>http://www.tomergabel.com</url>
         </developer>
       </developers>
-    ),
+  )
+
+  lazy val releaseSettings = {
+    import sbtrelease.ReleaseStep
+    import sbtrelease.ReleasePlugin.ReleaseKeys._
+    import sbtrelease.ReleaseStateTransformations._
+    import com.typesafe.sbt.pgp.PgpKeys._
+
+    // Hook up release and GPG plugins
+    lazy val publishSignedAction = { st: State =>
+      val extracted = Project.extract( st )
+      val ref = extracted.get( thisProjectRef )
+      extracted.runAggregated( publishSigned in Global in ref, st )
+    }
+
+    sbtrelease.ReleasePlugin.releaseSettings ++ Seq(
+      releaseProcess := Seq[ ReleaseStep ] (
+        checkSnapshotDependencies,
+        runTest,
+        inquireVersions,
+        setReleaseVersion,
+        commitReleaseVersion,
+        tagRelease,
+        publishArtifacts.copy( action = publishSignedAction ),
+        setNextVersion,
+        commitNextVersion,
+        pushChanges
+      )
+    )
+  }
+
+  lazy val compileOptions = Seq(
+    scalaVersion := "2.10.3",
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",
       "-feature",
@@ -37,12 +64,21 @@ object Root extends Build {
       "-unchecked",
       "-Xfatal-warnings"
     ),
+
     // Warnings aren't considered fatal on document generation. There's probably a cleaner way to do this
     scalacOptions in ( Compile, doc ) :=
       ( scalacOptions in ( Compile, compile ) ).value filterNot { _ == "-Xfatal-warnings" }
   )
 
+  lazy val baseSettings = Project.defaultSettings ++ publishSettings ++ releaseSettings ++ compileOptions ++ Seq(
+    organization := "com.wix",
+    homepage := Some( url( "https://github.com/wix/accord" ) ),
+    licenses := Seq( "Apache 2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) )
+  )
+
   lazy val noPublish = Seq( publish := {}, publishLocal := {}, publishArtifact := false )
+
+  // Projects --
 
   lazy val api = Project( id = "accord-api", base = file( "api" ), settings = baseSettings )
   lazy val scalatest = Project( id = "accord-scalatest", base = file( "scalatest" ), settings = baseSettings).dependsOn( api )
