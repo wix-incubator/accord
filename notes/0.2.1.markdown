@@ -1,0 +1,5 @@
+Version 0.2.1 is a maintenance hotfix.
+
+It basically fixes one embarrassing DSL issue, in which a `collectionLike.each` doesn't provide the same verbs as the base DSL.
+
+Feedback, bug reports and improvements are welcome!
