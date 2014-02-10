@@ -62,8 +62,7 @@ package object dsl extends StringOps with CollectionOps with GenericOps with Ord
     * @param value The value to wrap with a validation context.
     * @tparam U The type of the provided expression.
     */
-  implicit class Contextualizer[ U ]( value: U )
-    extends DslContext[ U ] with DelegatedDslVerbs[ U ] with CollectionContext[ U ]
+  implicit class Contextualizer[ U ]( value: U ) extends SimpleDslContext[ U ]
 
   /** Wraps expression under validation with an explicit description; after macro transformation, the resulting
     * validator will use the specified description to render violations. See the

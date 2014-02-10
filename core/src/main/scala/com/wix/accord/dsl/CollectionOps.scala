@@ -22,7 +22,7 @@ import com.wix.accord.combinators.Empty
 import com.wix.accord.combinators.NotEmpty
 import scala.language.implicitConversions
 
-/** Provides a DSL for collection-like objects. Works in conjunction with [[com.wix.accord.dsl.CollectionContext]]. */
+/** Provides a DSL for collection-like objects. Works in conjunction with [[com.wix.accord.dsl.DslContext]]. */
 trait CollectionOps {
   /** Specifies a validator that succeeds on empty instances; the object under validation must implement
     * `def isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
@@ -47,8 +47,8 @@ trait CollectionOps {
    * a view bound from `T` to [[scala.collection.GenTraversableOnce]] we can force any collection-like structure
    * to conform to the structural type [[com.wix.accord.dsl.CollectionOps.HasSize]], and by requiring
    * a view bound from `T` to [[com.wix.accord.dsl.CollectionOps.HasSize]] at the call site (via
-   * [[com.wix.accord.dsl.SizeContext]]) we additionally support any class that directly conforms to the
-   * structural type as well.
+   * [[com.wix.accord.dsl.SizeContext]]) we additionally support any class that directly
+   * conforms to the structural type as well.
    *
    * @param gto An object that is, or is implicitly convertible to, [[scala.collection.GenTraversableOnce]].
    * @tparam T The type that conforms, directly or implicitly, to [[com.wix.accord.dsl.CollectionOps.HasSize]].

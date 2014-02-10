@@ -20,46 +20,56 @@ import com.wix.accord.{Success, Result, Validator}
 
 // TODO ScalaDocs
 
-trait DslContext[ U ]
-
-trait BaseDslVerbs[ U, V ] {
-  protected def transform: Validator[ U ] => Validator[ V ]
-  def is    ( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
-  def should( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
-  def must  ( validator: Validator[ U ] ): Validator[ V ] = transform apply validator
-
-}
-
-trait DelegatedDslVerbs[ U ] extends BaseDslVerbs[ U, U ] {
-  override def transform = identity
+trait ContextTransformer[ Inner, Outer ] {
+  protected def transform: Validator[ Inner ] => Validator[ Outer ]
 }
 
 private object Aggregates {
-  private def aggregate[ U, E ]( validator: Validator[ E ], aggregator: Traversable[ Result ] => Result )
-                               ( implicit ev: U => Traversable[ E ] ) =
-    new Validator[ U ] { def apply( col: U ) = aggregator( col map validator ) }
+  private def aggregate[ Coll, Element ]( validator: Validator[ Element ], aggregator: Traversable[ Result ] => Result )
+                                        ( implicit ev: Coll => Traversable[ Element ] ) =
+    new Validator[ Coll ] { def apply( col: Coll ) = aggregator( col map validator ) }
 
-  def all[ U, E ]( validator: Validator[ E ] )( implicit ev: U => Traversable[ E ] ): Validator[ U ] =
+  def all[ Coll, Element ]( validator: Validator[ Element ] )
+                          ( implicit ev: Coll => Traversable[ Element ] ): Validator[ Coll ] =
     aggregate( validator, r => ( r fold Success )( _ and _ ) )
 }
 
-trait SizeContext[ U ] {
-  def apply( validator: Validator[ Int ] )( implicit ev: U => HasSize ) = validator compose { u: U => u.size }
+trait SizeContext[ Inner, Outer ] {
+  self: ContextTransformer[ Inner, Outer ] =>
+
+  def apply( validator: Validator[ Int ] )( implicit ev: Inner => HasSize ) = {
+    val composed = validator compose { u: Inner => u.size }
+    transform apply composed
+  }
 }
 
-trait CollectionContext[ U ] {
-  self: DslContext[ U ] =>
+class CollectionDslContext[ Inner, Outer ]( protected val transform: Validator[ Inner ] => Validator[ Outer ] )
+  extends SizeContext[ Inner, Outer ] with ContextTransformer[ Inner, Outer ]
+
+trait DslContext[ Inner, Outer ] {
+  self: ContextTransformer[ Inner, Outer ] =>
+
+  def is    ( validator: Validator[ Inner ] ): Validator[ Outer ] = transform apply validator
+  def should( validator: Validator[ Inner ] ): Validator[ Outer ] = transform apply validator
+  def must  ( validator: Validator[ Inner ] ): Validator[ Outer ] = transform apply validator
 
   /** Provides extended syntax for collections; enables validation rules such as `c.students.each is valid`.
     *
     * @param ev Evidence that the provided expression can be treated as a collection.
-    * @tparam E The element type of the specified collection.
+    * @tparam Element The element type m of the specified collection.
     * @return Additional syntax (see implementation).
     */
-  def each[ E ]( implicit ev: U => Traversable[ E ] ) = new BaseDslVerbs[ E, U ] {
-    protected override def transform = Aggregates.all[ U, E ]
-  }
+  def each[ Element ]( implicit ev: Inner => Traversable[ Element ] ) =
+    new DslContext[ Element, Outer ] with ContextTransformer[ Element, Outer ] {
+      protected override def transform = self.transform compose Aggregates.all[ Inner, Element ]
+    }
 
-  def has = new SizeContext[ U ] {}
-  def have = new SizeContext[ U ] {}
+  private val collContext = new CollectionDslContext( transform )
+  def has: CollectionDslContext[ Inner, Outer ] = collContext
+  def have: CollectionDslContext[ Inner, Outer ] = collContext
 }
+
+trait SimpleDslContext[ U ] extends DslContext[ U, U ] with ContextTransformer[ U, U ] {
+  override def transform = identity
+}
+
