@@ -73,7 +73,7 @@ res3: com.wix.accord.Result = Failure(List(RuleViolation(List(),has size 0, expe
 Getting Started
 ===============
 
-Accord milestone release 0.2 is available on Maven Central Repository. The next milestone is 0.3-SNAPSHOT and is available from the Sonatype snapshots repository. Be advised that, pending a fix for [issue #2](../../issues/2), Accord _requires_ Scala 2.10.3 or later.
+Accord milestone release 0.2.1 is available on Maven Central Repository. The next milestone is 0.3-SNAPSHOT and is available from the Sonatype snapshots repository. Be advised that, pending a fix for [issue #2](../../issues/2), Accord _requires_ Scala 2.10.3 or later.
 
 SBT
 ---
@@ -81,7 +81,7 @@ SBT
 Simply add the `accord-core` module to your build settings:
 
 ```scala
-libraryDependencies += "com.wix" %% "accord-core" % "0.2"
+libraryDependencies += "com.wix" %% "accord-core" % "0.2.1"
 ```
 
 If you want to evaluate the upcoming snapshot release, add the Sonatype snapshot repository to your resolvers; typically this means adding the following to your `build.sbt` file:
@@ -102,7 +102,7 @@ Accord is published to the Maven Central Repository, so you simply have to add t
   <dependency>
     <groupId>com.wix</groupId>
     <artifactId>accord-core_${scala.tools.version}</artifactId>
-    <version>0.2</version>
+    <version>0.2.1</version>
   </dependency>
 </dependencies>
 ```
