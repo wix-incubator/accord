@@ -73,7 +73,7 @@ res3: com.wix.accord.Result = Failure(List(RuleViolation(List(),has size 0, expe
 Getting Started
 ===============
 
-Accord milestone release 0.1 is available on Maven Central Repository. The next milestone is 0.2-SNAPSHOT and is available from the Sonatype snapshots repository. Be advised that, pending a fix for [issue #2](../../issues/2), Accord _requires_ Scala 2.10.3 or later.
+Accord milestone release 0.2 is available on Maven Central Repository. The next milestone is 0.3-SNAPSHOT and is available from the Sonatype snapshots repository. Be advised that, pending a fix for [issue #2](../../issues/2), Accord _requires_ Scala 2.10.3 or later.
 
 SBT
 ---
@@ -81,7 +81,7 @@ SBT
 Simply add the `accord-core` module to your build settings:
 
 ```scala
-libraryDependencies += "com.wix" %% "accord-core" % "0.1"
+libraryDependencies += "com.wix" %% "accord-core" % "0.2"
 ```
 
 If you want to evaluate the upcoming snapshot release, add the Sonatype snapshot repository to your resolvers; typically this means adding the following to your `build.sbt` file:
@@ -89,7 +89,7 @@ If you want to evaluate the upcoming snapshot release, add the Sonatype snapshot
 ```scala
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
-libraryDependencies += "com.wix" %% "accord-core" % "0.2-SNAPSHOT"
+libraryDependencies += "com.wix" %% "accord-core" % "0.3-SNAPSHOT"
 ```
 
 Maven
@@ -102,7 +102,7 @@ Accord is published to the Maven Central Repository, so you simply have to add t
   <dependency>
     <groupId>com.wix</groupId>
     <artifactId>accord-core_${scala.tools.version}</artifactId>
-    <version>0.1</version>
+    <version>0.2</version>
   </dependency>
 </dependencies>
 ```
@@ -124,7 +124,7 @@ If you want to evaluate the upcoming snapshot release, add the Sonatype snapshot
   <dependency>
     <groupId>com.wix</groupId>
     <artifactId>accord-core_${scala.tools.version}</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.3-SNAPSHOT</version>
   </dependency>
 </dependencies>
 ```
@@ -134,16 +134,14 @@ Roadmap
 
 Accord is still fairly rudimentary, and there's plenty of improvements to be made:
 
-* Major issues and improvements planned or under consideration for the 0.2 milestone release:
-    * Clean up and extend documentation
-    * Additional combinators and DSL support (e.g. numerics)
-    * Code cleanup and additional tests
 * Major issues and improvements planned or under consideration for the 0.3 milestone release:
+    * Re-evaluate [issue #2](../../issues/2)
     * Rethink description framework (possibly make Description optional and modify the rewrites accordingly)
-    * Implement accord-hamcrest integration in a separate artifact
-    * Add adapter for Specs² matcher module
     * Add syntax for custom violation message overrides (e.g. `p.firstName is notEmpty as "no first name!"`)
     * Support custom violation types (e.g. `p.firstName is notEmpty as MyServerError( code = -3 )`)
+* Future plans:
+    * Implement accord-hamcrest integration in a separate artifact
+    * Add adapter for Specs² matcher module
 
 Ideas and feature requests welcome!
 
