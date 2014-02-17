@@ -39,7 +39,7 @@ class CollectionCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation" in {
       val left = Some( "content" )
       val validator = new Empty[ Option[ String ] ]
-      validator( left ) should failWith( testContext -> "must be empty" )
+      validator( left ) should failWith( "must be empty" )
     }
   }
 
@@ -62,7 +62,7 @@ class CollectionCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation" in {
       val left = None
       val validator = new NotEmpty[ Option[ String ] ]
-      validator( left ) should failWith( testContext -> "must not be empty" )
+      validator( left ) should failWith( "must not be empty" )
     }
   }
 }

@@ -26,7 +26,7 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
 
   "RuleViolationMatcher" should {
 
-    val sampleViolation = RuleViolation( "value", "constraint", "description" )
+    val sampleViolation = RuleViolation( "value", "constraint", Some( "description" ) )
 
     "correctly match a rule violation based on value" in {
       val matchRule = RuleViolationMatcher( value = "value" )
@@ -51,8 +51,8 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
 
   "GroupViolationMatcher" should {
 
-    val sampleRule = RuleViolation( "value", "constraint", "description" )
-    val sampleGroup = GroupViolation( value = "group", constraint = "violation", description = "ftw", children = Seq( sampleRule ) )
+    val sampleRule = RuleViolation( "value", "constraint", Some( "description" ) )
+    val sampleGroup = GroupViolation( value = "group", constraint = "violation", description = Some( "ftw" ), children = Seq( sampleRule ) )
 
     "correctly match a group violation based on value" in {
       val matchRule = GroupViolationMatcher( value = "group" )
@@ -107,7 +107,7 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
 
   "failWith matcher" should {
 
-    val result: Result = Failure( Seq( RuleViolation( "value", "constraint", "description" ) ) )
+    val result: Result = Failure( Seq( RuleViolation( "value", "constraint", Some( "description" ) ) ) )
 
     "succeed if a validation rule matches successfully" in {
       result should failWith( "description" -> "constraint" )

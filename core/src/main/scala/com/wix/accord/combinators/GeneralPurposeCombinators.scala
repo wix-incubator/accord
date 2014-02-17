@@ -34,13 +34,11 @@ trait GeneralPurposeCombinators {
     * @param predicates The predicates to chain together.
     * @tparam T The type on which this validator operates.
     */
-  class Or[ T ]( predicates: Validator[ T ]* ) extends Validator[ T ] {
+  class Or[ T ]( predicates: Validator[ T ]* ) extends BaseValidator[ T ] {
     def apply( x: T ) = {
       val results = predicates.map { _ apply x }
-      val failures =
-        results.collect { case Failure( violations ) => violations map { _ withDescription description } }.flatten
-      result( results exists { _ == Success },
-        GroupViolation( x, "doesn't meet any of the requirements", description, failures ) )
+      val failures = results.collect { case Failure( violations ) => violations }.flatten
+      result( results exists { _ == Success }, x -> "doesn't meet any of the requirements" -> failures )
     }
   }
 
@@ -48,8 +46,8 @@ trait GeneralPurposeCombinators {
     * @param message The violation message.
     * @tparam T The type on which this validator operates.
     */
-  class Fail[ T ]( message: => String ) extends Validator[ T ] {
-    def apply( x: T ) = result( test = false, RuleViolation( x, message, description ) )
+  class Fail[ T ]( message: => String ) extends BaseValidator[ T ] {
+    def apply( x: T ) = result( test = false, x -> message )
   }
 
   /** A validator that always succeeds.
@@ -60,27 +58,27 @@ trait GeneralPurposeCombinators {
   }
 
   /** A validator that succeeds only if the provided object is `null`. */
-  class IsNull extends Validator[ AnyRef ] {
-    def apply( x: AnyRef ) = result( test = x == null, RuleViolation( x, "is not a null", description ) )
+  class IsNull extends BaseValidator[ AnyRef ] {
+    def apply( x: AnyRef ) = result( test = x == null, x -> "is not a null" )
   }
 
   /** A validator that succeeds only if the provided object is not `null`. */
-  class IsNotNull extends Validator[ AnyRef ] {
-    def apply( x: AnyRef ) = result( test = x != null, RuleViolation( x, "is a null", description ) )
+  class IsNotNull extends BaseValidator[ AnyRef ] {
+    def apply( x: AnyRef ) = result( test = x != null, x -> "is a null" )
   }
 
   /** A validator that succeeds only if the validated object is equal to the specified value. Respects nulls
     * and delegates equality checks to [[java.lang.Object.equals]]. */
-  class EqualTo[ T ]( to: T ) extends Validator[ T ] {
+  class EqualTo[ T ]( to: T ) extends BaseValidator[ T ] {
     private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
-    def apply( x: T ) = result( test = safeEq( x, to ), RuleViolation( x, s"does not equal $to", description ) )
+    def apply( x: T ) = result( test = safeEq( x, to ), x -> s"does not equal $to" )
   }
 
   /** A validator that succeeds only if the validated object is not equal to the specified value. Respects nulls
     * and delegates equality checks to [[java.lang.Object.equals]]. */
-  class NotEqualTo[ T ]( to: T ) extends Validator[ T ] {
+  class NotEqualTo[ T ]( to: T ) extends BaseValidator[ T ] {
     private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
-    def apply( x: T ) = result( test = !safeEq( x, to ), RuleViolation( x, s"equals $to", description ) )
+    def apply( x: T ) = result( test = !safeEq( x, to ), x -> s"equals $to" )
   }
 
   /** A validator which merely delegates to another, implicitly available validator. This is necessary for the
@@ -108,10 +106,10 @@ trait GeneralPurposeCombinators {
     * @tparam T The object type this validator operates on. An implicit [[com.wix.accord.Validator]]
     *           over type `T` must be in scope.
     */
-  class Valid[ T : Validator ] extends Validator[ T ] {
+  class Valid[ T : Validator ] extends BaseValidator[ T ] {
     def apply( x: T ) = implicitly[ Validator[ T ] ].apply( x ) match {
       case Success => Success
-      case Failure( rules ) => Failure( GroupViolation( x, "is invalid", description, rules ) :: Nil )
+      case Failure( rules ) => Failure( Seq( x -> "is invalid" -> rules ) )
     }
   }
 }

@@ -16,7 +16,7 @@
 
 package com.wix.accord.combinators
 
-import com.wix.accord.{RuleViolation, Validator}
+import com.wix.accord.BaseValidator
 import scala.language.implicitConversions
 
 /** Combinators that operate on collections and collection-like structures. */
@@ -50,8 +50,8 @@ trait CollectionCombinators {
     * @tparam T A type that implements `isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
     * @see [[com.wix.accord.combinators.NotEmpty]]
     */
-  class Empty[ T <% HasEmpty ] extends Validator[ T ] {
-    def apply( x: T ) = result( x.isEmpty, RuleViolation( x, "must be empty", description ) )
+  class Empty[ T <% HasEmpty ] extends BaseValidator[ T ] {
+    def apply( x: T ) = result( x.isEmpty, x -> "must be empty")
   }
 
   /** A validator that operates on objects that can be empty, and succeeds only if the provided instance is ''not''
@@ -59,7 +59,7 @@ trait CollectionCombinators {
     * @tparam T A type that implements `isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
     * @see [[com.wix.accord.combinators.Empty]]
     */
-  class NotEmpty[ T <% HasEmpty ] extends Validator[ T ] {
-    def apply( x: T ) = result( !x.isEmpty, RuleViolation( x, "must not be empty", description ) )
+  class NotEmpty[ T <% HasEmpty ] extends BaseValidator[ T ] {
+    def apply( x: T ) = result( !x.isEmpty, x -> "must not be empty" )
   }
 }

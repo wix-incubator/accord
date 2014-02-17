@@ -36,7 +36,7 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers with Orde
     "render a correct rule violation" in {
       val left = Test( 0 )
       val validator = new GreaterThan( Test( 5 ), "got" )
-      validator( left ) should failWith( testContext -> "got Test(0), expected more than Test(5)" )
+      validator( left ) should failWith( "got Test(0), expected more than Test(5)" )
     }
   }
   
@@ -54,7 +54,7 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers with Orde
     "render a correct rule violation" in {
       val left = Test( 0 )
       val validator = new GreaterThanOrEqual( Test( 5 ), "got" )
-      validator( left ) should failWith( testContext -> "got Test(0), expected Test(5) or more" )
+      validator( left ) should failWith( "got Test(0), expected Test(5) or more" )
     }
   }
   
@@ -67,7 +67,7 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers with Orde
     "render a correct rule violation" in {
       val left = Test( 10 )
       val validator = new LesserThan( Test( 10 ), "got" )
-      validator( left ) should failWith( testContext -> "got Test(10), expected less than Test(10)" )
+      validator( left ) should failWith( "got Test(10), expected less than Test(10)" )
     }
   }
   
@@ -85,7 +85,7 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers with Orde
     "render a correct rule violation" in {
       val left = Test( 10 )
       val validator = new LesserThanOrEqual( Test( 5 ), "got" )
-      validator( left ) should failWith( testContext -> "got Test(10), expected Test(5) or less" )
+      validator( left ) should failWith( "got Test(10), expected Test(5) or less" )
     }
   }
   
@@ -98,7 +98,7 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers with Orde
     "render a correct rule violation" in {
       val left = Test( 10 )
       val validator = new EquivalentTo( Test( 5 ), "got" )
-      validator( left ) should failWith( testContext -> "got Test(10), expected Test(5)" )
+      validator( left ) should failWith( "got Test(10), expected Test(5)" )
     }
   }
   
@@ -111,7 +111,7 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers with Orde
     "render a correct rule violation" in {
       val left = Test( 1 )
       val validator = new Between( Test( 5 ), Test( 10 ), "got" )
-      validator( left ) should failWith( testContext -> "got Test(1), expected between Test(5) and Test(10)" )
+      validator( left ) should failWith( "got Test(1), expected between Test(5) and Test(10)" )
     }
   }
   
@@ -124,7 +124,7 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers with Orde
     "render a correct rule violation" in {
       val left = Test( 10 )
       val validator = new Between( Test( 5 ), Test( 10 ), "got" ).exclusive
-      validator( left ) should failWith( testContext -> "got Test(10), expected between Test(5) and Test(10) (exclusively)" )
+      validator( left ) should failWith( "got Test(10), expected between Test(5) and Test(10) (exclusively)" )
     }
   }
 }

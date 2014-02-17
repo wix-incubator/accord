@@ -30,7 +30,7 @@ class StringCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation" in {
       val left = "eggs and ham"
       val validator = new StartsWith( "ham" )
-      validator( left ) should failWith( testContext -> "must start with 'ham'" )
+      validator( left ) should failWith( "must start with 'ham'" )
     }
   }
 
@@ -44,7 +44,7 @@ class StringCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation" in {
       val left = "eggs and ham"
       val validator = new EndsWith( "eggs" )
-      validator( left ) should failWith( testContext -> "must end with 'eggs'" )
+      validator( left ) should failWith( "must end with 'eggs'" )
     }
   }
 
@@ -70,13 +70,13 @@ class StringCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation on partial match failure" in {
       val left = "eggs and ham"
       val validator = new MatchesRegex( """\s+eggs""".r.pattern, partialMatchAllowed = true )
-      validator( left ) should failWith( testContext -> "must match regular expression '\\s+eggs'" )
+      validator( left ) should failWith( "must match regular expression '\\s+eggs'" )
     }
 
     "render a correct rule violation on full match failure" in {
       val left = "eggs and ham"
       val validator = new MatchesRegex( """\s+eggs""".r.pattern, partialMatchAllowed = false )
-      validator( left ) should failWith( testContext -> "must fully match regular expression '\\s+eggs'" )
+      validator( left ) should failWith( "must fully match regular expression '\\s+eggs'" )
     }
   }
 }

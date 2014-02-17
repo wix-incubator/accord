@@ -29,16 +29,13 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
       validator( "okay" ) should be( aSuccess )
     }
     "render a correct rule violation when the first clause is not satisfied" in {
-      validator( "ok" ) should failWith( testContext -> "must end with 'ay'" )
+      validator( "ok" ) should failWith( "must end with 'ay'" )
     }
     "render a correct rule violation when the second clause is not satisfied" in {
-      validator( "gray" ) should failWith( testContext -> "must start with 'ok'" )
+      validator( "gray" ) should failWith( "must start with 'ok'" )
     }
     "render a correct rule violation when both clauses are not satisfied" in {
-      validator( "no" ) should failWith(
-        testContext -> "must start with 'ok'",
-        testContext -> "must end with 'ay'"
-      )
+      validator( "no" ) should failWith( "must start with 'ok'", "must end with 'ay'" )
     }
   }
 
@@ -57,9 +54,9 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
       validator( "gray" ) should be( aSuccess )
     }
     "render a correct rule violation when both clauses are not satisfied" in {
-      validator( "no" ) should failWith( group( testContext, "doesn't meet any of the requirements",
-        testContext -> "must start with 'ok'",
-        testContext -> "must end with 'ay'"
+      validator( "no" ) should failWith( GroupViolationMatcher(
+        constraint = "doesn't meet any of the requirements",
+        violations = Seq( "must start with 'ok'", "must end with 'ay'" )
       ) )
     }
   }
@@ -67,7 +64,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
   "Fail combinator" should {
     "render a correct rule violation" in {
       val validator = new Fail[ String ]( "message" )
-      validator( "whatever" ) should failWith( testContext -> "message" )
+      validator( "whatever" ) should failWith( "message" )
     }
   }
 
@@ -85,7 +82,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new EqualTo[ String ]( "test" )
-      validator( "invalid" ) should failWith( testContext -> "does not equal test" )
+      validator( "invalid" ) should failWith( "does not equal test" )
     }
   }
 
@@ -97,7 +94,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new NotEqualTo[ String ]( "test" )
-      validator( "test" ) should failWith( testContext -> "equals test" )
+      validator( "test" ) should failWith( "equals test" )
     }
   }
 
@@ -108,7 +105,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new IsNull
-      validator( "test" ) should failWith( testContext -> "is not a null" )
+      validator( "test" ) should failWith( "is not a null" )
     }
   }
 
@@ -119,7 +116,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new IsNotNull
-      validator( null ) should failWith( testContext -> "is a null" )
+      validator( null ) should failWith( "is a null" )
     }
   }
 }

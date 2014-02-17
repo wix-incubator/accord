@@ -14,12 +14,14 @@
   limitations under the License.
  */
 
-package com.wix.accord.tests.combinators
+package com.wix.accord
 
-import org.scalatest.{WordSpec, Matchers}
-import com.wix.accord.scalatest.ResultMatchers
-
-trait CombinatorTestSpec extends WordSpec with Matchers with ResultMatchers {
+trait ViolationBuilder {
   import scala.language.implicitConversions
-  implicit def elevateStringToRuleViolationMatcher( s: String ) = RuleViolationMatcher( constraint = s )
+
+  implicit def ruleViolationFromTuple( v: ( Any, String ) ) =
+    RuleViolation( value = v._1, constraint = v._2, description = None )
+
+  implicit def groupViolationFromTuple( v: ( ( Any, String ), Seq[ Violation ] ) ) =
+    GroupViolation( value = v._1._1, constraint = v._1._2, description = None, children = v._2 )
 }
