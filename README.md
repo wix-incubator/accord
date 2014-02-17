@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/wix/accord.png)](https://travis-ci.org/wix/accord)
+[![Build Status](https://travis-ci.org/wix/accord.png?branch=master)](https://travis-ci.org/wix/accord)
 
 Overview
 ========
