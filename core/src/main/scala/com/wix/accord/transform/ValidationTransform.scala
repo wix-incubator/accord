@@ -103,12 +103,6 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     }
     subvalidators
   }
-//    t match {
-//    case Block( stats, expr ) => ( stats flatMap findSubvalidators ) ++ findSubvalidators( expr )
-//    case ValidatorApplication( validator ) => validator :: Nil
-//    case Literal( Constant(()) ) => Nil   // Ignored terminator
-//    case _ => abort( t.pos, s"Unexpected node $t:\n\ttpe=${t.tpe}\n\traw=${showRaw(t)}" )
-//  }
 
   // Rewrite expressions into a validation chain --
 
