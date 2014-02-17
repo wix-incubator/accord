@@ -18,6 +18,7 @@ package com.wix.accord.transform
 
 import scala.reflect.macros.Context
 import com.wix.accord._
+import com.wix.accord.transform.PatternHelper.{Continue, Skip}
 
 private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] )
   extends PatternHelper[ C ] with ExpressionDescriber[ C ] {
@@ -88,12 +89,26 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     }
   }
 
-  def findSubvalidators( t: Tree ): List[ Subvalidator ] = t match {
-    case Block( stats, expr ) => ( stats flatMap findSubvalidators ) ++ findSubvalidators( expr )
-    case ValidatorApplication( validator ) => validator :: Nil
-    case Literal( Constant(()) ) => Nil   // Ignored terminator
-    case _ => abort( t.pos, s"Unexpected node $t:\n\ttpe=${t.tpe}\n\traw=${showRaw(t)}" )
+  def findSubvalidators( t: Tree ): Seq[ Tree ] = {
+    var prologue = Vector.empty[ Tree ]
+    var subvalidators = Vector.empty[ Tree ]
+    actOnPattern( t ) {
+      case Block( stats, expr ) => Continue
+      case Literal( Constant( () ) ) => Skip   // Ignored terminator
+      case ValidatorApplication( validator ) =>
+        subvalidators +:= rewriteOne( validator, prologue )
+        prologue = Vector.empty                // TODO this is UNSOUND, needs some careful consideration!
+        Skip
+      case tree => prologue +:= context.resetAllAttrs( tree.duplicate ); Skip
+    }
+    subvalidators
   }
+//    t match {
+//    case Block( stats, expr ) => ( stats flatMap findSubvalidators ) ++ findSubvalidators( expr )
+//    case ValidatorApplication( validator ) => validator :: Nil
+//    case Literal( Constant(()) ) => Nil   // Ignored terminator
+//    case _ => abort( t.pos, s"Unexpected node $t:\n\ttpe=${t.tpe}\n\traw=${showRaw(t)}" )
+//  }
 
   // Rewrite expressions into a validation chain --
 
@@ -104,13 +119,14 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
    * @param sv The subvalidator to rewrite
    * @return A valid expression representing a [[com.wix.accord.Validator]] of `T`.
    */
-  def rewriteOne( sv: Subvalidator ): Tree = {
+  def rewriteOne( sv: Subvalidator, prologue: Seq[ Tree ] ): Tree = {
     val rewrite =
       q"""
           new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
             self =>
 
             def apply( $prototype ) = {
+              ..$prologue
               val sv = ${sv.validation}
               sv( ${sv.ouv} ) withDescription ${sv.description}
             }
@@ -133,14 +149,14 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     */
   def transformed: Expr[ Validator[ T ] ] = {
     // Rewrite all validators
-    val subvalidators = findSubvalidators( vimpl ) map rewriteOne
+    val subvalidators = findSubvalidators( vimpl )
     val result = context.Expr[ Validator[ T ] ](
       q"new com.wix.accord.transform.ValidationTransform.TransformedValidator( ..$subvalidators )" )
 
     trace( s"""|Result of validation transform:
-             |  Clean: ${show( result )}
-             |  Raw  : ${showRaw( result )}
-             |""".stripMargin )
+               |  Clean: ${show( result )}
+               |  Raw  : ${showRaw( result )}
+               |""".stripMargin )
     result
   }
 }

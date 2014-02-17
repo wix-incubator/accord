@@ -22,7 +22,7 @@ import com.wix.accord.scalatest.ResultMatchers
 
 class ValidationTransformTests extends WordSpec with Matchers with ResultMatchers {
   "Validator description" should {
-    import ValidationTransformTests._
+    import ValidationTransformTests.Description._
 
     "be generated for a fully-qualified field selector" in {
       validate( FlatTest( null ) )( implicitlyDescribedNamedValidator ) should failWith( "field" -> "is a null" )
@@ -52,23 +52,53 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       validate( FlatTest( null ) )( adaptedValidator ) should failWith( "field" -> "is a null" )
     }
   }
+  
+  "Validator transformation" should {
+    import ValidationTransformTests.Interleaving._
+
+    "allow interleaving of arbitrary code blocks" in {
+      // Actually verified at compile-time, this only ensures it doesn't fail spectacularly at runtime
+      validate( Test( Seq( 1 ), "field" ) )( interleavingCompileTest )
+    }
+
+    "allow usage of arbitrary code blocks in validation rules" in {
+      validate( Test( Seq( 1, 2, 3 ), "field" ) )( interleavingValidator ) should be( aSuccess )
+      validate( Test( Seq.empty, "field" ) )( interleavingValidator ) should be( aFailure )
+    }
+  }
 }
 
 object ValidationTransformTests {
   import dsl._
   
-  case class FlatTest( field: String )
-  val implicitlyDescribedNamedValidator = validator[ FlatTest ] { t => t.field is notNull }
-  val implicitlyDescribedAnonymousValidator = validator[ FlatTest ] { _.field is notNull }
-  val explicitlyDescribedValidator = validator[ FlatTest ] { t => t.field as "described" is notNull }
-  val implicitlyDescribedValueValidator = validator[ String ] { _ is notNull }
-  val adaptedValidator = implicitlyDescribedValueValidator compose { ( f: FlatTest ) => f.field }
+  object Description {
+    case class FlatTest( field: String )
+    val implicitlyDescribedNamedValidator = validator[ FlatTest ] { t => t.field is notNull }
+    val implicitlyDescribedAnonymousValidator = validator[ FlatTest ] { _.field is notNull }
+    val explicitlyDescribedValidator = validator[ FlatTest ] { t => t.field as "described" is notNull }
+    val implicitlyDescribedValueValidator = validator[ String ] { _ is notNull }
+    val adaptedValidator = implicitlyDescribedValueValidator compose { ( f: FlatTest ) => f.field }
 
-  case class CompositeTest( member: FlatTest )
-  val compositeValidator = {
-    implicit val flatValidator = implicitlyDescribedAnonymousValidator
-    validator[ CompositeTest ] { _.member is valid }
+    case class CompositeTest( member: FlatTest )
+    val compositeValidator = {
+      implicit val flatValidator = implicitlyDescribedAnonymousValidator
+      validator[ CompositeTest ] { _.member is valid }
+    }
+    val namedIndirectValidator = validator[ CompositeTest ] { c => c.member.field is notNull }
+    val anonymousIndirectValidator = validator[ CompositeTest ] { _.member.field is notNull }
   }
-  val namedIndirectValidator = validator[ CompositeTest ] { c => c.member.field is notNull }
-  val anonymousIndirectValidator = validator[ CompositeTest ] { _.member.field is notNull }
+
+  object Interleaving {
+    case class Test( seq: Seq[ Int ], field: String )
+    val interleavingCompileTest = validator[ Test ] { t =>
+      t.field is notEmpty
+      val seq = t.seq   // Intentionally unused
+      t.seq is notEmpty
+    }
+    val interleavingValidator = validator[ Test ] { t =>
+      t.field is notEmpty
+      val size = t.seq.size
+      size should be > 0
+    }
+  }
 }

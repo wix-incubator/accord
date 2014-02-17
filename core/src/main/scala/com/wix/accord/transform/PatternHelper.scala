@@ -27,6 +27,7 @@ trait PatternHelper[ C <: Context ] {
   val context: C
 
   import context.universe._
+  import PatternHelper._
 
   /** Matches an AST pattern against a tree recursively. Patterns are encoded as a partial function from
     * [[scala.reflect.api.Universe.Tree]] to a result object; this method returns the result of applying the partial
@@ -51,6 +52,27 @@ trait PatternHelper[ C <: Context ] {
     found
   }
 
+  /** Matches an AST pattern against a tree recursively. Patterns are encoded as a partial function from
+    * [[scala.reflect.api.Universe.Tree]] to an [[com.wix.accord.transform.PatternHelper.Action]]; when
+    * a pattern matches, it is applied against the subtree and traversal proceeds according to the resulting
+    * action.
+    *
+    * @param tree The AST tree to search.
+    * @param pattern The search pattern.
+    */
+  def actOnPattern( tree: Tree )( pattern: PartialFunction[ Tree, Action ] ) {
+    new Traverser {
+      override def traverse( subtree: Tree ) {
+        pattern.applyOrElse( subtree, ( _: Tree ) => Continue ) match {
+          case Continue => super.traverse( subtree )
+          case Skip =>
+          case Abort( message ) => context.abort( subtree.pos, message )
+        }
+      }
+    }.traverse( tree )
+  }
+
+
   /** Transforms an AST based on the specified pattern. The transformation is specified as a partial function from
     * [[scala.reflect.api.Universe.Tree]] to a another tree, where every subtree for which the function is defined
     * is replaced with the result of its application.
@@ -67,4 +89,15 @@ trait PatternHelper[ C <: Context ] {
       }.transform( tree.duplicate )
     context.resetAllAttrs( transformed )
   }
+}
+
+object PatternHelper {
+  /** A base trait for traversal actions. */
+  sealed trait Action
+  /** Continues the traversal recursively (this includes the matching subtree). */
+  case object Continue extends Action
+  /** Skips the matching subtree and continues the traversal. */
+  case object Skip extends Action
+  /** Aborts the macro processing with the specified error message (see [[scala.reflect.macros.FrontEnds.abort]]. */
+  case class Abort( message: String ) extends Action
 }
