@@ -16,12 +16,21 @@
 
 package com.wix.accord
 
+/** Provides a convenience DSL for generating violations:
+  *
+  * - Rule violations can be created by specifying a value and constraint message as a tuple, for example:
+  *   `v -> "must not be empty"`
+  * - Group violations can be created by extending the above to include children, as in:
+  *   `v -> "does not match any of the rules" -> Seq( v.firstName -> "first name must be empty", ... )`
+  */
 trait ViolationBuilder {
   import scala.language.implicitConversions
 
+  /** Converts a tuple of the form value->constraint to a [[com.wix.accord.RuleViolation]]. */
   implicit def ruleViolationFromTuple( v: ( Any, String ) ) =
     RuleViolation( value = v._1, constraint = v._2, description = None )
 
+  /** Converts an extended tuple of the form value->constraint->ruleSeq to a [[com.wix.accord.GroupViolation]]. */
   implicit def groupViolationFromTuple( v: ( ( Any, String ), Seq[ Violation ] ) ) =
     GroupViolation( value = v._1._1, constraint = v._1._2, description = None, children = v._2 )
 }

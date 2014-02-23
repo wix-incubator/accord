@@ -48,6 +48,11 @@ trait Validator[ -T ] extends ( T => Result ) {
   }
 }
 
+/** A convenience base trait for validator definition, providing the `result` method and a DSL for constructing
+  * violations (see [[com.wix.accord.ViolationBuilder]] for details).
+  *
+  * @tparam T The object type this validator operates on.
+  */
 trait BaseValidator[ T ] extends Validator[ T ] with ViolationBuilder {
   /** A helper method to simplify rendering results.
     *
