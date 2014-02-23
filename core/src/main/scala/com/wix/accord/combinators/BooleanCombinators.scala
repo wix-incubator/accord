@@ -22,12 +22,12 @@ import com.wix.accord._
 trait BooleanCombinators {
 
   /** A boolean validator that matches only on true. */
-  class IsTrue extends Validator[ Boolean ] {
-    override def apply( v1: Boolean ): Result = result( v1, RuleViolation( v1, "must be true", description ) )
+  class IsTrue extends BaseValidator[ Boolean ] {
+    override def apply( v1: Boolean ): Result = result( v1, v1 -> "must be true" )
   }
 
   /** A boolean validator that matches only on false. */
-  class IsFalse extends Validator[ Boolean ] {
-    override def apply( v1: Boolean ): Result = result( !v1, RuleViolation( v1, "must be false", description ) )
+  class IsFalse extends BaseValidator[ Boolean ] {
+    override def apply( v1: Boolean ): Result = result( !v1, v1 -> "must be false" )
   }
 }
