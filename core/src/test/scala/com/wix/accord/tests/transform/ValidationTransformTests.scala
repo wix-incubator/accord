@@ -14,7 +14,7 @@
   limitations under the License.
  */
 
-package com.wix.accord.tests.dsl
+package com.wix.accord.tests.transform
 
 import org.scalatest.{Matchers, WordSpec}
 import com.wix.accord._
