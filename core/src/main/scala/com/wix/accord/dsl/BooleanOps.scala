@@ -14,14 +14,17 @@
   limitations under the License.
  */
 
-package com.wix.accord
+package com.wix.accord.dsl
 
-/** Aggregates all implemented combinators for use by the DSL. Can, though not intended to, be used
-  * directly by end-user code.
-  */
-package object combinators
-  extends GeneralPurposeCombinators
-     with CollectionCombinators
-     with StringCombinators
-     with OrderingCombinators
-     with BooleanCombinators
+import scala.language.implicitConversions
+import com.wix.accord.Validator
+import com.wix.accord.combinators.{IsTrue, IsFalse}
+
+/** Provides a DSL for booleans. */
+trait BooleanOps {
+  /** An implicit conversion from boolean to a respective `IsTrue`/`IsFalse` instance; this enables syntax
+    * such as `customer.emailOptIn is true`.
+    */
+  implicit def booleanToBooleanValidator( b: Boolean ): Validator[ Boolean ] =
+    if ( b ) new IsTrue else new IsFalse
+}
