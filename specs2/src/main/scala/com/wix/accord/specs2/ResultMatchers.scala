@@ -48,9 +48,9 @@ trait ResultMatchers {
     def apply[ T <: Violation ]( left: Expectable[ T ] ) = left.value match {
       case rv: RuleViolation =>
         result(
-          test = ( value       == null || rv.value       == value       ) &&
-                 ( constraint  == null || rv.constraint  == constraint  ) &&
-                 ( description == null || rv.description == description ),
+          test = ( value       == null || rv.value       == value               ) &&
+                 ( constraint  == null || rv.constraint  == constraint          ) &&
+                 ( description == null || rv.description == Some( description ) ),
           s"Rule violation $rv matches pattern $this",
           s"Rule violation $rv did not match pattern $this",
           left
@@ -64,7 +64,7 @@ trait ResultMatchers {
 
     override def toString = Seq( Option( value       ) getOrElse "_",
                                  Option( constraint  ) getOrElse "_",
-                                 Option( description ) getOrElse "_" ).mkString( "RuleViolation(", ", ", ")" )
+                                 Option( description ) getOrElse "_" ).mkString( "RuleViolation(", ",", ")" )
   }
 
   /** A convenience implicit to simplify test code. Enables syntax like:
@@ -108,9 +108,9 @@ trait ResultMatchers {
           gv.children.length == violations.length &&
           gv.children.forall( rule => violations.exists( _ test rule ) ) )
         result(
-          test = ( value       == null || gv.value       == value       ) &&
-                 ( constraint  == null || gv.constraint  == constraint  ) &&
-                 ( description == null || gv.description == description ) &&
+          test = ( value       == null || gv.value       == value               ) &&
+                 ( constraint  == null || gv.constraint  == constraint          ) &&
+                 ( description == null || gv.description == Some( description ) ) &&
                  rulesMatch,
           s"Group violation $gv matches pattern $this",
           s"Group violation $gv did not match pattern $this",
@@ -126,7 +126,7 @@ trait ResultMatchers {
     override def toString = Seq( Option( value       ) getOrElse "_",
                                  Option( constraint  ) getOrElse "_",
                                  Option( description ) getOrElse "_",
-                                 Option( violations  ) getOrElse "_" ).mkString( "GroupViolation(", ", ", ")" )
+                                 Option( violations  ) getOrElse "_" ).mkString( "GroupViolation(", ",", ")" )
   }
 
   /** A matcher over validation [[com.wix.accord.Result]]s. Takes a set of expected violations

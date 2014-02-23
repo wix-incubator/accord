@@ -16,7 +16,7 @@
 
 package com.wix.accord.combinators
 
-import com.wix.accord.{RuleViolation, Validator}
+import com.wix.accord.{BaseValidator, Validator}
 
 /** Provides combinators over objects implementing [[scala.math.Ordering]].
   *
@@ -34,9 +34,9 @@ trait OrderingCombinators {
     * @param ev Evidence that `T` is ordered (i.e. a [[scala.math.Ordering]] of `T` is available).
     * @tparam T The object type this validator operates on.
     */
-  class GreaterThan[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] ) extends Validator[ T ] {
+  class GreaterThan[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] ) extends BaseValidator[ T ] {
     def apply( value: T ) =
-      result( ev.gt( value, bound ), RuleViolation( value, s"$prefix $value, expected more than $bound", description ) )
+      result( ev.gt( value, bound ), value -> s"$prefix $value, expected more than $bound" )
   }
 
   /** A validator that succeeds only for values greater than, or equal to, the specified bound.
@@ -48,10 +48,10 @@ trait OrderingCombinators {
     * @tparam T The object type this validator operates on.
     */
   class GreaterThanOrEqual[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] )
-    extends Validator[ T ] {
+    extends BaseValidator[ T ] {
     
     def apply( value: T ) =
-      result( ev.gteq( value, bound ), RuleViolation( value, s"$prefix $value, expected $bound or more", description ) )
+      result( ev.gteq( value, bound ), value -> s"$prefix $value, expected $bound or more" )
   }
 
   /** A validator that succeeds only for values lesser than the specified bound.
@@ -62,9 +62,9 @@ trait OrderingCombinators {
     * @param ev Evidence that `T` is ordered (i.e. a [[scala.math.Ordering]] of `T` is available).
     * @tparam T The object type this validator operates on.
     */
-  class LesserThan[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] ) extends Validator[ T ] {
+  class LesserThan[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] ) extends BaseValidator[ T ] {
     def apply( value: T ) =
-      result( ev.lt( value, bound ), RuleViolation( value, s"$prefix $value, expected less than $bound", description ) )
+      result( ev.lt( value, bound ), value -> s"$prefix $value, expected less than $bound" )
   }
 
   /** A validator that succeeds only for values less than, or equal to, the specified bound.
@@ -76,10 +76,10 @@ trait OrderingCombinators {
     * @tparam T The object type this validator operates on.
     */
   class LesserThanOrEqual[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] )
-    extends Validator[ T ] {
+    extends BaseValidator[ T ] {
     
     def apply( value: T ) =
-      result( ev.lteq( value, bound ), RuleViolation( value, s"$prefix $value, expected $bound or less", description ) )
+      result( ev.lteq( value, bound ), value -> s"$prefix $value, expected $bound or less" )
   }
 
   /** A validator that succeeds only for value equivalent (as determined by [[scala.math.Ordering.equiv]])
@@ -91,9 +91,9 @@ trait OrderingCombinators {
     * @param ev Evidence that `T` is ordered (i.e. a [[scala.math.Ordering]] of `T` is available).
     * @tparam T The object type this validator operates on.
     */
-  class EquivalentTo[ T ]( other: T, prefix: String )( implicit ev: Ordering[ T ] ) extends Validator[ T ] {
+  class EquivalentTo[ T ]( other: T, prefix: String )( implicit ev: Ordering[ T ] ) extends BaseValidator[ T ] {
     def apply( value: T ) =
-      result( ev.equiv( value, other ), RuleViolation( value, s"$prefix $value, expected $other", description ) )
+      result( ev.equiv( value, other ), value -> s"$prefix $value, expected $other" )
   }
 
   /** A validator that succeeds only for values between the specified bounds (both bounds are inclusive). The
@@ -108,11 +108,12 @@ trait OrderingCombinators {
     * @tparam T The object type this validator operates on.
     */
   class Between[ T ]( lowerBound: T, upperBound: T, prefix: String )( implicit ev: Ordering[ T ] )
-    extends Validator[ T ]{
+    extends BaseValidator[ T ]{
     
     def apply( x: T ) =
-      result( ev.gteq( x, lowerBound ) && ev.lteq( x, upperBound ),
-        RuleViolation( x, s"$prefix $x, expected between $lowerBound and $upperBound", description ) )
+      result(
+        ev.gteq( x, lowerBound ) && ev.lteq( x, upperBound ),
+        x -> s"$prefix $x, expected between $lowerBound and $upperBound" )
 
     /** Returns a new validator based on the provided bounds and prefix, but which treats the upper bound
       * as exclusive. The resulting constraint violation will consequently look similar to
@@ -120,8 +121,9 @@ trait OrderingCombinators {
       */
     def exclusive = new Validator[ T ] {
       def apply( x: T ) =
-        result( ev.gteq( x, lowerBound ) && ev.lt( x, upperBound ),
-          RuleViolation( x, s"$prefix $x, expected between $lowerBound and $upperBound (exclusively)", description ) )
+        result(
+          ev.gteq( x, lowerBound ) && ev.lt( x, upperBound ),
+          x -> s"$prefix $x, expected between $lowerBound and $upperBound (exclusively)" )
     }
   }
 }

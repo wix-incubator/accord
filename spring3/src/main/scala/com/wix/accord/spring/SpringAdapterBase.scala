@@ -22,7 +22,8 @@ import org.springframework.validation.Errors
 trait SpringAdapterBase {
 
   /** Formats Spring Validation rejection messages. */
-  protected def formatMessage( failure: Violation ) = s"${failure.description} ${failure.constraint}"
+  protected def formatMessage( failure: Violation ) =
+    ( failure.description.toSeq :+ failure.constraint ).mkString( " " )
 
   /** Formats Spring Validation error codes. Currently hardcoded. */
   protected def formatErrorCode( failure: Violation ) = SpringAdapterBase.defaultErrorCode

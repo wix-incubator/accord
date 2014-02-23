@@ -29,7 +29,7 @@ class BooleanCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation" in {
       val left = false
       val validator = new IsTrue
-      validator( left ) should failWith( testContext -> "must be true" )
+      validator( left ) should failWith( "must be true" )
     }
   }
 
@@ -42,7 +42,7 @@ class BooleanCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation" in {
       val left = true
       val validator = new IsFalse
-      validator( left ) should failWith( testContext -> "must be false" )
+      validator( left ) should failWith( "must be false" )
     }
   }
 }
