@@ -17,17 +17,13 @@
 package com.wix.accord.combinators
 
 import com.wix.accord._
+import com.wix.accord.ViolationBuilder._
 
 /** Simple boolean combinators. */
 trait BooleanCombinators {
-
   /** A boolean validator that matches only on true. */
-  class IsTrue extends BaseValidator[ Boolean ] {
-    override def apply( v1: Boolean ): Result = result( v1, v1 -> "must be true" )
-  }
+  class IsTrue extends BaseValidator[ Boolean ]( identity, _ -> "must be true" )
 
   /** A boolean validator that matches only on false. */
-  class IsFalse extends BaseValidator[ Boolean ] {
-    override def apply( v1: Boolean ): Result = result( !v1, v1 -> "must be false" )
-  }
+  class IsFalse extends BaseValidator[ Boolean ]( !_, _ -> "must be false" )
 }

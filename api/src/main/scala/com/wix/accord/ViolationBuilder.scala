@@ -33,4 +33,11 @@ trait ViolationBuilder {
   /** Converts an extended tuple of the form value->constraint->ruleSeq to a [[com.wix.accord.GroupViolation]]. */
   implicit def groupViolationFromTuple( v: ( ( Any, String ), Seq[ Violation ] ) ) =
     GroupViolation( value = v._1._1, constraint = v._1._2, description = None, children = v._2 )
+
+  implicit def singleViolationToFailure[ V <% Violation ]( v: V ): Failure = Failure( Seq( v ) )
+}
+
+object ViolationBuilder extends ViolationBuilder {
+  def result( test: => Boolean, violation: => Violation ) =
+    if ( test ) Success else Failure( Seq( violation ) )
 }

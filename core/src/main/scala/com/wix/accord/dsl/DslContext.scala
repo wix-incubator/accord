@@ -16,7 +16,7 @@
 
 package com.wix.accord.dsl
 
-import com.wix.accord.{Success, Result, Validator}
+import com.wix.accord.{BaseValidator, Success, Result, Validator}
 
 // TODO ScalaDocs
 
@@ -37,9 +37,18 @@ private object Aggregates {
 trait SizeContext[ Inner, Outer ] {
   self: ContextTransformer[ Inner, Outer ] =>
 
-  def apply( validator: Validator[ Int ] )( implicit ev: Inner => HasSize ) = {
-    val composed = validator compose { u: Inner => u.size }
-    transform apply composed
+  def apply( validator: BaseValidator[ Int ] )( implicit ev: Inner => HasSize ) = {
+//    val composed = validator compose { u: Inner => u.size }
+//    transform apply composed
+//    val boxed = { u: Inner => if ( u == null ) null else Int.box( u.size ) }
+//    val composed = validator compose { u: Inner => if ( u == null ) null else u.size }
+
+    import com.wix.accord.ViolationBuilder._
+    transform apply new Validator[ Inner ] {
+      // TODO major hack
+      def apply( u: Inner ) = if ( u != null ) validator.apply( u.size ) else u -> "cannot derive size for null"
+    }
+//      ( u => u != null && validator.apply( u.size ) == Success )
   }
 }
 

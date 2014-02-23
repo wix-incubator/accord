@@ -17,6 +17,7 @@
 package com.wix.accord.combinators
 
 import com.wix.accord._
+import com.wix.accord.ViolationBuilder._
 
 /** Non type-specific combinators. */
 trait GeneralPurposeCombinators {
@@ -34,7 +35,7 @@ trait GeneralPurposeCombinators {
     * @param predicates The predicates to chain together.
     * @tparam T The type on which this validator operates.
     */
-  class Or[ T ]( predicates: Validator[ T ]* ) extends BaseValidator[ T ] {
+  class Or[ T ]( predicates: Validator[ T ]* ) extends Validator[ T ] {
     def apply( x: T ) = {
       val results = predicates.map { _ apply x }
       val failures = results.collect { case Failure( violations ) => violations }.flatten
@@ -46,7 +47,7 @@ trait GeneralPurposeCombinators {
     * @param message The violation message.
     * @tparam T The type on which this validator operates.
     */
-  class Fail[ T ]( message: => String ) extends BaseValidator[ T ] {
+  class Fail[ T ]( message: => String ) extends Validator[ T ] {
     def apply( x: T ) = result( test = false, x -> message )
   }
 
@@ -58,25 +59,25 @@ trait GeneralPurposeCombinators {
   }
 
   /** A validator that succeeds only if the provided object is `null`. */
-  class IsNull extends BaseValidator[ AnyRef ] {
+  class IsNull extends Validator[ AnyRef ] {
     def apply( x: AnyRef ) = result( test = x == null, x -> "is not a null" )
   }
 
   /** A validator that succeeds only if the provided object is not `null`. */
-  class IsNotNull extends BaseValidator[ AnyRef ] {
+  class IsNotNull extends Validator[ AnyRef ] {
     def apply( x: AnyRef ) = result( test = x != null, x -> "is a null" )
   }
 
   /** A validator that succeeds only if the validated object is equal to the specified value. Respects nulls
     * and delegates equality checks to [[java.lang.Object.equals]]. */
-  class EqualTo[ T ]( to: T ) extends BaseValidator[ T ] {
+  class EqualTo[ T ]( to: T ) extends Validator[ T ] {
     private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
     def apply( x: T ) = result( test = safeEq( x, to ), x -> s"does not equal $to" )
   }
 
   /** A validator that succeeds only if the validated object is not equal to the specified value. Respects nulls
     * and delegates equality checks to [[java.lang.Object.equals]]. */
-  class NotEqualTo[ T ]( to: T ) extends BaseValidator[ T ] {
+  class NotEqualTo[ T ]( to: T ) extends Validator[ T ] {
     private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
     def apply( x: T ) = result( test = !safeEq( x, to ), x -> s"equals $to" )
   }
@@ -106,7 +107,7 @@ trait GeneralPurposeCombinators {
     * @tparam T The object type this validator operates on. An implicit [[com.wix.accord.Validator]]
     *           over type `T` must be in scope.
     */
-  class Valid[ T : Validator ] extends BaseValidator[ T ] {
+  class Valid[ T : Validator ] extends Validator[ T ] {
     def apply( x: T ) = implicitly[ Validator[ T ] ].apply( x ) match {
       case Success => Success
       case Failure( rules ) => Failure( Seq( x -> "is invalid" -> rules ) )

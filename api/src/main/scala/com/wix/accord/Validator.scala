@@ -48,19 +48,20 @@ trait Validator[ -T ] extends ( T => Result ) {
   }
 }
 
-/** A convenience base trait for validator definition, providing the `result` method and a DSL for constructing
-  * violations (see [[com.wix.accord.ViolationBuilder]] for details).
-  *
-  * @tparam T The object type this validator operates on.
-  */
-trait BaseValidator[ T ] extends Validator[ T ] with ViolationBuilder {
-  /** A helper method to simplify rendering results.
-    *
-    * @param test The validation test. If it succeeds, [[com.wix.accord.Success]] is returned, otherwise
-    *             a [[com.wix.accord.Failure]] is generated based on the specified violation generator.
-    * @param violation A generator for a validation violation. Only called if the test fails.
-    * @return A [[com.wix.accord.Result]] instance with the results of the validation.
-    */
-  protected def result( test: => Boolean, violation: => Violation ) =
-    if ( test ) Success else Failure( Seq( violation ) )
+
+///** A convenience base trait for validator definition, providing the `result` method and a DSL for constructing
+//  * violations (see [[com.wix.accord.ViolationBuilder]] for details).
+//  *
+//  * @tparam T The object type this validator operates on.
+//  */
+//trait UnsafeBaseValidator[ T ] extends Validator[ T ] with ViolationBuilder {
+//  protected def result( test: => Boolean, violation: => Violation ) =
+//    if ( test ) Success else Failure( Seq( violation ) )
+//}
+
+class BaseValidator[ T ]( val test: T => Boolean,
+                          val failure: T => Failure ) extends Validator[ T ] {
+
+  final def apply( value: T ): Result =
+    if ( ( value != null ) && test( value ) ) Success else failure( value )
 }
