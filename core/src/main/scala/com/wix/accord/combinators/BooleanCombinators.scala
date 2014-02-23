@@ -14,14 +14,20 @@
   limitations under the License.
  */
 
-package com.wix.accord
+package com.wix.accord.combinators
 
-/** Aggregates all implemented combinators for use by the DSL. Can, though not intended to, be used
-  * directly by end-user code.
-  */
-package object combinators
-  extends GeneralPurposeCombinators
-     with CollectionCombinators
-     with StringCombinators
-     with OrderingCombinators
-     with BooleanCombinators
+import com.wix.accord._
+
+/** Simple boolean combinators. */
+trait BooleanCombinators {
+
+  /** A boolean validator that matches only on true. */
+  class IsTrue extends Validator[ Boolean ] {
+    override def apply( v1: Boolean ): Result = result( v1, RuleViolation( v1, "must be true", description ) )
+  }
+
+  /** A boolean validator that matches only on false. */
+  class IsFalse extends Validator[ Boolean ] {
+    override def apply( v1: Boolean ): Result = result( !v1, RuleViolation( v1, "must be false", description ) )
+  }
+}
