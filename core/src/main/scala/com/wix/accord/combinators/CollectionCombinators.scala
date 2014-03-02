@@ -16,7 +16,7 @@
 
 package com.wix.accord.combinators
 
-import com.wix.accord.BaseValidator
+import com.wix.accord.NullSafeValidator
 import com.wix.accord.ViolationBuilder._
 
 /** Combinators that operate on collections and collection-like structures. */
@@ -51,12 +51,12 @@ trait CollectionCombinators {
     * @tparam T A type that implements `isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
     * @see [[com.wix.accord.combinators.NotEmpty]]
     */
-  class Empty[ T <% HasEmpty ] extends BaseValidator[ T ]( _.isEmpty, _ -> "must be empty" )
+  class Empty[ T <: AnyRef <% HasEmpty ] extends NullSafeValidator[ T ]( _.isEmpty, _ -> "must be empty" )
 
   /** A validator that operates on objects that can be empty, and succeeds only if the provided instance is ''not''
     * empty.
     * @tparam T A type that implements `isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
     * @see [[com.wix.accord.combinators.Empty]]
     */
-  class NotEmpty[ T <% HasEmpty ] extends BaseValidator[ T ]( !_.isEmpty, _ -> "must not be empty" )
+  class NotEmpty[ T <: AnyRef <% HasEmpty ] extends NullSafeValidator[ T ]( !_.isEmpty, _ -> "must not be empty" )
 }

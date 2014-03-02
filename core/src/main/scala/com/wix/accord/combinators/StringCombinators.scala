@@ -16,7 +16,7 @@
 
 package com.wix.accord.combinators
 
-import com.wix.accord.BaseValidator
+import com.wix.accord.NullSafeValidator
 import com.wix.accord.ViolationBuilder._
 import java.util.regex.Pattern
 
@@ -25,11 +25,11 @@ trait StringCombinators {
 
   /** A validator that succeeds only if the provided string starts with the specified prefix. */
   class StartsWith( prefix: String )
-    extends BaseValidator[ String ]( _ startsWith prefix, _ -> s"must start with '$prefix'" )
+    extends NullSafeValidator[ String ]( _ startsWith prefix, _ -> s"must start with '$prefix'" )
 
   /** A validator that succeeds only if the provided string starts with the specified suffix. */
   class EndsWith( suffix: String )
-    extends BaseValidator[ String ]( _ endsWith suffix, _ -> s"must end with '$suffix'" )
+    extends NullSafeValidator[ String ]( _ endsWith suffix, _ -> s"must end with '$suffix'" )
 
   /** A validator that succeeds only if the provided string matches the specified pattern.
     *
@@ -39,7 +39,7 @@ trait StringCombinators {
     *                            between [[java.util.regex.Matcher.find]] and [[java.util.regex.Matcher.matches]].
     */
   class MatchesRegex( pattern: Pattern, partialMatchAllowed: Boolean = true )
-    extends BaseValidator[ String ](
+    extends NullSafeValidator[ String ](
       v => if ( partialMatchAllowed ) pattern.matcher( v ).find() else pattern.matcher( v ).matches(),
       v => if ( partialMatchAllowed ) v -> s"must match regular expression '$pattern'"
                                  else v -> s"must fully match regular expression '$pattern'" )

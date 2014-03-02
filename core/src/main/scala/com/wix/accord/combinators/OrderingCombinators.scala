@@ -16,7 +16,7 @@
 
 package com.wix.accord.combinators
 
-import com.wix.accord.{BaseValidator, Validator}
+import com.wix.accord.BaseValidator
 import com.wix.accord.ViolationBuilder._
 
 /** Provides combinators over objects implementing [[scala.math.Ordering]].

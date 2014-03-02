@@ -21,7 +21,7 @@ import org.scalatest.{LoneElement, Matchers, WordSpec}
 class BaseValidatorTests extends WordSpec with Matchers with LoneElement with ViolationBuilder {
   "BaseValidator.report" should {
 
-    val validator = new BaseValidator[ String ]( _ startsWith "ok", _ -> "no good" )
+    val validator = new NullSafeValidator[ String ]( _ startsWith "ok", _ -> "no good" )
     "return a Failure with a default violation on nulls" in {
       val result = validator.apply( null )
       result shouldBe a[ Failure ]

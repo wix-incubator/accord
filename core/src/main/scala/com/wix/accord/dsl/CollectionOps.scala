@@ -28,12 +28,12 @@ trait CollectionOps {
   /** Specifies a validator that succeeds on empty instances; the object under validation must implement
     * `def isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
     */
-  def empty[ T <% HasEmpty ]: Validator[ T ] = new Empty[ T ]
+  def empty[ T <: AnyRef <% HasEmpty ]: Validator[ T ] = new Empty[ T ]
 
   /** Specifies a validator that fails on empty instances; the object under validation must implement
     * `def isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
     */
-  def notEmpty[ T <% HasEmpty ]: Validator[ T ] = new NotEmpty[ T ]
+  def notEmpty[ T <: AnyRef <% HasEmpty ]: Validator[ T ] = new NotEmpty[ T ]
 
   /** A structural type representing any object that has a size. */
   type HasSize = { def size: Int }

@@ -55,7 +55,7 @@ object Validator {
   import scala.language.implicitConversions
 
   private def promote[ U, B ]( validator: Validator[ U ] )( implicit unbox: B => U ) = new Validator[ B ] {
-    def apply( v: B ) = if ( v == null ) BaseValidator.nullFailure else validator( v )
+    def apply( v: B ) = if ( v == null ) NullSafeValidator.nullFailure else validator( v )
   }
 
   implicit class PromotePrimitiveInt( v: Validator[ Int ] ) { def boxed: Validator[ Integer ] = promote( v ) }
@@ -63,18 +63,23 @@ object Validator {
   // TODO if this pans out, add other primitives
 }
 
-class BaseValidator[ T <: AnyRef ]( val test: T => Boolean,
-                                    val failure: T => Failure ) extends Validator[ T ] {
+class BaseValidator[ T ]( val test: T => Boolean, val failure: T => Failure ) extends Validator [ T ] {
+  def apply( value: T ): Result =
+    if ( test( value ) ) Success else failure( value )
+}
 
-  final def apply( value: T ): Result =
+class NullSafeValidator[ T <: AnyRef ]( test: T => Boolean, failure: T => Failure )
+  extends BaseValidator[ T ]( test, failure ) {
+
+  final override def apply( value: T ): Result =
     if ( value == null )
-      BaseValidator.nullFailure
+      NullSafeValidator.nullFailure
     else if ( test( value ) )
       Success
     else
       failure( value )
 }
 
-private object BaseValidator {
+private object NullSafeValidator {
   val nullFailure = Failure( Set( RuleViolation( null, "is a null", None ) ) )
 }
