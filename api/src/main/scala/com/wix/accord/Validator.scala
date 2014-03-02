@@ -52,34 +52,63 @@ trait Validator[ -T ] extends ( T => Result ) {
 }
 
 object Validator {
-  import scala.language.implicitConversions
-
-  private def promote[ U, B ]( validator: Validator[ U ] )( implicit unbox: B => U ) = new Validator[ B ] {
-    def apply( v: B ) = if ( v == null ) NullSafeValidator.nullFailure else validator( v )
+  abstract class PromotedPrimitiveValidator[ U, B ]( validator: Validator[ U ] )( implicit unbox: B => U ) {
+    /** Transforms this validator to a null-safe variant over the reference type. */
+    def boxed = new Validator[ B ] {
+      def apply( v: B ) = if ( v == null ) NullSafeValidator.nullFailure else validator( v )
+    }
   }
 
-  implicit class PromotePrimitiveInt( v: Validator[ Int ] ) { def boxed: Validator[ Integer ] = promote( v ) }
-
-  // TODO if this pans out, add other primitives
+  implicit class PromotedByteValidator  ( v: Validator[ Byte    ] ) extends PromotedPrimitiveValidator[ Byte,    java.lang.Byte      ]( v )
+  implicit class PromoteCharValidator   ( v: Validator[ Char    ] ) extends PromotedPrimitiveValidator[ Char,    java.lang.Character ]( v )
+  implicit class PromoteIntValidator    ( v: Validator[ Int     ] ) extends PromotedPrimitiveValidator[ Int,     java.lang.Integer   ]( v )
+  implicit class PromoteLongValidator   ( v: Validator[ Long    ] ) extends PromotedPrimitiveValidator[ Long,    java.lang.Long      ]( v )
+  implicit class PromoteFloatValidator  ( v: Validator[ Float   ] ) extends PromotedPrimitiveValidator[ Float,   java.lang.Float     ]( v )
+  implicit class PromoteDoubleValidator ( v: Validator[ Double  ] ) extends PromotedPrimitiveValidator[ Double,  java.lang.Double    ]( v )
+  implicit class PromoteBooleanValidator( v: Validator[ Boolean ] ) extends PromotedPrimitiveValidator[ Boolean, java.lang.Boolean   ]( v )
 }
 
+/** Simplifies base validator implementation. Validators typically consist of an assertion/test and a resulting
+  * violation; this implementation takes two functions that describe this behavior and wires the appropriate logic. For
+  * example:
+  *
+  * ```
+  * class IsNull extends BaseValidator[ AnyRef ]( _ == null, _ -> "is not a null" )
+  * ```
+  *
+  * @param test The predicate that determines whether or not validation is successful.
+  * @param failure A generator function for producing [[com.wix.accord.Failure]]s if validation fails. The helper
+  *                methods in [[com.wix.accord.ViolationBuilder]] can be used to simplify this task.
+  * @tparam T The object type this validator operates on.
+  */
 class BaseValidator[ T ]( val test: T => Boolean, val failure: T => Failure ) extends Validator [ T ] {
   def apply( value: T ): Result =
     if ( test( value ) ) Success else failure( value )
 }
 
-class NullSafeValidator[ T <: AnyRef ]( test: T => Boolean, failure: T => Failure )
+/** An extension to [[com.wix.accord.BaseValidator]] that transparently fails on nulls.
+  *
+  * @param test The predicate that determines whether or not validation is successful.
+  * @param failure A generator function for producing [[com.wix.accord.Failure]]s if validation fails. The helper
+  *                methods in [[com.wix.accord.ViolationBuilder]] can be used to simplify this task.
+  * @param onNull The resulting failure for nulls. Defaults to [[com.wix.accord.NullSafeValidator.nullFailure]].
+  * @tparam T The object type this validator operates on.
+  */
+class NullSafeValidator[ T <: AnyRef ]( test: T => Boolean,
+                                        failure: T => Failure,
+                                        onNull: => Failure = NullSafeValidator.nullFailure )
   extends BaseValidator[ T ]( test, failure ) {
 
   final override def apply( value: T ): Result =
     if ( value == null )
-      NullSafeValidator.nullFailure
+      onNull
     else if ( test( value ) )
       Success
     else
       failure( value )
 }
 
-private object NullSafeValidator {
+object NullSafeValidator {
+  /** The default failure for null validations. */
   val nullFailure = Failure( Set( RuleViolation( null, "is a null", None ) ) )
 }

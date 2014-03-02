@@ -59,14 +59,10 @@ trait GeneralPurposeCombinators {
   }
 
   /** A validator that succeeds only if the provided object is `null`. */
-  class IsNull extends Validator[ AnyRef ] {
-    def apply( x: AnyRef ) = result( test = x == null, x -> "is not a null" )
-  }
+  class IsNull extends BaseValidator[ AnyRef ]( _ == null, _ -> "is not a null" )
 
   /** A validator that succeeds only if the provided object is not `null`. */
-  class IsNotNull extends Validator[ AnyRef ] {
-    def apply( x: AnyRef ) = result( test = x != null, x -> "is a null" )
-  }
+  class IsNotNull extends BaseValidator[ AnyRef ]( _ != null, _ -> "is a null" )
 
   /** A validator that succeeds only if the validated object is equal to the specified value. Respects nulls
     * and delegates equality checks to [[java.lang.Object.equals]]. */

@@ -34,10 +34,19 @@ trait ViolationBuilder {
   implicit def groupViolationFromTuple( v: ( ( Any, String ), Set[ Violation ] ) ) =
     GroupViolation( value = v._1._1, constraint = v._1._2, description = None, children = v._2 )
 
+  /** Wraps a single violation to a [[com.wix.accord.Failure]]. */
   implicit def singleViolationToFailure[ V <% Violation ]( v: V ): Failure = Failure( Set( v ) )
 }
 
 object ViolationBuilder extends ViolationBuilder {
-  def result( test: => Boolean, violation: => Violation ) =
+  /** A convenience method that takes a predicate and a violation generator, evaluates the predicate and constructs
+    * the appropriate [[com.wix.accord.Result]].
+    *
+    * @param test The predicate to be evaluated.
+    * @param violation A violation generator; only gets executed if the test fails.
+    * @return [[com.wix.accord.Success]] if the predicate evaluated successfully, or a [[com.wix.accord.Failure]]
+    *        with the generated violation otherwise.
+    */
+  def result( test: => Boolean, violation: => Violation ): Result =
     if ( test ) Success else Failure( Set( violation ) )
 }
