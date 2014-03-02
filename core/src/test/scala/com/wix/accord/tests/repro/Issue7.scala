@@ -25,7 +25,7 @@ import com.wix.accord.scalatest.ResultMatchers
 import Issue7._
 class Issue7 extends FlatSpec with Matchers with ResultMatchers {
   "nullSafeValidator" should "fail on notNull validation" in {
-    val result = nullSafeValidator apply Test( null ) shouldBe aFailure
+    nullSafeValidator apply Test( null ) shouldBe aFailure
   }
 }
 

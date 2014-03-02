@@ -63,8 +63,8 @@ object Validator {
   // TODO if this pans out, add other primitives
 }
 
-class BaseValidator[ T ]( val test: T => Boolean,
-                          val failure: T => Failure ) extends Validator[ T ] {
+class BaseValidator[ T <: AnyRef ]( val test: T => Boolean,
+                                    val failure: T => Failure ) extends Validator[ T ] {
 
   final def apply( value: T ): Result =
     if ( value == null )
