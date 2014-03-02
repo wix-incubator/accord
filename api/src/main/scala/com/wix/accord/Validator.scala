@@ -76,5 +76,5 @@ class BaseValidator[ T ]( val test: T => Boolean,
 }
 
 private object BaseValidator {
-  val nullFailure = Failure( Seq( RuleViolation( null, "is a null", None ) ) )
+  val nullFailure = Failure( Set( RuleViolation( null, "is a null", None ) ) )
 }

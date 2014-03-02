@@ -37,7 +37,7 @@ trait GeneralPurposeCombinators {
     */
   class Or[ T ]( predicates: Validator[ T ]* ) extends Validator[ T ] {
     def apply( x: T ) = {
-      val results = predicates.map { _ apply x }
+      val results = predicates.map { _ apply x }.toSet
       val failures = results.collect { case Failure( violations ) => violations }.flatten
       result( results exists { _ == Success }, x -> "doesn't meet any of the requirements" -> failures )
     }
@@ -110,7 +110,7 @@ trait GeneralPurposeCombinators {
   class Valid[ T : Validator ] extends Validator[ T ] {
     def apply( x: T ) = implicitly[ Validator[ T ] ].apply( x ) match {
       case Success => Success
-      case Failure( rules ) => Failure( Seq( x -> "is invalid" -> rules ) )
+      case Failure( rules ) => Failure( Set( x -> "is invalid" -> rules ) )
     }
   }
 }

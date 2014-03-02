@@ -97,7 +97,7 @@ trait ResultMatchers {
     * @see [[com.wix.accord.GroupViolation]]
     */
   case class GroupViolationMatcher( value: Any = null, constraint: String = null, description: String = null,
-                                    violations: Seq[ ViolationMatcher ] = null )
+                                    violations: Set[ ViolationMatcher ] = null )
     extends ViolationMatcher {
 
     require( value != null || constraint != null || description != null || violations != null )
@@ -105,7 +105,7 @@ trait ResultMatchers {
     def apply[ T <: Violation ]( left: Expectable[ T ] ) = left.value match {
       case gv: GroupViolation =>
         val rulesMatch = violations == null || (
-          gv.children.length == violations.length &&
+          gv.children.size == violations.size &&
           gv.children.forall( rule => violations.exists( _ test rule ) ) )
         result(
           test = ( value       == null || gv.value       == value               ) &&
@@ -134,7 +134,7 @@ trait ResultMatchers {
     *
     * @param expectedViolations The set of expected violations for this matcher.
     */
-  case class ResultMatcher( expectedViolations: Seq[ ViolationMatcher ] ) extends Matcher[ Result ] {
+  case class ResultMatcher( expectedViolations: Set[ ViolationMatcher ] ) extends Matcher[ Result ] {
     def apply[ T <: Result ]( left: Expectable[ T ] ) = left.value match {
       case Success =>
         result( test = false, "Validation was successful", "Validation was not successful", left )
@@ -168,7 +168,7 @@ trait ResultMatchers {
     * @param expectedViolations The set of expected violations.
     * @return A matcher over validation [[com.wix.accord.Result]]s.
     */
-  def failWith( expectedViolations: ViolationMatcher* ): Matcher[ Result ] = ResultMatcher( expectedViolations )
+  def failWith( expectedViolations: ViolationMatcher* ): Matcher[ Result ] = ResultMatcher( expectedViolations.toSet )
 
   /** A convenience method for matching violation groups. Enables syntax like:
     *
@@ -185,8 +185,8 @@ trait ResultMatchers {
     */
   def group( description: String, constraint: String, expectedViolations: ( String, String )* ) =
     new GroupViolationMatcher( constraint  = constraint,
-      description = description,
-      violations  = expectedViolations map stringTuple2RuleMatcher )
+                               description = description,
+                               violations  = ( expectedViolations map stringTuple2RuleMatcher ).toSet )
 
   /** Enables syntax like `someResult should fail` */
   val fail = new Matcher[ Result ] {

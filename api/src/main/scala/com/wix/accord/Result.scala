@@ -55,7 +55,7 @@ case class RuleViolation( value: Any, constraint: String, description: Option[ S
   * @param description The textual description of the object under validation.
   * @param children The set of violations contained within the group.
   */
-case class GroupViolation( value: Any, constraint: String, description: Option[ String ], children: Seq[ Violation ] )
+case class GroupViolation( value: Any, constraint: String, description: Option[ String ], children: Set[ Violation ] )
   extends Violation {
   def withDescription( rewrite: String ) = this.copy( description = Some( rewrite ) )
 }
@@ -87,7 +87,7 @@ case object Success extends Result {
 /** An object representing a failed validation result.
   * @param violations The violations that caused the validation to fail.
   */
-case class Failure( violations: Seq[ Violation ] ) extends Result {
+case class Failure( violations: Set[ Violation ] ) extends Result {
   def and( other: Result ) = other match {
     case Success => this
     case Failure( vother ) => Failure( violations ++ vother )

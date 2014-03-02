@@ -51,7 +51,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
   "GroupViolationMatcher" should {
 
     val sampleRule = RuleViolation( "value", "constraint", Some( "description" ) )
-    val sampleGroup = GroupViolation( value = "group", constraint = "violation", description = Some( "ftw" ), children = Seq( sampleRule ) )
+    val sampleGroup = GroupViolation( value = "group", constraint = "violation", description = Some( "ftw" ), children = Set( sampleRule ) )
 
     "correctly match a group violation based on value" in {
       val matchRule = GroupViolationMatcher( value = "group" )
@@ -70,7 +70,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
 
     "correctly match a rule violation based on children" in {
       val matchChildRule = RuleViolationMatcher( value = "value", constraint = "constraint", description = "description" )
-      val matchRule = GroupViolationMatcher( violations = Seq( matchChildRule ) )
+      val matchRule = GroupViolationMatcher( violations = Set( matchChildRule ) )
       sampleGroup should matchRule
     }
 
@@ -81,7 +81,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
 
     "fail to match a non-matching group violation due to a nonmatching child rule" in {
       val nonmatchingChildRule = RuleViolationMatcher( value = "incorrect" )
-      val matchRule = GroupViolationMatcher( violations = Seq( nonmatchingChildRule ) )
+      val matchRule = GroupViolationMatcher( violations = Set( nonmatchingChildRule ) )
       sampleGroup should not( matchRule )
     }
   }
@@ -112,7 +112,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
 
   "failWith matcher" should {
 
-    val result: Result = Failure( Seq( RuleViolation( "value", "constraint", Some( "description" ) ) ) )
+    val result: Result = Failure( Set( RuleViolation( "value", "constraint", Some( "description" ) ) ) )
 
     "succeed if a validation rule matches successfully" in {
       result should failWith( "description" -> "constraint" )
@@ -130,7 +130,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
     }
 
     "fail if matching a Failure" in {
-      Failure( Seq.empty ) should not( succeed )
+      Failure( Set.empty ) should not( succeed )
     }
   }
 
@@ -141,7 +141,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
     }
 
     "succeed if matching a Failure" in {
-      Failure( Seq.empty ) should fail
+      Failure( Set.empty ) should fail
     }
   }
 }

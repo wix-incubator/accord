@@ -56,7 +56,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation when both clauses are not satisfied" in {
       validator( "no" ) should failWith( GroupViolationMatcher(
         constraint = "doesn't meet any of the requirements",
-        violations = Seq( "must start with 'ok'", "must end with 'ay'" )
+        violations = Set( "must start with 'ok'", "must end with 'ay'" )
       ) )
     }
   }
