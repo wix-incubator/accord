@@ -21,6 +21,7 @@ import com.wix.accord.combinators.HasEmpty
 import com.wix.accord.combinators.Empty
 import com.wix.accord.combinators.NotEmpty
 import scala.language.implicitConversions
+import scala.collection.GenTraversableOnce
 
 /** Provides a DSL for collection-like objects. Works in conjunction with [[com.wix.accord.dsl.DslContext]]. */
 trait CollectionOps {
@@ -54,7 +55,9 @@ trait CollectionOps {
    * @tparam T The type that conforms, directly or implicitly, to [[com.wix.accord.dsl.CollectionOps.HasSize]].
    * @return The specified object, strictly-typed as [[com.wix.accord.dsl.CollectionOps.HasSize]].
    */
-  implicit def genericTraversableOnce2HasSize[ T <% scala.collection.GenTraversableOnce[_] ]( gto: T ): HasSize = gto
+  implicit def genericTraversableOnce2HasSize[ T ]( gto: T )( implicit ev: T => GenTraversableOnce[_] ): HasSize =
+    // Workaround for https://issues.scala-lang.org/browse/SI-8357
+    if ( ev == conforms ) gto.asInstanceOf[ HasSize ] else ev( gto )
 
   /** Provides access to size-based validators (where the object under validation must implement
     * `def size: Int`, see [[com.wix.accord.dsl.CollectionOps.HasSize]]). Enables syntax such as
