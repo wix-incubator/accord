@@ -66,7 +66,6 @@ case class GroupViolation( value: Any, constraint: String, description: Option[ 
 sealed trait Result {
   def and( other: Result ): Result
   def or( other: Result ): Result
-  protected[ accord ] def lazyAnd( other: => Result ): Result
 
   /** Rewrites the description for all violations, if applicable.
     *
@@ -80,7 +79,6 @@ sealed trait Result {
 case object Success extends Result {
   def and( other: Result ) = other
   def or( other: Result ) = this
-  protected[ accord ] def lazyAnd( other: => Result ): Result = other
   def withDescription( rewrite: String ) = this
 }
 
@@ -96,6 +94,5 @@ case class Failure( violations: Set[ Violation ] ) extends Result {
     case Success => other
     case Failure(_) => this
   }
-  protected[ accord ] def lazyAnd( other: => Result ): Result = this
   def withDescription( rewrite: String ) = Failure( violations map { _ withDescription rewrite } )
 }
