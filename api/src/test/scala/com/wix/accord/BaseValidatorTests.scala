@@ -22,11 +22,11 @@ class BaseValidatorTests extends WordSpec with Matchers with LoneElement with Vi
   "BaseValidator.report" should {
 
     val validator = new BaseValidator[ String ]( _ startsWith "ok", _ -> "no good" )
-    "return a Failure with the generated violation on nulls" in {
+    "return a Failure with a default violation on nulls" in {
       val result = validator.apply( null )
       result shouldBe a[ Failure ]
       val Failure( violations ) = result
-      violations.loneElement shouldEqual RuleViolation( null, "no good", None )
+      violations.loneElement shouldEqual RuleViolation( null, "is a null", None )
     }
 
     "return a Success if test succeeds" in {

@@ -39,6 +39,9 @@ trait Validator[ -T ] extends ( T => Result ) {
     * composition, which is especially useful for defining new, complex combinators. At the validator definition
     * site, it is recommended to use the `valid` operation provided by the DSL instead.
     *
+    * Important note: since there is no way to enforce null-safety at the type system level, the specified extractor
+    * function must be able to safely handle nulls.
+    *
     * @param g An extractor function from `U => T`.
     * @tparam U The target type of the adaption.
     * @return An adapted validator of `U`.
@@ -48,20 +51,30 @@ trait Validator[ -T ] extends ( T => Result ) {
   }
 }
 
+object Validator {
+  import scala.language.implicitConversions
 
-///** A convenience base trait for validator definition, providing the `result` method and a DSL for constructing
-//  * violations (see [[com.wix.accord.ViolationBuilder]] for details).
-//  *
-//  * @tparam T The object type this validator operates on.
-//  */
-//trait UnsafeBaseValidator[ T ] extends Validator[ T ] with ViolationBuilder {
-//  protected def result( test: => Boolean, violation: => Violation ) =
-//    if ( test ) Success else Failure( Seq( violation ) )
-//}
+  private def promote[ U, B ]( validator: Validator[ U ] )( implicit unbox: B => U ) = new Validator[ B ] {
+    def apply( v: B ) = if ( v == null ) BaseValidator.nullFailure else validator( v )
+  }
+
+  implicit class PromotePrimitiveInt( v: Validator[ Int ] ) { def boxed: Validator[ Integer ] = promote( v ) }
+
+  // TODO if this pans out, add other primitives
+}
 
 class BaseValidator[ T ]( val test: T => Boolean,
                           val failure: T => Failure ) extends Validator[ T ] {
 
   final def apply( value: T ): Result =
-    if ( ( value != null ) && test( value ) ) Success else failure( value )
+    if ( value == null )
+      BaseValidator.nullFailure
+    else if ( test( value ) )
+      Success
+    else
+      failure( value )
+}
+
+private object BaseValidator {
+  val nullFailure = Failure( Seq( RuleViolation( null, "is a null", None ) ) )
 }
