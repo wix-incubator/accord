@@ -36,7 +36,7 @@ trait CollectionOps {
   def notEmpty[ T <: AnyRef <% HasEmpty ]: Validator[ T ] = new NotEmpty[ T ]
 
   /** A structural type representing any object that has a size. */
-  type HasSize = { def size: Int }
+  type HasSize = Any { def size: Int }
 
   /**
    * An implicit conversion to enable any collection-like object (e.g. strings, options) to be handled by
@@ -55,9 +55,7 @@ trait CollectionOps {
    * @tparam T The type that conforms, directly or implicitly, to [[com.wix.accord.dsl.CollectionOps.HasSize]].
    * @return The specified object, strictly-typed as [[com.wix.accord.dsl.CollectionOps.HasSize]].
    */
-  implicit def genericTraversableOnce2HasSize[ T ]( gto: T )( implicit ev: T => GenTraversableOnce[_] ): HasSize =
-    // Workaround for https://issues.scala-lang.org/browse/SI-8357
-    if ( ev == conforms ) gto.asInstanceOf[ HasSize ] else ev( gto )
+  implicit def genericTraversableOnce2HasSize[ T ]( gto: T )( implicit ev: T => GenTraversableOnce[_] ): HasSize = gto
 
   /** Provides access to size-based validators (where the object under validation must implement
     * `def size: Int`, see [[com.wix.accord.dsl.CollectionOps.HasSize]]). Enables syntax such as
