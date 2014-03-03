@@ -39,6 +39,9 @@ trait Validator[ -T ] extends ( T => Result ) {
     * composition, which is especially useful for defining new, complex combinators. At the validator definition
     * site, it is recommended to use the `valid` operation provided by the DSL instead.
     *
+    * Important note: since there is no way to enforce null-safety at the type system level, the specified extractor
+    * function must be able to safely handle nulls.
+    *
     * @param g An extractor function from `U => T`.
     * @tparam U The target type of the adaption.
     * @return An adapted validator of `U`.
@@ -48,19 +51,22 @@ trait Validator[ -T ] extends ( T => Result ) {
   }
 }
 
-/** A convenience base trait for validator definition, providing the `result` method and a DSL for constructing
-  * violations (see [[com.wix.accord.ViolationBuilder]] for details).
-  *
-  * @tparam T The object type this validator operates on.
-  */
-trait BaseValidator[ T ] extends Validator[ T ] with ViolationBuilder {
-  /** A helper method to simplify rendering results.
-    *
-    * @param test The validation test. If it succeeds, [[com.wix.accord.Success]] is returned, otherwise
-    *             a [[com.wix.accord.Failure]] is generated based on the specified violation generator.
-    * @param violation A generator for a validation violation. Only called if the test fails.
-    * @return A [[com.wix.accord.Result]] instance with the results of the validation.
-    */
-  protected def result( test: => Boolean, violation: => Violation ) =
-    if ( test ) Success else Failure( Seq( violation ) )
+object Validator {
+  /** The default failure for null validations. */
+  val nullFailure = Failure( Set( RuleViolation( null, "is a null", None ) ) )
+
+  abstract class PromotedPrimitiveValidator[ U, B ]( validator: Validator[ U ] )( implicit unbox: B => U ) {
+    /** Transforms this validator to a null-safe variant over the reference type. */
+    def boxed = new Validator[ B ] {
+      def apply( v: B ) = if ( v == null ) nullFailure else validator( v )
+    }
+  }
+
+  implicit class PromotedByteValidator  ( v: Validator[ Byte    ] ) extends PromotedPrimitiveValidator[ Byte,    java.lang.Byte      ]( v )
+  implicit class PromoteCharValidator   ( v: Validator[ Char    ] ) extends PromotedPrimitiveValidator[ Char,    java.lang.Character ]( v )
+  implicit class PromoteIntValidator    ( v: Validator[ Int     ] ) extends PromotedPrimitiveValidator[ Int,     java.lang.Integer   ]( v )
+  implicit class PromoteLongValidator   ( v: Validator[ Long    ] ) extends PromotedPrimitiveValidator[ Long,    java.lang.Long      ]( v )
+  implicit class PromoteFloatValidator  ( v: Validator[ Float   ] ) extends PromotedPrimitiveValidator[ Float,   java.lang.Float     ]( v )
+  implicit class PromoteDoubleValidator ( v: Validator[ Double  ] ) extends PromotedPrimitiveValidator[ Double,  java.lang.Double    ]( v )
+  implicit class PromoteBooleanValidator( v: Validator[ Boolean ] ) extends PromotedPrimitiveValidator[ Boolean, java.lang.Boolean   ]( v )
 }
