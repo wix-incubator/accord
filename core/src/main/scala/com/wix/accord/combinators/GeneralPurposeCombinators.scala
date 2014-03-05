@@ -17,6 +17,7 @@
 package com.wix.accord.combinators
 
 import com.wix.accord._
+import com.wix.accord.ViolationBuilder._
 
 /** Non type-specific combinators. */
 trait GeneralPurposeCombinators {
@@ -36,11 +37,9 @@ trait GeneralPurposeCombinators {
     */
   class Or[ T ]( predicates: Validator[ T ]* ) extends Validator[ T ] {
     def apply( x: T ) = {
-      val results = predicates.map { _ apply x }
-      val failures =
-        results.collect { case Failure( violations ) => violations map { _ withDescription description } }.flatten
-      result( results exists { _ == Success },
-        GroupViolation( x, "doesn't meet any of the requirements", description, failures ) )
+      val results = predicates.map { _ apply x }.toSet
+      val failures = results.collect { case Failure( violations ) => violations }.flatten
+      result( results exists { _ == Success }, x -> "doesn't meet any of the requirements" -> failures )
     }
   }
 
@@ -49,7 +48,7 @@ trait GeneralPurposeCombinators {
     * @tparam T The type on which this validator operates.
     */
   class Fail[ T ]( message: => String ) extends Validator[ T ] {
-    def apply( x: T ) = result( test = false, RuleViolation( x, message, description ) )
+    def apply( x: T ) = result( test = false, x -> message )
   }
 
   /** A validator that always succeeds.
@@ -60,27 +59,23 @@ trait GeneralPurposeCombinators {
   }
 
   /** A validator that succeeds only if the provided object is `null`. */
-  class IsNull extends Validator[ AnyRef ] {
-    def apply( x: AnyRef ) = result( test = x == null, RuleViolation( x, "is not a null", description ) )
-  }
+  class IsNull extends BaseValidator[ AnyRef ]( _ == null, _ -> "is not a null" )
 
   /** A validator that succeeds only if the provided object is not `null`. */
-  class IsNotNull extends Validator[ AnyRef ] {
-    def apply( x: AnyRef ) = result( test = x != null, RuleViolation( x, "is a null", description ) )
-  }
+  class IsNotNull extends BaseValidator[ AnyRef ]( _ != null, _ -> "is a null" )
 
   /** A validator that succeeds only if the validated object is equal to the specified value. Respects nulls
     * and delegates equality checks to [[java.lang.Object.equals]]. */
   class EqualTo[ T ]( to: T ) extends Validator[ T ] {
     private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
-    def apply( x: T ) = result( test = safeEq( x, to ), RuleViolation( x, s"does not equal $to", description ) )
+    def apply( x: T ) = result( test = safeEq( x, to ), x -> s"does not equal $to" )
   }
 
   /** A validator that succeeds only if the validated object is not equal to the specified value. Respects nulls
     * and delegates equality checks to [[java.lang.Object.equals]]. */
   class NotEqualTo[ T ]( to: T ) extends Validator[ T ] {
     private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
-    def apply( x: T ) = result( test = !safeEq( x, to ), RuleViolation( x, s"equals $to", description ) )
+    def apply( x: T ) = result( test = !safeEq( x, to ), x -> s"equals $to" )
   }
 
   /** A validator which merely delegates to another, implicitly available validator. This is necessary for the
@@ -111,7 +106,7 @@ trait GeneralPurposeCombinators {
   class Valid[ T : Validator ] extends Validator[ T ] {
     def apply( x: T ) = implicitly[ Validator[ T ] ].apply( x ) match {
       case Success => Success
-      case Failure( rules ) => Failure( GroupViolation( x, "is invalid", description, rules ) :: Nil )
+      case Failure( rules ) => Failure( Set( x -> "is invalid" -> rules ) )
     }
   }
 }

@@ -14,12 +14,27 @@
   limitations under the License.
  */
 
-package com.wix.accord.tests.combinators
+package com.wix.accord.tests.repro
 
-import org.scalatest.{WordSpec, Matchers}
+import org.scalatest.{Matchers, FlatSpec}
 import com.wix.accord.scalatest.ResultMatchers
 
-trait CombinatorTestSpec extends WordSpec with Matchers with ResultMatchers {
-  import scala.language.implicitConversions
-  implicit def elevateStringToRuleViolationMatcher( s: String ) = RuleViolationMatcher( constraint = s )
+/**
+  * Test case for [[https://github.com/wix/accord/issues/7 issue 7]]
+  */
+import Issue7._
+class Issue7 extends FlatSpec with Matchers with ResultMatchers {
+  "nullSafeValidator" should "fail on notNull validation" in {
+    nullSafeValidator apply Test( null ) shouldBe aFailure
+  }
+}
+
+object Issue7 {
+  import com.wix.accord.dsl._
+  case class Test( s: String )
+
+  val nullSafeValidator = validator[ Test ] { t =>
+    t.s is notNull
+    t.s has size < 10 // NPE if t.s is null
+  }
 }

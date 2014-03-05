@@ -1,0 +1,19 @@
+Version 0.3 contains significant internal architecture and API improvements.
+
+### Fixes and improvements
+
+* The description framework has been completely rewritten to be a bit more sound;
+* [[#5]](https://github.com/wix/accord/issues/5) Added boolean combinators (`IsTrue`/`IsFalse`) and associated DSL;
+* [[#7]](https://github.com/wix/accord/issues/7) Added library provisioning for null safety;
+* [[#10]](https://github.com/wix/accord/issues/10) Fixed: Size validation on `Option`s results in `StackOverflowError`
+
+### Breaking API changes
+
+* `Violation.description` is now *optional*; 
+* `Failure`s now comprise a `Set` of violations (previously a `Seq`);
+* The `Validator[-T]` trait is now significantly leaner, essentially reduced to a function `T => Result`;
+* A `BaseValidator[T]` abstract class is provided in the _core_ module, along with `ViolationBuilder`. Both significantly simplify the implementation of combinators;
+* A `NullSafeValidator[T <: AnyRef]` is also provided. It handles null checks and provides a default failure for nulls;
+* Since there's no way to enforce null-awareness at the type-system level, adapting a validator (via the `compose` method) requires the provided function to be null-safe at the contract level.
+
+Note that user code that doesn't provide its own combinators or directly decomposes `Failure`s should not be affected.

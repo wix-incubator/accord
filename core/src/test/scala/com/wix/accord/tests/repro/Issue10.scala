@@ -14,14 +14,27 @@
   limitations under the License.
  */
 
-package com.wix.accord
+package com.wix.accord.tests.repro
 
-/** Aggregates all implemented combinators for use by the DSL. Can, though not intended to, be used
-  * directly by end-user code.
-  */
-package object combinators
-  extends GeneralPurposeCombinators
-     with CollectionCombinators
-     with StringCombinators
-     with OrderingCombinators
-     with BooleanCombinators
+import org.scalatest.{Matchers, FlatSpec}
+import com.wix.accord._
+
+object Issue10 {
+  case class Foo( bar: Option[ String ] )
+
+  import com.wix.accord.dsl._
+
+  implicit val questionValidator = validator[ Foo ] { f =>
+    f.bar has size > 2
+  }
+}
+
+class Issue10 extends FlatSpec with Matchers {
+  import Issue10._
+
+  "Size DSL on an option" should "not throw a StackOverflowError in runtime" in {
+    val foo = Foo( Some( "bar" ) )
+    validate( foo )
+  }
+}
+

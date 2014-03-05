@@ -16,21 +16,20 @@
 
 package com.wix.accord.combinators
 
-import com.wix.accord.{RuleViolation, Validator}
+import com.wix.accord.NullSafeValidator
+import com.wix.accord.ViolationBuilder._
 import java.util.regex.Pattern
 
 /** Combinators that operate specifically on strings. */
 trait StringCombinators {
 
   /** A validator that succeeds only if the provided string starts with the specified prefix. */
-  class StartsWith( prefix: String ) extends Validator[ String ] {
-    def apply( x: String ) = result( x startsWith prefix, RuleViolation( x, s"must start with '$prefix'", description ) )
-  }
+  class StartsWith( prefix: String )
+    extends NullSafeValidator[ String ]( _ startsWith prefix, _ -> s"must start with '$prefix'" )
 
   /** A validator that succeeds only if the provided string starts with the specified suffix. */
-  class EndsWith( suffix: String ) extends Validator[ String ] {
-    def apply( x: String ) = result( x endsWith suffix, RuleViolation( x, s"must end with '$suffix'", description ) )
-  }
+  class EndsWith( suffix: String )
+    extends NullSafeValidator[ String ]( _ endsWith suffix, _ -> s"must end with '$suffix'" )
 
   /** A validator that succeeds only if the provided string matches the specified pattern.
     *
@@ -39,11 +38,9 @@ trait StringCombinators {
     *                            will fail the match if partialMatchAllowed is false. This reflects the difference
     *                            between [[java.util.regex.Matcher.find]] and [[java.util.regex.Matcher.matches]].
     */
-  class MatchesRegex( pattern: Pattern, partialMatchAllowed: Boolean = true ) extends Validator[ String ] {
-    def apply( x: String ) =
-      if ( partialMatchAllowed )
-        result( pattern.matcher( x ).find(), RuleViolation( x, s"must match regular expression '$pattern'", description ) )
-      else
-        result( pattern.matcher( x ).matches(), RuleViolation( x, s"must fully match regular expression '$pattern'", description ) )
-  }
+  class MatchesRegex( pattern: Pattern, partialMatchAllowed: Boolean = true )
+    extends NullSafeValidator[ String ](
+      v => if ( partialMatchAllowed ) pattern.matcher( v ).find() else pattern.matcher( v ).matches(),
+      v => if ( partialMatchAllowed ) v -> s"must match regular expression '$pattern'"
+                                 else v -> s"must fully match regular expression '$pattern'" )
 }

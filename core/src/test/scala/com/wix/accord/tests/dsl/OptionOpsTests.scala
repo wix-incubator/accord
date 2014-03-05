@@ -53,7 +53,7 @@ class OptionOpsTests extends WordSpec with Matchers with ResultMatchers {
     "succeed on Some" in {
       Some( "test" ) validatedWith notEmptyValidator should be( aSuccess )
     }
-    "fail on Nonee" in {
+    "fail on None" in {
       None validatedWith notEmptyValidator should be( aFailure )
     }
   }

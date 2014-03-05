@@ -173,7 +173,7 @@ object ValidationTransform {
      q"""
         new com.wix.accord.Validator[ ${weakTypeOf[ U ]} ] {
           override def apply( v1: ${weakTypeOf[ U ]} ): com.wix.accord.Result =
-          ${c.prefix} apply $g( v1 ) withDescription $description
+            ${c.prefix} apply $g( v1 ) withDescription $description
         }
       """
 

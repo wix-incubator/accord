@@ -24,9 +24,9 @@ trait Violation {
   def constraint: String
   /** The textual description of the object under validation (this is the expression that, when evaluated at
     * runtime, produces the value in [[com.wix.accord.Violation.value]]). This is normally filled in
-    * by the validation transform macro, but can also be explicitly provided via the
-    * [[com.wix.accord.dsl.Descriptor.as()]] method. */
-  def description: String
+    * by the validation transform macro, but can also be explicitly provided via the DSL.
+    */
+  def description: Option[ String ]
 
   /** Rewrites the description for this violation (used internally by the validation transform macro). As
     * violations are immutable, in practice this returns a modified copy.
@@ -43,8 +43,8 @@ trait Violation {
   * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
   * @param description The textual description of the object under validation.
   */
-case class RuleViolation( value: Any, constraint: String, description: String ) extends Violation {
-  def withDescription( rewrite: String ) = this.copy( description = rewrite )
+case class RuleViolation( value: Any, constraint: String, description: Option[ String ] ) extends Violation {
+  def withDescription( rewrite: String ) = this.copy( description = Some( rewrite ) )
 }
 
 /** Describes the violation of a group of constraints. For example, the [[com.wix.accord.combinators.Or]]
@@ -55,9 +55,9 @@ case class RuleViolation( value: Any, constraint: String, description: String ) 
   * @param description The textual description of the object under validation.
   * @param children The set of violations contained within the group.
   */
-case class GroupViolation( value: Any, constraint: String, description: String, children: Seq[ Violation ] )
+case class GroupViolation( value: Any, constraint: String, description: Option[ String ], children: Set[ Violation ] )
   extends Violation {
-  def withDescription( rewrite: String ) = this.copy( description = rewrite )
+  def withDescription( rewrite: String ) = this.copy( description = Some( rewrite ) )
 }
 
 /** A base trait for validation results.
@@ -85,7 +85,7 @@ case object Success extends Result {
 /** An object representing a failed validation result.
   * @param violations The violations that caused the validation to fail.
   */
-case class Failure( violations: Seq[ Violation ] ) extends Result {
+case class Failure( violations: Set[ Violation ] ) extends Result {
   def and( other: Result ) = other match {
     case Success => this
     case Failure( vother ) => Failure( violations ++ vother )

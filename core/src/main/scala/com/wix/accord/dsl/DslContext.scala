@@ -37,8 +37,8 @@ private object Aggregates {
 trait SizeContext[ Inner, Outer ] {
   self: ContextTransformer[ Inner, Outer ] =>
 
-  def apply( validator: Validator[ Int ] )( implicit ev: Inner => HasSize ) = {
-    val composed = validator compose { u: Inner => u.size }
+  def apply( validator: Validator[ Int ] )( implicit ev: Inner => HasSize ): Validator[ Outer ] = {
+    val composed = validator.boxed compose { u: Inner => if ( u == null ) null else u.size }
     transform apply composed
   }
 }

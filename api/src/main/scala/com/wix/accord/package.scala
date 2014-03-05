@@ -16,61 +16,10 @@
 
 package com.wix
 
-import scala.annotation.implicitNotFound
-
 /** The entry-point to the Accord library. To execute a validator, simply import it into the local scope,
   * import this package and execute `validate( objectUnderValidation )`.
   */
 package object accord {
-  private[ accord ] val stubValidationContext = "stub"
-
-  /** A validator is a function `T => Result`, where `T` is the type of the object under validation
-    * and Result is an instance of [[com.wix.accord.Result]].
-    *
-    * Implementation note: While theoretically a validator can be defined as a type alias, in practice this
-    * doesn't allow to specify an error message when it's implicitly missing at the call site (see
-    * [[scala.annotation.implicitNotFound]]).
-    *
-    * @tparam T The object type this validator operates on.
-    */
-  @implicitNotFound( "A validator for type ${T} not found. Did you forget to import an implicit validator for " +
-                     "this type? (alternatively, if you own the code, you may want to move the validator to " +
-                     "the companion object for ${T} so it's automatically imported)." )
-  trait Validator[ -T ] extends ( T => Result ) {
-    self =>
-
-    /** Provides a textual description of the expression being evaluated. For example, a validation rule like
-      * `p.firstName is notEmpty` might have the context `firstName`. The initial value is a stub and is later
-      * rewritten by the validation transform.
-      * 
-      * @return The textual description of the object under validation.
-      */
-    protected def description: String = stubValidationContext    // Rewritten by the validation macro
-
-    /** A helper method to simplify rendering results.
-      *
-      * @param test The validation test. If it succeeds, [[com.wix.accord.Success]] is returned, otherwise
-      *             a [[com.wix.accord.Failure]] is generated based on the specified violation generator.
-      * @param violation A generator for a validation violation. Only called if the test fails.
-      * @return A [[com.wix.accord.Result]] instance with the results of the validation.
-      */
-    protected def result( test: => Boolean, violation: => Violation ) =
-      if ( test ) Success else Failure( Seq( violation ) )
-
-    /** Adapts this validator to a type `U`. Each application of the new validator applies the the specified
-      * extractor function, and validates the resulting `T` via this validator. This enables explicit validator
-      * composition, which is especially useful for defining new, complex combinators. At the validator definition
-      * site, it is recommended to use the `valid` operation provided by the DSL instead.
-      *
-      * @param g An extractor function from `U => T`.
-      * @tparam U The target type of the adaption.
-      * @return An adapted validator of `U`.
-      */
-    override def compose[ U ]( g: U => T ): Validator[ U ] = new Validator[ U ] {
-      override def apply( v1: U ): Result = self apply g( v1 )
-    }
-  }
-
   /** Validates the specified object and returns a validation [[com.wix.accord.Result]]. An implicit
     * [[com.wix.accord.Validator]] must be in scope for this call to succeed.
     *

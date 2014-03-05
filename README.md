@@ -134,9 +134,9 @@ Roadmap
 
 Accord is still fairly rudimentary, and there's plenty of improvements to be made:
 
-* Major issues and improvements planned or under consideration for the 0.3 milestone release:
+* Major issues and improvements planned or under consideration for the [0.3 milestone](https://github.com/wix/accord/issues?milestone=3&state=open) release:
+    * ~~Rethink description framework (possibly make Description optional and modify the rewrites accordingly)~~
     * Re-evaluate [issue #2](../../issues/2)
-    * Rethink description framework (possibly make Description optional and modify the rewrites accordingly)
     * Add syntax for custom violation message overrides (e.g. `p.firstName is notEmpty as "no first name!"`)
     * Support custom violation types (e.g. `p.firstName is notEmpty as MyServerError( code = -3 )`)
 * Future plans:
