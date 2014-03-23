@@ -65,6 +65,6 @@ trait PatternHelper[ C <: Context ] {
         override def transform( subtree: Tree ): Tree =
           if ( pattern isDefinedAt subtree ) pattern.apply( subtree ) else super.transform( subtree )
       }.transform( tree.duplicate )
-    context.resetAllAttrs( transformed )
+    context.resetLocalAttrs( transformed )
   }
 }

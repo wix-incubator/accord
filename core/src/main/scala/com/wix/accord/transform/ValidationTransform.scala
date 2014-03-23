@@ -58,7 +58,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     def extractObjectUnderValidation( t: Tree ) =
       extractFromPattern( t ) {
         case Apply( TypeApply( Select( _, `contextualizerTerm` ), tpe :: Nil ), e :: Nil ) =>
-          ( context.resetAllAttrs( e.duplicate ), tpe.tpe )
+          ( context.resetLocalAttrs( e.duplicate ), tpe.tpe )
       } getOrElse
         abort( t.pos, s"Failed to extract object under validation from tree $t (raw=${showRaw(t)})" )
 

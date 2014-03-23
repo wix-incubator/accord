@@ -1,12 +1,13 @@
 name := "accord-core"
 
-addCompilerPlugin( "org.scalamacros" % "paradise" % "2.0.0-M7" cross CrossVersion.full )
-
-libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-reflect" % _ % "provided" )
-
-libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "test" )
-
-libraryDependencies += "org.scalamacros" %% "quasiquotes" % "2.0.0-M7" intransitive()
+libraryDependencies <++= scalaVersion {
+  case v if v startsWith "2.10" =>
+    Seq(
+      compilerPlugin( "org.scalamacros" % "paradise" % "2.0.0-M7" cross CrossVersion.full ),
+      "org.scalamacros" % "quasiquotes" % "2.0.0-M7" cross CrossVersion.full intransitive()
+    )
+  case _ => Seq.empty
+}
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.0" % "test"
 
