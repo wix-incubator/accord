@@ -60,7 +60,7 @@ class OptionOpsTests extends WordSpec with Matchers with ResultMatchers {
 
   "Option.get" should {
     "throw NoSuchElementException on None" in {
-      evaluating { None validatedWith explicitGetValidator } should produce[ NoSuchElementException ]
+      a [ NoSuchElementException ] should be thrownBy { None validatedWith explicitGetValidator }
     }
     "succeed on Some that matches the predicate" in {
       Some( "test string" ) validatedWith eachValidator should be( aSuccess )
