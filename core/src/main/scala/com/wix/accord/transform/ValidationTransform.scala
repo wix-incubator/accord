@@ -18,9 +18,12 @@ package com.wix.accord.transform
 
 import scala.reflect.macros.Context
 import com.wix.accord._
+import scala.quasiquotes.StandardLiftables
 
 private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] )
-  extends PatternHelper[ C ] with ExpressionDescriber[ C ] {
+  extends PatternHelper[ C ] with ExpressionDescriber[ C ] with StandardLiftables {
+
+  val u: context.universe.type = context.universe
 
   import context.universe._
   import context.{abort, info}
@@ -159,14 +162,18 @@ object ValidationTransform {
     val description = ExpressionDescriber.apply( c )( g )
 
     import c.universe._
-    val rewrite =
-     q"""
+
+    val rewrite = new StandardLiftables {
+      val u: c.universe.type = c.universe
+      def result =
+        q"""
         new com.wix.accord.Validator[ ${weakTypeOf[ U ]} ] {
           override def apply( v1: ${weakTypeOf[ U ]} ): com.wix.accord.Result =
             ${c.prefix} apply $g( v1 ) withDescription $description
         }
       """
+    }
 
-    c.Expr[ Validator[ U ] ]( rewrite )
+    c.Expr[ Validator[ U ] ]( rewrite.result )
   }
 }
