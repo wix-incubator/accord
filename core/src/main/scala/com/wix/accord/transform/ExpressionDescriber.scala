@@ -16,7 +16,7 @@
 
 package com.wix.accord.transform
 
-import scala.reflect.macros.Context
+import MacroHelper._
 import scala.language.experimental.macros
 
 /** A macro helper trait that generates implicit description for expressions. The transformation operates in the
@@ -35,9 +35,7 @@ import scala.language.experimental.macros
   *
   * @tparam C The macro context type
   */
-trait ExpressionDescriber[ C <: Context ] {
-  /** The macro context (of type `C`), must be provided by the inheritor */
-  protected val context: C
+trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] {
   import context.universe._
 
   /** The function prototype; specifically, the single function parameter's definition as a `ValDef`. Must be
@@ -71,7 +69,7 @@ trait ExpressionDescriber[ C <: Context ] {
     */
   private object ExplicitDescriptor {
     private val descriptorTerm = typeOf[ com.wix.accord.dsl.Descriptor[_] ].typeSymbol.name.toTermName
-    private val asTerm = newTermName( "as" )
+    private val asTerm = termName( "as" )
 
     def unapply( ouv: Tree ): Option[ Tree ] = ouv match {
       case Apply( Select( Apply( TypeApply( Select( _, `descriptorTerm` ), _ ), _ ), `asTerm` ), literal :: Nil ) =>

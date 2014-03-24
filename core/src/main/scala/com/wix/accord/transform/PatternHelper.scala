@@ -16,16 +16,13 @@
 
 package com.wix.accord.transform
 
-import scala.reflect.macros.Context
+import MacroHelper._
 
 /** A macro helper mixin that provides simplified, pattern-based AST operations.
   *
   * @tparam C The type of the macro context
   */
-trait PatternHelper[ C <: Context ] {
-  /** The macro context; inheritors must provide this */
-  val context: C
-
+trait PatternHelper[ C <: Context ] extends MacroHelper[ C ] {
   import context.universe._
 
   /** Matches an AST pattern against a tree recursively. Patterns are encoded as a partial function from
@@ -65,6 +62,6 @@ trait PatternHelper[ C <: Context ] {
         override def transform( subtree: Tree ): Tree =
           if ( pattern isDefinedAt subtree ) pattern.apply( subtree ) else super.transform( subtree )
       }.transform( tree.duplicate )
-    context.resetLocalAttrs( transformed )
+    resetAttrs( transformed )
   }
 }

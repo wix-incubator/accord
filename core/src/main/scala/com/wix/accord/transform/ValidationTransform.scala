@@ -16,7 +16,7 @@
 
 package com.wix.accord.transform
 
-import scala.reflect.macros.Context
+import MacroHelper._
 import com.wix.accord._
 
 private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] )
@@ -58,7 +58,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     def extractObjectUnderValidation( t: Tree ) =
       extractFromPattern( t ) {
         case Apply( TypeApply( Select( _, `contextualizerTerm` ), tpe :: Nil ), e :: Nil ) =>
-          ( context.resetLocalAttrs( e.duplicate ), tpe.tpe )
+          ( resetAttrs( e.duplicate ), tpe.tpe )
       } getOrElse
         abort( t.pos, s"Failed to extract object under validation from tree $t (raw=${showRaw(t)})" )
 
