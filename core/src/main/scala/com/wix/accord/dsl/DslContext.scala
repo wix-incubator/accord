@@ -26,8 +26,10 @@ trait ContextTransformer[ Inner, Outer ] {
 
 private object Aggregates {
   private def aggregate[ Coll, Element ]( validator: Validator[ Element ], aggregator: Traversable[ Result ] => Result )
-                                        ( implicit ev: Coll => Traversable[ Element ] ) =
-    new Validator[ Coll ] { def apply( col: Coll ) = aggregator( col map validator ) }
+                                        ( implicit ev: Coll => Traversable[ Element ] ): Validator[ Coll ] =
+    new Validator[ Coll ] {
+      def apply( col: Coll ) = if ( col == null ) Validator.nullFailure else aggregator( col map validator )
+    }
 
   def all[ Coll, Element ]( validator: Validator[ Element ] )
                           ( implicit ev: Coll => Traversable[ Element ] ): Validator[ Coll ] =
