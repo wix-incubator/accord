@@ -128,7 +128,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
       implicit val delegate = new BaseValidator[ Test ]( _.f == "anything", _ -> "just a safety net, shouldn't happen" )
 
       val validator = new Valid[ Test ]
-      validator( null ) should failWith( "must not be null" )
+      validator( null ) should failWith( "is a null" )
     }
   }
 }

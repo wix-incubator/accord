@@ -104,9 +104,13 @@ trait GeneralPurposeCombinators {
     *           over type `T` must be in scope.
     */
   class Valid[ T : Validator ] extends Validator[ T ] {
-    def apply( x: T ) = implicitly[ Validator[ T ] ].apply( x ) match {
-      case Success => Success
-      case Failure( rules ) => Failure( Set( x -> "is invalid" -> rules ) )
-    }
+    def apply( x: T ) =
+      if ( x == null )
+        Validator.nullFailure
+      else
+        implicitly[ Validator[ T ] ].apply( x ) match {
+          case Success => Success
+          case Failure( rules ) => Failure( Set( x -> "is invalid" -> rules ) )
+        }
   }
 }
