@@ -17,6 +17,7 @@
 package com.wix.accord.tests.combinators
 
 import com.wix.accord.combinators._
+import com.wix.accord.{BaseValidator, Validator}
 
 class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
 
@@ -117,6 +118,17 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation" in {
       val validator = new IsNotNull
       validator( null ) should failWith( "is a null" )
+    }
+  }
+
+  "Valid validator" should {
+    "be null-safe" in {
+      import com.wix.accord.ViolationBuilder._
+      case class Test( f: String )
+      implicit val delegate = new BaseValidator[ Test ]( _.f == "anything", _ -> "just a safety net, shouldn't happen" )
+
+      val validator = new Valid[ Test ]
+      validator( null ) should failWith( "must not be null" )
     }
   }
 }
