@@ -47,6 +47,11 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers {
         failWith( RuleViolationMatcher( constraint = "has size 0, expected more than 0" ) )
     }
   }
+  "each extension" should {
+    "be null safe" in {
+      validate( null )( seqEachValidator ) should be( aFailure )
+    }
+  }
 }
 
 object CollectionOpsTests {
@@ -55,4 +60,5 @@ object CollectionOpsTests {
   val seqEmptyValidator = validator[ Seq[_] ] { _ is empty }
   val seqNotEmptyValidator = validator[ Seq[_] ] { _ is notEmpty }
   val seqSizeValidator = validator[ Seq[_] ] { _ has size > 0 }
+  val seqEachValidator = validator[ Seq[ String ] ] { _.each is empty }
 }
