@@ -1,0 +1,10 @@
+Version 0.3.1 is a maintenance release, featuring the following fixes and improvements:
+
+* [#16](https://github.com/wix/accord/issues/16) Fixed: Collection.each is not null-safe;
+* [#15](https://github.com/wix/accord/issues/15) Fixed: Validator delegation isn't null-safe;
+* Upgraded to Macro Paradise 2.0.0-M7 (thanks to Eugene Burmako);
+* Updated ScalaTest from 2.0 to 2.1.0;
+* Updated Specs² from 2.3.4 to 2.3.10.
+
+As always, bug reports, pull requests and other ideas are welcome!
+

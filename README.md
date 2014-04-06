@@ -73,7 +73,7 @@ res3: com.wix.accord.Result = Failure(List(RuleViolation(List(),has size 0, expe
 Getting Started
 ===============
 
-Accord milestone release 0.3 is available on Maven Central Repository. The next milestone is 0.3-SNAPSHOT and is available from the Sonatype snapshots repository. Be advised that, pending a fix for [issue #2](../../issues/2), Accord _requires_ Scala 2.10.3 or later.
+Accord maintenance release 0.3.1 is available on Maven Central Repository. The next milestone is 0.4-SNAPSHOT and is available from the Sonatype snapshots repository. Be advised that, pending a fix for [issue #2](../../issues/2), Accord _requires_ Scala 2.10.3 or later.
 
 SBT
 ---
@@ -81,7 +81,7 @@ SBT
 Simply add the `accord-core` module to your build settings:
 
 ```scala
-libraryDependencies += "com.wix" %% "accord-core" % "0.3"
+libraryDependencies += "com.wix" %% "accord-core" % "0.3.1"
 ```
 
 If you want to evaluate the upcoming snapshot release, add the Sonatype snapshot repository to your resolvers; typically this means adding the following to your `build.sbt` file:
@@ -102,7 +102,7 @@ Accord is published to the Maven Central Repository, so you simply have to add t
   <dependency>
     <groupId>com.wix</groupId>
     <artifactId>accord-core_${scala.tools.version}</artifactId>
-    <version>0.3</version>
+    <version>0.3.1</version>
   </dependency>
 </dependencies>
 ```
@@ -136,6 +136,7 @@ Accord is still fairly rudimentary, and there's plenty of improvements to be mad
 
 * Major issues and improvements planned or under consideration for the [0.4 milestone](https://github.com/wix/accord/issues?milestone=4&state=open) release:
     * Re-evaluate [issue #2](../../issues/2)
+    * Support inline expressions in validators [issue #6](../../issues/6)
     * Add syntax for custom violation message overrides (e.g. `p.firstName is notEmpty as "no first name!"`)
     * Support custom violation types (e.g. `p.firstName is notEmpty as MyServerError( code = -3 )`)
 * Future plans:
