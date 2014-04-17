@@ -57,7 +57,7 @@ object Root extends Build {
 
   lazy val compileOptions = Seq(
     scalaVersion := "2.10.3",
-    crossScalaVersions := Seq( "2.10.3", "2.11.0-RC3" ),
+    crossScalaVersions := Seq( "2.10.3", "2.11.0" ),
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",
       "-feature",

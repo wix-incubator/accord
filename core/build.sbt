@@ -4,12 +4,16 @@ libraryDependencies <++= scalaVersion {
   case v if v startsWith "2.10" =>
     Seq(
       compilerPlugin( "org.scalamacros" % "paradise" % "2.0.0-M7" cross CrossVersion.full ),
-      "org.scalamacros" % "quasiquotes" % "2.0.0-M7" cross CrossVersion.full intransitive()
+      "org.scalamacros" %% "quasiquotes" % "2.0.0-M7" intransitive()
     )
   case _ => Seq.empty
 }
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "2.0" % "test"
+libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-reflect" % _ % "provided" )
+
+libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "test" )
+
+libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.3" % "test"
 
 unmanagedSourceDirectories in Compile <+= ( scalaVersion, baseDirectory ) { case ( sv, base ) => sv match {
   case v if v startsWith "2.10" => base / "src/main/scala-2.10"
