@@ -62,10 +62,52 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       } getOrElse
         abort( t.pos, s"Failed to extract object under validation from tree $t (raw=${showRaw(t)})" )
 
+
+    object AtLeastOneSelect {
+      private def unapplyInternal( tree: Tree ): Option[ Tree ] = tree match {
+        case Select( from, _ ) => unapplyInternal( from )
+        case terminal => Some( terminal )
+      }
+
+      def unapply( tree: Tree ): Option[ Tree ] = tree match {
+        case Select( from, _ ) => unapplyInternal( from )
+        case terminal => None
+      }
+    }
+
     def rewriteContextExpressionAsValidator( expr: Tree, extractor: Tree ) =
       transformByPattern( expr ) {
-        case Apply( t @ TypeApply( Select( _, `contextualizerTerm` ), _ ), e :: Nil ) =>
-          Apply( t, extractor :: Nil )
+        case root @ Apply( AtLeastOneSelect( Apply( TypeApply( Select( _, `contextualizerTerm` ), _ ), _ :: Nil ) ), _ :: Nil ) =>
+
+          val typeRewrite: PartialFunction[ Tree, Tree ] = {
+            // Workaround for https://issues.scala-lang.org/browse/SI-8500. The generated code:
+            //
+            // [info]     def apply(x$3: Seq[_]) = {
+            // [info]       val sv = com.wix.accord.dsl.`package`.Contextualizer[Seq[_$3]](x$3).has.apply(com.wix.accord.dsl.`package`.size.>[Int](0)(math.this.Ordering.Int))(scala.this.Predef.$conforms[Seq[_$3]]);
+            // [info]       sv(x$3).withDescription("value")
+            // [info]     }
+            //
+            // Issues the following errors:
+            //
+            // [error] /Users/tomer/dev/accord/core/src/test/scala/com/wix/accord/tests/dsl/CollectionOpsTests.scala:62: type mismatch;
+            // [error]  found   : Seq[_$3(in value sv)] where type _$3(in value sv)
+            // [error]  required: Seq[_$3(in value $anonfun)] where type _$3(in value $anonfun)
+            // [error]   val seqSizeValidator = validator[ Seq[_] ] { _ has size > 0 }
+            case tpe: TypeTree
+              if tpe.tpe.dealias.typeArgs.length > 0 && tpe.tpe.dealias.typeArgs.forall {
+                case arg if internal.isSkolem( arg.typeSymbol ) && arg.typeSymbol.asInstanceOf[ TypeSymbolApi ].isExistential => true
+                case _ => false
+              } =>
+
+              val api = tpe.tpe.asInstanceOf[ TypeRefApi ]
+              TypeTree( internal.typeRef( api.pre, api.sym, List.fill( api.args.length )( internal.boundedWildcardType( internal.typeBounds( typeOf[ Nothing ], typeOf[ Any ] ) ) ) ) )
+          }
+//          val applicationRewrite: PartialFunction[ Tree, Tree ] = {
+//            case Apply( t @ TypeApply( Select( _, `contextualizerTerm` ), _ ), _ ) =>
+//              transformByPattern( Apply( t, extractor :: Nil ) )( typeRewrite )
+//          }
+
+          transformByPattern( root )( /*applicationRewrite orElse*/ typeRewrite )
       }
 
     def unapply( expr: Tree ): Option[ Subvalidator ] = expr match {
@@ -108,8 +150,6 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     val rewrite =
       q"""
           new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
-            self =>
-
             def apply( $prototype ) = {
               val sv = ${sv.validation}
               sv( ${sv.ouv} ) withDescription ${sv.description}

@@ -24,7 +24,73 @@ trait MacroHelper[ C <: Context ] {
   import context.universe._
 
   def termName( symbol: String ): TermName = TermName( symbol )
-  def resetAttrs( tree: Tree ): Tree = context.untypecheck( tree )
+  def resetAttrs( tree: Tree ): Tree = {
+    val or = new OwnerRepair(context)
+    or.repairOwners( context.untypecheck( tree ).asInstanceOf[ or.c.universe.Tree ] ).asInstanceOf[ Tree ]
+  }
+}
+
+// This is needed to repair owner chain as encountered in the following issue:
+// https://github.com/scalatest/scalatest/issues/276
+private class OwnerRepair[C <: Context](val c: C) {
+  /**
+   * If macro arguments are spliced into underneath DefTree that introduces
+   * an entry into the symbol ownership chain, any symbols defined in the
+   * spliced tree will be ill-owned.
+   *
+   * This method detects this situation, and corrects the owners.
+   */
+  def repairOwners(tree: c.Tree): c.Tree = {
+    val symtab = c.universe.asInstanceOf[reflect.internal.SymbolTable]
+    val utils = new Utils[symtab.type](symtab)
+
+    // Proactively typecheck the tree. This will assign symbols to
+    // DefTrees introduced by the macro.
+    val typed = c.typecheck(tree).asInstanceOf[symtab.Tree]
+
+    // The current owner at the call site. Symbols owned by this may need
+    // to be transplanted.
+    import scala.reflect.macros.runtime.{Context => MRContext}
+    val callsiteOwner =
+      c.asInstanceOf[MRContext]
+        .callsiteTyper.context.owner
+        .asInstanceOf[symtab.Symbol]
+
+    val repairedTree = utils.repairOwners(typed, callsiteOwner)
+    repairedTree.asInstanceOf[c.universe.Tree]
+  }
+
+  private class Utils[U <: reflect.internal.SymbolTable](val u: U) {
+    import u._
+
+    class ChangeOwnerAndModuleClassTraverser(oldowner: Symbol, newowner: Symbol)
+      extends ChangeOwnerTraverser(oldowner, newowner) {
+
+      override def traverse(tree: Tree) {
+        tree match {
+          case _: DefTree => change(tree.symbol.moduleClass)
+          case _          =>
+        }
+        super.traverse(tree)
+      }
+    }
+
+    def repairOwners(t: Tree, macroCallSiteOwner: Symbol): Tree = {
+      object repairer extends Transformer {
+        override def transform(t: Tree): Tree = {
+          t match {
+            case (_: DefTree | _: Function | _: Import) if t.symbol.owner == macroCallSiteOwner && macroCallSiteOwner != currentOwner =>
+              new ChangeOwnerAndModuleClassTraverser(macroCallSiteOwner, currentOwner)(t)
+            case _ =>
+              super.transform(t)
+          }
+        }
+      }
+      repairer.atOwner(macroCallSiteOwner) {
+        repairer transform t
+      }
+    }
+  }
 }
 
 object MacroHelper {

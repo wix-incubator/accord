@@ -11,7 +11,7 @@ libraryDependencies <++= scalaVersion {
 
 libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-reflect" % _ % "provided" )
 
-libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "test" )
+libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "provided" )
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.3" % "test"
 
