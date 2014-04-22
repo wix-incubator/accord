@@ -24,12 +24,16 @@ trait MacroHelper[ C <: Context ] {
   import context.universe._
 
   def termName( symbol: String ): TermName = TermName( symbol )
-  def resetAttrs( tree: Tree ): Tree = {
-    val or = new OwnerRepair(context)
-    or.repairOwners( context.untypecheck( tree ).asInstanceOf[ or.c.universe.Tree ] ).asInstanceOf[ Tree ]
+  def resetAttrs( tree: Tree, repairOwners: Boolean = true ): Tree = {
+    val afterReset = context.untypecheck( tree )
+    if ( repairOwners ) {
+      val or = new OwnerRepair( context )
+      or.repairOwners( afterReset.asInstanceOf[ or.c.universe.Tree ] ).asInstanceOf[ Tree ]
+    } else afterReset
   }
 }
 
+// Workaround for SI-5797, copied from Jason Zaugg's comment at https://issues.scala-lang.org/browse/SI-5797
 // This is needed to repair owner chain as encountered in the following issue:
 // https://github.com/scalatest/scalatest/issues/276
 private class OwnerRepair[C <: Context](val c: C) {
@@ -44,9 +48,13 @@ private class OwnerRepair[C <: Context](val c: C) {
     val symtab = c.universe.asInstanceOf[reflect.internal.SymbolTable]
     val utils = new Utils[symtab.type](symtab)
 
+    println (s"about to typecheck: ${c.universe.showCode(tree)}")
+
     // Proactively typecheck the tree. This will assign symbols to
     // DefTrees introduced by the macro.
     val typed = c.typecheck(tree).asInstanceOf[symtab.Tree]
+
+    println (s"after typecheck: ${c.universe.showCode(typed.asInstanceOf[c.Tree])}")
 
     // The current owner at the call site. Symbols owned by this may need
     // to be transplanted.
@@ -56,8 +64,9 @@ private class OwnerRepair[C <: Context](val c: C) {
         .callsiteTyper.context.owner
         .asInstanceOf[symtab.Symbol]
 
-    val repairedTree = utils.repairOwners(typed, callsiteOwner)
-    repairedTree.asInstanceOf[c.universe.Tree]
+    val repairedTree = utils.repairOwners(typed, callsiteOwner).asInstanceOf[c.universe.Tree]
+    println (s"after repair: ${c.universe.showCode(repairedTree)}")
+    repairedTree
   }
 
   private class Utils[U <: reflect.internal.SymbolTable](val u: U) {
