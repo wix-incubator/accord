@@ -16,15 +16,27 @@
 
 package com.wix.accord.dsl
 
-import scala.language.implicitConversions
 import com.wix.accord.Validator
-import com.wix.accord.combinators.{IsTrue, IsFalse}
+import com.wix.accord.combinators.{IsTrue, IsFalse, And, Or}
 
 /** Provides a DSL for booleans. */
 trait BooleanOps {
+  import scala.language.implicitConversions
+
   /** An implicit conversion from boolean to a respective `IsTrue`/`IsFalse` instance; this enables syntax
     * such as `customer.emailOptIn is true`.
     */
   implicit def booleanToBooleanValidator( b: Boolean ): Validator[ Boolean ] =
     if ( b ) new IsTrue else new IsFalse
+
+  /** Extends validators with useful helpers.
+    *
+    * @param validator The validator to be extended.
+    * @tparam T The type of the object under validation.
+    */
+  implicit class ValidatorBooleanOps[ T ]( validator: Validator[ T ] ) {
+    def and( other: Validator[ T ] ) = new And( validator, other ) // TODO shortcut multiple ANDs
+    def or( other: Validator[ T ] ) = new Or( validator, other )   // TODO shortcut multiple ORs
+  }
+
 }
