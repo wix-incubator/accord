@@ -25,27 +25,60 @@ class BooleanOpsTests extends WordSpec with Matchers with ResultMatchers {
 
   "true" should {
     "succeed on true" in {
-      validate( Test( f = true ) )( trueValidator ) should be( aSuccess )
+      validate( SimpleTest( f = true ) )( trueValidator ) should be( aSuccess )
     }
     "fail on false" in {
-      validate( Test( f = false ) )( trueValidator ) should be( aFailure )
+      validate( SimpleTest( f = false ) )( trueValidator ) should be( aFailure )
     }
   }
 
   "false" should {
     "succeed on false" in {
-      validate( Test( f = false ) )( falseValidator ) should be( aSuccess )
+      validate( SimpleTest( f = false ) )( falseValidator ) should be( aSuccess )
     }
     "fail on true" in {
-      validate( Test( f = true ) )( falseValidator ) should be( aFailure )
+      validate( SimpleTest( f = true ) )( falseValidator ) should be( aFailure )
+    }
+  }
+  
+  "and" should {
+    "succeed when both sides of the operator validate successfully" in {
+      validate( CompoundTest( left = true, right = true ) )( andValidator ) should be( aSuccess )
+    }
+    "fail when the left side of the operator fails to validate" in pendingUntilFixed {              // Issue #23
+      validate( CompoundTest( left = false, right = true ) )( andValidator ) should be( aFailure )
+    }
+    "fail when the right side of the operator fails to validate" in {
+      validate( CompoundTest( left = true, right = false ) )( andValidator ) should be( aFailure )
+    }
+    "fail when both sides of the operator fail to validate" in {
+      validate( CompoundTest( left = false, right = false ) )( andValidator ) should be( aFailure )
+    }
+  }
+
+  "or" should {
+    "succeed when both sides of the operator validate successfully" in {
+      validate( CompoundTest( left = true, right = true ) )( orValidator ) should be( aSuccess )
+    }
+    "succeed when only the left side of the operator validates successfully" in pendingUntilFixed {  // Issue #23
+      validate( CompoundTest( left = true, right = false ) )( orValidator ) should be( aSuccess )
+    }
+    "succeed when only the right side of the operator validates successfully" in {
+      validate( CompoundTest( left = false, right = true ) )( orValidator ) should be( aSuccess )
+    }
+    "fail when both sides of the operator fail to validate" in {
+      validate( CompoundTest( left = false, right = false ) )( orValidator ) should be( aFailure )
     }
   }
 }
 
 object BooleanOpsTests {
-  case class Test( f: Boolean )
+  case class SimpleTest( f: Boolean )
+  case class CompoundTest( left: Boolean, right: Boolean )
 
   import com.wix.accord.dsl._
-  val trueValidator = validator[ Test ] {  _.f is true }
-  val falseValidator = validator[ Test ] {  _.f is false }
+  val  trueValidator = validator[ SimpleTest ] { _.f is true }
+  val falseValidator = validator[ SimpleTest ] { _.f is false }
+  val   andValidator = validator[ CompoundTest ] { c => ( c.left is true ) and ( c.right is true ) }
+  val    orValidator = validator[ CompoundTest ] { c => ( c.left is true ) or  ( c.right is true ) }
 }

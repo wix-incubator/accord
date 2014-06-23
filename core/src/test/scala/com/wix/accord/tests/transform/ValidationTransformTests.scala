@@ -41,7 +41,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       val obj = CompositeTest( FlatTest( null ) )
       validate( obj )( anonymousIndirectValidator ) should failWith( "member.field" -> "is a null" )
     }
-    "be generated for a multiple-clause boolean expression" in pendingUntilFixed {
+    "be generated for a multiple-clause boolean expression" in pendingUntilFixed {    // Issue #22
       val obj = FlatTest( "123" )
       validate( obj )( booleanExpressionValidator ) should failWith(
         group( "field", "doesn't meet any of the requirements",

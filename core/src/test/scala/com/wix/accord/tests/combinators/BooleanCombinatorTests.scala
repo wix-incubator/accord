@@ -16,7 +16,7 @@
 
 package com.wix.accord.tests.combinators
 
-import com.wix.accord.combinators.{IsTrue, IsFalse}
+import com.wix.accord.combinators.{And, Or, Fail, IsFalse, IsTrue, NilValidator}
 
 class BooleanCombinatorTests extends CombinatorTestSpec {
 
@@ -43,6 +43,47 @@ class BooleanCombinatorTests extends CombinatorTestSpec {
       val left = true
       val validator = new IsFalse
       validator( left ) should failWith( "must be false" )
+    }
+  }
+
+  val failureClause = new Fail[ String ]( "expected failure" )
+  val successClause = new NilValidator[ String ]
+
+  "And combinator" should {
+    "succeed on a two-clause expression when all clauses validate successfully" in {
+      val validator = new And( successClause, successClause )
+      validator( "test" ) should be( aSuccess )
+    }
+    "fail on a two-clause expression when the first clause fails to validate" in {
+      val validator = new And( failureClause, successClause )
+      validator( "test" ) should be( aFailure )
+    }
+    "fail on a two-clause expression when the second clause fails to validate" in {
+      val validator = new And( successClause, failureClause )
+      validator( "test" ) should be( aFailure )
+    }
+    "fail on a two-clause expression when both clauses fail to validate" in {
+      val validator = new And( failureClause, failureClause )
+      validator( "test" ) should be( aFailure )
+    }
+  }
+
+  "Or combinator" should {
+    "succeed on a two-clause expression when all clauses validate successfully" in {
+      val validator = new Or( successClause, successClause )
+      validator( "test" ) should be( aSuccess )
+    }
+    "succeed on a two-clause expression when only the first clause fails to validate" in {
+      val validator = new Or( failureClause, successClause )
+      validator( "test" ) should be( aSuccess )
+    }
+    "succeed on a two-clause expression when only the second clause fails to validate" in {
+      val validator = new Or( successClause, failureClause )
+      validator( "test" ) should be( aSuccess )
+    }
+    "fail on a two-clause expression when both clauses fail to validate" in {
+      val validator = new Or( failureClause, failureClause )
+      validator( "test" ) should be( aFailure )
     }
   }
 }
