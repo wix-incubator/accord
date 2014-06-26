@@ -19,29 +19,29 @@ package com.wix.accord.transform
 import scala.reflect.macros.Context
 import com.wix.accord._
 
-private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] )
-  extends PatternHelper[ C ] with ExpressionDescriber[ C ] {
+private[ transform ] trait MacroLogging[ C <: Context ] {
+  /** The macro context; inheritors must provide this */
+  protected val context: C
 
   import context.universe._
-  import context.{abort, info}
+  import context.info
 
-  // Macro helpers --
+  protected def debugOutputEnabled: Boolean
+  protected def traceOutputEnabled: Boolean
 
-  private val verboseValidatorRewrite = context.settings.contains( "debugValidationTransform" )
   def debug( s: String, pos: Position = context.enclosingPosition ) =
-    if ( verboseValidatorRewrite ) info( pos, s, force = false )
-  private val traceValidatorRewrite = context.settings.contains( "traceValidationTransform" )
+    if ( debugOutputEnabled ) info( pos, s, force = false )
   def trace( s: String, pos: Position = context.enclosingPosition ) =
-    if ( traceValidatorRewrite ) info( pos, s, force = false )
+    if ( traceOutputEnabled ) info( pos, s, force = false )
+}
 
+private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelper[ C ] with ExpressionDescriber[ C ] {
+  self: MacroLogging[ C ] =>
 
-  // Transformation logic --
+  import context.universe._
+  import context.abort
 
-  val Function( prototype :: prototypeTail, vimpl ) = v.tree
-  if ( !prototypeTail.isEmpty )
-    abort( prototypeTail.head.pos, "Only single-parameter validators are supported!" )
-
-  case class Subvalidator( description: Tree, ouv: Tree, validation: Tree )
+  protected case class Subvalidator( description: Tree, ouv: Tree, validation: Tree )
 
   val validatorType = typeOf[ Validator[_] ]
 
@@ -94,6 +94,20 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     case Literal( Constant(()) ) => Nil   // Ignored terminator
     case _ => abort( t.pos, s"Unexpected node $t:\n\ttpe=${t.tpe}\n\traw=${showRaw(t)}" )
   }
+}
+
+private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] )
+  extends ExpressionFinder[ C ] with MacroLogging[ C ] {
+
+  import context.universe._
+  import context.abort
+
+  protected val debugOutputEnabled = context.settings.contains( "debugValidationTransform" )
+  protected val traceOutputEnabled = context.settings.contains( "traceValidationTransform" )
+
+  val Function( prototype :: prototypeTail, vimpl ) = v.tree
+  if ( prototypeTail.nonEmpty )
+    abort( prototypeTail.head.pos, "Only single-parameter validators are supported!" )
 
   // Rewrite expressions into a validation chain --
 
@@ -108,8 +122,6 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     val rewrite =
       q"""
           new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
-            self =>
-
             def apply( $prototype ) = {
               val sv = ${sv.validation}
               sv( ${sv.ouv} ) withDescription ${sv.description}

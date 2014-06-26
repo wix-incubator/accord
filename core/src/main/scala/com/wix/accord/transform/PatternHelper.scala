@@ -24,7 +24,7 @@ import scala.reflect.macros.Context
   */
 trait PatternHelper[ C <: Context ] {
   /** The macro context; inheritors must provide this */
-  val context: C
+  protected val context: C
 
   import context.universe._
 
