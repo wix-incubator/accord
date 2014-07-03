@@ -51,6 +51,29 @@ trait PatternHelper[ C <: Context ] {
     found
   }
 
+  /** Matches an AST pattern against a tree recursively. Patterns are encoded as a partial function from
+    * [[scala.reflect.api.Universe.Tree]] to a result object; this method returns the result of applying the partial
+    * function to all AST subtrees matching it.
+    *
+    * @param tree The AST tree to search.
+    * @param pattern The search pattern.
+    * @tparam R The return type as defined by the extraction clause of the search pattern.
+    * @return [[scala.None]] if no match was found, or a [[scala.Some]] containing the result of applying the
+    *         partial function to the first matching subtree.
+    */
+  def collectFromPattern[ R ]( tree: Tree )( pattern: PartialFunction[ Tree, R ] ): Seq[ R ] = {
+    var found: Vector[ R ] = Vector.empty
+    new Traverser {
+      override def traverse( subtree: Tree ) {
+        if ( pattern.isDefinedAt( subtree ) )
+          found = found :+ pattern( subtree )
+        else
+          super.traverse( subtree )
+      }
+    }.traverse( tree )
+    found
+  }
+
   /** Transforms an AST based on the specified pattern. The transformation is specified as a partial function from
     * [[scala.reflect.api.Universe.Tree]] to a another tree, where every subtree for which the function is defined
     * is replaced with the result of its application.

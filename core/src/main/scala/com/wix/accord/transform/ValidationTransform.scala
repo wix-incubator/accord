@@ -87,13 +87,6 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
       case _ => None
     }
   }
-
-  def findSubvalidators( t: Tree ): List[ Subvalidator ] = t match {
-    case Block( stats, expr ) => ( stats flatMap findSubvalidators ) ++ findSubvalidators( expr )
-    case ValidatorApplication( validator ) => validator :: Nil
-    case Literal( Constant(()) ) => Nil   // Ignored terminator
-    case _ => abort( t.pos, s"Unexpected node $t:\n\ttpe=${t.tpe}\n\traw=${showRaw(t)}" )
-  }
 }
 
 private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] )
@@ -144,8 +137,11 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     * @return The transformed [[com.wix.accord.Validator]] of `T`.
     */
   def transformed: Expr[ Validator[ T ] ] = {
-    // Rewrite all validators
-    val subvalidators = findSubvalidators( vimpl ) map rewriteOne
+    // Rewrite all top-level validators
+    val subvalidators = collectFromPattern( vimpl ) {
+      case tree @ ValidatorApplication( sv ) => rewriteOne( sv )
+    }
+
     val result = context.Expr[ Validator[ T ] ](
       q"new com.wix.accord.transform.ValidationTransform.TransformedValidator( ..$subvalidators )" )
 
