@@ -25,7 +25,8 @@ trait MacroHelper[ C <: Context ] {
 
   def termName( symbol: String ): TermName = TermName( symbol )
   def resetAttrs( tree: Tree ): Tree = {
-    ???
+    import org.scalamacros.resetallattrs._
+    context.resetAllAttrs(tree)
   }
 }
 

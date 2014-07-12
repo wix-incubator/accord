@@ -13,6 +13,14 @@ libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-reflect" % _ % "
 
 libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "provided" )
 
+libraryDependencies <++= scalaVersion {
+  case v if v startsWith "2.11" =>
+    Seq(
+      "org.scalamacros" %% "resetallattrs" % "1.0.0-SNAPSHOT"
+    )
+  case _ => Seq.empty
+}
+
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.3" % "test"
 
 unmanagedSourceDirectories in Compile <+= ( scalaVersion, baseDirectory ) { case ( sv, base ) => sv match {
