@@ -16,6 +16,8 @@
 
 package com.wix.accord
 
+import com.wix.accord.transform.ValidationTransform.TransformedValidator
+
 import scala.language.implicitConversions
 import scala.language.experimental.macros
 import com.wix.accord.transform.ValidationTransform
@@ -58,7 +60,7 @@ package object dsl
     * @tparam T The type under validation.
     * @return The validation code block rewritten as a [[com.wix.accord.Validator]] for the specified type `T`.
     */
-  def validator[ T ]( v: T => Unit ): Validator[ T ] = macro ValidationTransform.apply[ T ]
+  def validator[ T ]( v: T => Unit ): TransformedValidator[ T ] = macro ValidationTransform.apply[ T ]
 
   /** Wraps expressions under validation with a specialized scope (this is later used during the macro transform).
     * Enables syntax such as `p.firstName is notEmpty`, where `p.firstName` is the actual expression under

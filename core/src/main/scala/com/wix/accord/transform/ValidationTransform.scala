@@ -18,6 +18,7 @@ package com.wix.accord.transform
 
 import MacroHelper._
 import com.wix.accord._
+import com.wix.accord.transform.ValidationTransform.TransformedValidator
 
 private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] )
   extends PatternHelper[ C ] with ExpressionDescriber[ C ] {
@@ -171,10 +172,10 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     *
     * @return The transformed [[com.wix.accord.Validator]] of `T`.
     */
-  def transformed: Expr[ Validator[ T ] ] = {
+  def transformed: Expr[ TransformedValidator[ T ] ] = {
     // Rewrite all validators
     val subvalidators = findSubvalidators( vimpl ) map rewriteOne
-    val result = context.Expr[ Validator[ T ] ](
+    val result = context.Expr[ TransformedValidator[ T ] ](
       q"new com.wix.accord.transform.ValidationTransform.TransformedValidator( ..$subvalidators )" )
 
     trace( s"""|Result of validation transform:
@@ -192,7 +193,7 @@ object ValidationTransform {
     override def compose[ U ]( g: U => T ): Validator[ U ] = macro ValidationTransform.compose[ U, T ]
   }
 
-  def apply[ T : c.WeakTypeTag ]( c: Context )( v: c.Expr[ T => Unit ] ): c.Expr[ Validator[ T ] ] =
+  def apply[ T : c.WeakTypeTag ]( c: Context )( v: c.Expr[ T => Unit ] ): c.Expr[ TransformedValidator[ T ] ] =
     new ValidationTransform[ c.type, T ]( c, v ).transformed
 
   def compose[ U : c.WeakTypeTag, T : c.WeakTypeTag ]( c: Context )( g: c.Expr[ U => T ] ): c.Expr[ Validator[ U ] ] = {
