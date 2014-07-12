@@ -22,12 +22,10 @@ trait MacroHelper[ C <: Context ] {
   protected val context: C
 
   import context.universe._
+  import org.scalamacros.resetallattrs._
 
   def termName( symbol: String ): TermName = TermName( symbol )
-  def resetAttrs( tree: Tree ): Tree = {
-    import org.scalamacros.resetallattrs._
-    context.resetAllAttrs(tree)
-  }
+  def resetAttrs( tree: Tree ): Tree = context.resetAllAttrs( tree )
 }
 
 object MacroHelper {

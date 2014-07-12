@@ -94,21 +94,19 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
             // [error]  found   : Seq[_$3(in value sv)] where type _$3(in value sv)
             // [error]  required: Seq[_$3(in value $anonfun)] where type _$3(in value $anonfun)
             // [error]   val seqSizeValidator = validator[ Seq[_] ] { _ has size > 0 }
-            case tpe: TypeTree
-              if tpe.tpe.dealias.typeArgs.length > 0 && tpe.tpe.dealias.typeArgs.forall {
+            case typeTree: TypeTree
+              if typeTree.tpe.dealias.typeArgs.length > 0 && typeTree.tpe.dealias.typeArgs.forall {
                 case arg if internal.isSkolem( arg.typeSymbol ) && arg.typeSymbol.asInstanceOf[ TypeSymbolApi ].isExistential => true
                 case _ => false
               } =>
 
-              val api = tpe.tpe.asInstanceOf[ TypeRefApi ]
-              TypeTree( internal.typeRef( api.pre, api.sym, List.fill( api.args.length )( internal.boundedWildcardType( internal.typeBounds( typeOf[ Nothing ], typeOf[ Any ] ) ) ) ) )
+              val tpe = typeTree.tpe.asInstanceOf[ TypeRefApi ]
+              def existentialTypePara =
+                internal.boundedWildcardType( internal.typeBounds( typeOf[ Nothing ], typeOf[ Any ] ) )
+              TypeTree( internal.typeRef( tpe.pre, tpe.sym, List.fill( tpe.args.length )( existentialTypePara ) ) )
           }
-//          val applicationRewrite: PartialFunction[ Tree, Tree ] = {
-//            case Apply( t @ TypeApply( Select( _, `contextualizerTerm` ), _ ), _ ) =>
-//              transformByPattern( Apply( t, extractor :: Nil ) )( typeRewrite )
-//          }
 
-          transformByPattern( root )( /*applicationRewrite orElse*/ typeRewrite )
+          transformByPattern( root )( typeRewrite )
       }
 
     def unapply( expr: Tree ): Option[ Subvalidator ] = expr match {
