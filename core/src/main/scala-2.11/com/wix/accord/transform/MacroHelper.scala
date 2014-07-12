@@ -18,87 +18,45 @@ package com.wix.accord.transform
 
 import MacroHelper._
 trait MacroHelper[ C <: Context ] {
+  self: PatternHelper[ C ] =>
+
   /** The macro context (of type `C`), must be provided by the inheritor */
   protected val context: C
 
   import context.universe._
+  import org.scalamacros.resetallattrs._
 
   def termName( symbol: String ): TermName = TermName( symbol )
-  def resetAttrs( tree: Tree, repairOwners: Boolean = true ): Tree = {
-    val afterReset = context.untypecheck( tree )
-    if ( repairOwners ) {
-      val or = new OwnerRepair( context )
-      or.repairOwners( afterReset.asInstanceOf[ or.c.universe.Tree ] ).asInstanceOf[ Tree ]
-    } else afterReset
-  }
-}
+  def resetAttrs( tree: Tree ): Tree = context.resetAllAttrs( tree )
 
-// Workaround for SI-5797, copied from Jason Zaugg's comment at https://issues.scala-lang.org/browse/SI-5797
-// This is needed to repair owner chain as encountered in the following issue:
-// https://github.com/scalatest/scalatest/issues/276
-private class OwnerRepair[C <: Context](val c: C) {
-  /**
-   * If macro arguments are spliced into underneath DefTree that introduces
-   * an entry into the symbol ownership chain, any symbols defined in the
-   * spliced tree will be ill-owned.
-   *
-   * This method detects this situation, and corrects the owners.
-   */
-  def repairOwners(tree: c.Tree): c.Tree = {
-    val symtab = c.universe.asInstanceOf[reflect.internal.SymbolTable]
-    val utils = new Utils[symtab.type](symtab)
+  def rewriteExistentialTypes( tree: Tree ): Tree = {
+    val typeRewrite: PartialFunction[ Tree, Tree ] = {
+      // Workaround for https://issues.scala-lang.org/browse/SI-8500. The generated code:
+      //
+      // [info]     def apply(x$3: Seq[_]) = {
+      // [info]       val sv = com.wix.accord.dsl.`package`.Contextualizer[Seq[_$3]](x$3).has.apply(com.wix.accord.dsl.`package`.size.>[Int](0)(math.this.Ordering.Int))(scala.this.Predef.$conforms[Seq[_$3]]);
+      // [info]       sv(x$3).withDescription("value")
+      // [info]     }
+      //
+      // Issues the following errors:
+      //
+      // [error] /Users/tomer/dev/accord/core/src/test/scala/com/wix/accord/tests/dsl/CollectionOpsTests.scala:62: type mismatch;
+      // [error]  found   : Seq[_$3(in value sv)] where type _$3(in value sv)
+      // [error]  required: Seq[_$3(in value $anonfun)] where type _$3(in value $anonfun)
+      // [error]   val seqSizeValidator = validator[ Seq[_] ] { _ has size > 0 }
+      case typeTree: TypeTree
+        if typeTree.tpe.dealias.typeArgs.length > 0 && typeTree.tpe.dealias.typeArgs.forall {
+          case arg if internal.isSkolem( arg.typeSymbol ) && arg.typeSymbol.asInstanceOf[ TypeSymbolApi ].isExistential => true
+          case _ => false
+        } =>
 
-    println (s"about to typecheck: ${c.universe.showCode(tree)}")
-
-    // Proactively typecheck the tree. This will assign symbols to
-    // DefTrees introduced by the macro.
-    val typed = c.typecheck(tree).asInstanceOf[symtab.Tree]
-
-    println (s"after typecheck: ${c.universe.showCode(typed.asInstanceOf[c.Tree])}")
-
-    // The current owner at the call site. Symbols owned by this may need
-    // to be transplanted.
-    import scala.reflect.macros.runtime.{Context => MRContext}
-    val callsiteOwner =
-      c.asInstanceOf[MRContext]
-        .callsiteTyper.context.owner
-        .asInstanceOf[symtab.Symbol]
-
-    val repairedTree = utils.repairOwners(typed, callsiteOwner).asInstanceOf[c.universe.Tree]
-    println (s"after repair: ${c.universe.showCode(repairedTree)}")
-    repairedTree
-  }
-
-  private class Utils[U <: reflect.internal.SymbolTable](val u: U) {
-    import u._
-
-    class ChangeOwnerAndModuleClassTraverser(oldowner: Symbol, newowner: Symbol)
-      extends ChangeOwnerTraverser(oldowner, newowner) {
-
-      override def traverse(tree: Tree) {
-        tree match {
-          case _: DefTree => change(tree.symbol.moduleClass)
-          case _          =>
-        }
-        super.traverse(tree)
-      }
+        val tpe = typeTree.tpe.asInstanceOf[ TypeRefApi ]
+        def existentialTypePara =
+          internal.boundedWildcardType( internal.typeBounds( typeOf[ Nothing ], typeOf[ Any ] ) )
+        TypeTree( internal.typeRef( tpe.pre, tpe.sym, List.fill( tpe.args.length )( existentialTypePara ) ) )
     }
 
-    def repairOwners(t: Tree, macroCallSiteOwner: Symbol): Tree = {
-      object repairer extends Transformer {
-        override def transform(t: Tree): Tree = {
-          t match {
-            case (_: DefTree | _: Function | _: Import) if t.symbol.owner == macroCallSiteOwner && macroCallSiteOwner != currentOwner =>
-              new ChangeOwnerAndModuleClassTraverser(macroCallSiteOwner, currentOwner)(t)
-            case _ =>
-              super.transform(t)
-          }
-        }
-      }
-      repairer.atOwner(macroCallSiteOwner) {
-        repairer transform t
-      }
-    }
+    transformByPattern( tree )( typeRewrite )
   }
 }
 

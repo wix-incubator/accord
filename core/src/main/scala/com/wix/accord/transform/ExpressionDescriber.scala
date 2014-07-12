@@ -35,7 +35,7 @@ import scala.language.experimental.macros
   *
   * @tparam C The macro context type
   */
-trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] {
+trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] with PatternHelper[ C ] {
   import context.universe._
 
   /** The function prototype; specifically, the single function parameter's definition as a `ValDef`. Must be

@@ -22,7 +22,9 @@ import MacroHelper._
   *
   * @tparam C The type of the macro context
   */
-trait PatternHelper[ C <: Context ] extends MacroHelper[ C ] {
+trait PatternHelper[ C <: Context ] {
+  self: MacroHelper[ C ] =>
+
   import context.universe._
 
   /** Matches an AST pattern against a tree recursively. Patterns are encoded as a partial function from
@@ -56,12 +58,12 @@ trait PatternHelper[ C <: Context ] extends MacroHelper[ C ] {
     * @param pattern The search-and-replace pattern.
     * @return The transformed tree.
     */
-  def transformByPattern( tree: Tree, repairOwners: Boolean = true )( pattern: PartialFunction[ Tree, Tree ] ): Tree = {
+  def transformByPattern( tree: Tree )( pattern: PartialFunction[ Tree, Tree ] ): Tree = {
     val transformed =
       new Transformer {
         override def transform( subtree: Tree ): Tree =
           if ( pattern isDefinedAt subtree ) pattern.apply( subtree ) else super.transform( subtree )
       }.transform( tree.duplicate )
-    resetAttrs( transformed, repairOwners )
+    resetAttrs( transformed )
   }
 }
