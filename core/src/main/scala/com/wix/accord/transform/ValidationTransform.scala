@@ -76,7 +76,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     }
 
     def rewriteContextExpressionAsValidator( expr: Tree, extractor: Tree ) =
-      transformByPattern( expr, false ) {
+      transformByPattern( expr ) {
         case root @ Apply( AtLeastOneSelect( Apply( TypeApply( Select( _, `contextualizerTerm` ), _ ), _ :: Nil ) ), _ :: Nil ) =>
 
           val typeRewrite: PartialFunction[ Tree, Tree ] = {
@@ -107,7 +107,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 //              transformByPattern( Apply( t, extractor :: Nil ) )( typeRewrite )
 //          }
 
-          transformByPattern( root, true )( /*applicationRewrite orElse*/ typeRewrite )
+          transformByPattern( root )( /*applicationRewrite orElse*/ typeRewrite )
       }
 
     def unapply( expr: Tree ): Option[ Subvalidator ] = expr match {
