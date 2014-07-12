@@ -22,7 +22,9 @@ import MacroHelper._
   *
   * @tparam C The type of the macro context
   */
-trait PatternHelper[ C <: Context ] extends MacroHelper[ C ] {
+trait PatternHelper[ C <: Context ] {
+  self: MacroHelper[ C ] =>
+
   import context.universe._
 
   /** Matches an AST pattern against a tree recursively. Patterns are encoded as a partial function from

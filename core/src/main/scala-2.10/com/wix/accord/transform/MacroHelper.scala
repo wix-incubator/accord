@@ -25,6 +25,7 @@ trait MacroHelper[ C <: Context ] {
 
   def termName( symbol: String ): TermName = context.universe.newTermName( symbol )
   def resetAttrs( tree: Tree ): Tree = context.resetAllAttrs( tree )
+  def rewriteExistentialTypes( tree: Tree ): Tree = tree
 }
 
 object MacroHelper {
