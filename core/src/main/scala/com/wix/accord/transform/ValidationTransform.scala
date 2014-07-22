@@ -42,7 +42,9 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
   import context.universe._
   import context.abort
 
-  protected case class Subvalidator( description: Tree, ouv: Tree, validation: Tree )
+  sealed trait ValidatorApplication
+  protected case class Container( expr: Tree ) extends ValidatorApplication
+  protected case class Subvalidator( description: Tree, ouv: Tree, validation: Tree ) extends ValidatorApplication
 
   val validatorType = typeOf[ Validator[_] ]
 
@@ -56,13 +58,11 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
   object ValidatorApplication {
     private val contextualizerTerm = typeOf[ dsl.Contextualizer[_] ].typeSymbol.name.toTermName
 
-    def extractObjectUnderValidation( t: Tree ): Tree =
-      extractFromPattern( t ) {
+    def extractObjectUnderValidation( t: Tree ): List[ Tree ] =
+      collectFromPattern( t ) {
         case Apply( TypeApply( Select( _, `contextualizerTerm` ), tpe :: Nil ), e :: Nil ) =>
           resetAttrs( e.duplicate )
-      } getOrElse
-        abort( t.pos, s"Failed to extract object under validation from tree $t (raw=${showRaw(t)})" )
-
+      }
 
     object AtLeastOneSelect {
       private def unapplyInternal( tree: Tree ): Option[ Tree ] = tree match {
@@ -82,20 +82,30 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
           rewriteExistentialTypes( root )
       }
 
-    def unapply( expr: Tree ): Option[ Subvalidator ] = expr match {
+    def unapply( expr: Tree ): Option[ ValidatorApplication ] = expr match {
       case t if t.tpe <:< validatorType =>
-        val ouv = extractObjectUnderValidation( expr )
-        val sv = rewriteContextExpressionAsValidator( expr, ouv )
-        val desc = renderDescriptionTree( ouv )
-        trace( s"""
-              |Found subvalidator:
-              |  ouv=$ouv
-              |  ouvraw=${showRaw(ouv)}
-              |  sv=${show(sv)}
-              |  svraw=${showRaw(sv)}
-              |  desc=$desc
-              |""".stripMargin, ouv.pos )
-        Some( Subvalidator( desc, ouv, sv ) )
+        extractObjectUnderValidation( expr ) match {
+          case Nil =>
+            abort( t.pos, s"Failed to extract object under validation from tree $t (raw=${showRaw(t)})" )
+
+          case ouv :: Nil =>
+            val sv = rewriteContextExpressionAsValidator( expr, ouv )
+            val desc = renderDescriptionTree( ouv )
+            trace( s"""
+                  |Found subvalidator:
+                  |  ouv=$ouv
+                  |  ouvraw=${showRaw(ouv)}
+                  |  sv=${show(sv)}
+                  |  svraw=${showRaw(sv)}
+                  |  desc=$desc
+                  |""".stripMargin, ouv.pos )
+            Some( Subvalidator( desc, ouv, sv ) )
+
+          case _ =>
+            // Multiple validators found; this can happen in case of a multiple-clause boolean expression,
+            // e.g. "(f1 is notEmpty) or (f2 is notEmpty)".
+            Some( Container( expr ) )
+        }
 
       case _ => None
     }
@@ -108,7 +118,8 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
   import context.universe._
   import context.abort
 
-  protected val debugOutputEnabled = context.settings.contains( "debugValidationTransform" )
+  protected val debugOutputEnabled = true
+//    context.settings.contains( "debugValidationTransform" )
   protected val traceOutputEnabled = context.settings.contains( "traceValidationTransform" )
 
   val Function( prototype :: prototypeTail, vimpl ) = v.tree
@@ -139,8 +150,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     debug( s"""|Subvalidator:
                |  Description: ${sv.description}
                |  Validation : ${sv.validation}
-               |  Rewrite    : ${show( rewrite )}
-               |""".stripMargin, sv.validation.pos )
+               |  Rewrite    : ${show( rewrite )}""".stripMargin, sv.validation.pos )
     trace(    s"  Raw        : ${showRaw( rewrite )}" )
     rewrite
   }
@@ -150,18 +160,26 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     * @return The transformed [[com.wix.accord.Validator]] of `T`.
     */
   def transformed: Expr[ TransformedValidator[ T ] ] = {
-    // Rewrite all top-level validators
-    val subvalidators = collectFromPattern( vimpl ) {
-      case tree @ ValidatorApplication( sv ) => rewriteOne( sv )
-    }
+
+    // Collect all top-level validators
+    val subvalidators =
+      collectFromPattern( vimpl ) {
+        case ValidatorApplication( sv: Subvalidator ) => rewriteOne( sv )
+        case ValidatorApplication( Container( tree ) ) =>
+          // TODO lift
+          // TODO rework API to be typeless
+          transformByPattern( tree ) {
+            case ValidatorApplication( sv: Subvalidator ) => rewriteOne( sv )
+          }
+      }
 
     val result = context.Expr[ TransformedValidator[ T ] ](
       q"new com.wix.accord.transform.ValidationTransform.TransformedValidator( ..$subvalidators )" )
 
-    trace( s"""|Result of validation transform:
-             |  Clean: ${show( result )}
-             |  Raw  : ${showRaw( result )}
-             |""".stripMargin )
+    debug( s"""|Result of validation transform:
+               |  Clean: ${show( result )}
+               |""".stripMargin )
+    trace(   s"|  Raw  : ${showRaw( result )}" )
     result
   }
 }

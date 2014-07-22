@@ -60,7 +60,7 @@ trait PatternHelper[ C <: Context ] {
     * @return [[scala.None]] if no match was found, or a [[scala.Some]] containing the result of applying the
     *         partial function to the first matching subtree.
     */
-  def collectFromPattern[ R ]( tree: Tree )( pattern: PartialFunction[ Tree, R ] ): Seq[ R ] = {
+  def collectFromPattern[ R ]( tree: Tree )( pattern: PartialFunction[ Tree, R ] ): List[ R ] = {
     var found: Vector[ R ] = Vector.empty
     new Traverser {
       override def traverse( subtree: Tree ) {
@@ -70,7 +70,7 @@ trait PatternHelper[ C <: Context ] {
           super.traverse( subtree )
       }
     }.traverse( tree )
-    found
+    found.toList
   }
 
   /** Transforms an AST based on the specified pattern. The transformation is specified as a partial function from
