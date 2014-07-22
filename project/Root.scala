@@ -56,8 +56,8 @@ object Root extends Build {
   }
 
   lazy val compileOptions = Seq(
-    scalaVersion := "2.11.0",
-    crossScalaVersions := Seq( "2.10.3", "2.11.0" ),
+    scalaVersion := "2.11.1",
+    crossScalaVersions := Seq( "2.10.3", "2.11.1" ),
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",
       "-feature",
@@ -74,8 +74,7 @@ object Root extends Build {
   lazy val baseSettings = Project.defaultSettings ++ publishSettings ++ releaseSettings ++ compileOptions ++ Seq(
     organization := "com.wix",
     homepage := Some( url( "https://github.com/wix/accord" ) ),
-    licenses := Seq( "Apache 2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) ),
-    resolvers += Resolver.sonatypeRepo( "snapshots" )
+    licenses := Seq( "Apache 2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) )
   )
 
   lazy val noPublish = Seq( publish := {}, publishLocal := {}, publishArtifact := false )

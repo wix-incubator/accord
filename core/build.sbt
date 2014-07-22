@@ -3,8 +3,8 @@ name := "accord-core"
 libraryDependencies <++= scalaVersion {
   case v if v startsWith "2.10" =>
     Seq(
-      compilerPlugin( "org.scalamacros" % "paradise" % "2.0.0-M7" cross CrossVersion.full ),
-      "org.scalamacros" %% "quasiquotes" % "2.0.0-M7" intransitive()
+      compilerPlugin( "org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full ),
+      "org.scalamacros" %% "quasiquotes" % "2.0.1" intransitive()
     )
   case _ => Seq.empty
 }
@@ -14,10 +14,7 @@ libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-reflect" % _ % "
 libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "provided" )
 
 libraryDependencies <++= scalaVersion {
-  case v if v startsWith "2.11" =>
-    Seq(
-      "org.scalamacros" %% "resetallattrs" % "1.0.0-SNAPSHOT"
-    )
+  case v if v startsWith "2.11" => Seq( "org.scalamacros" %% "resetallattrs" % "1.0.0-M1" )
   case _ => Seq.empty
 }
 
