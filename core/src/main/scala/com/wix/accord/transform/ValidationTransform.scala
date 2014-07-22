@@ -56,10 +56,10 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
   object ValidatorApplication {
     private val contextualizerTerm = typeOf[ dsl.Contextualizer[_] ].typeSymbol.name.toTermName
 
-    def extractObjectUnderValidation( t: Tree ) =
+    def extractObjectUnderValidation( t: Tree ): Tree =
       extractFromPattern( t ) {
         case Apply( TypeApply( Select( _, `contextualizerTerm` ), tpe :: Nil ), e :: Nil ) =>
-          ( resetAttrs( e.duplicate ), tpe.tpe )
+          resetAttrs( e.duplicate )
       } getOrElse
         abort( t.pos, s"Failed to extract object under validation from tree $t (raw=${showRaw(t)})" )
 
@@ -84,14 +84,13 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
 
     def unapply( expr: Tree ): Option[ Subvalidator ] = expr match {
       case t if t.tpe <:< validatorType =>
-        val ( ouv, ouvtpe ) = extractObjectUnderValidation( expr )
+        val ouv = extractObjectUnderValidation( expr )
         val sv = rewriteContextExpressionAsValidator( expr, ouv )
         val desc = renderDescriptionTree( ouv )
         trace( s"""
               |Found subvalidator:
               |  ouv=$ouv
               |  ouvraw=${showRaw(ouv)}
-              |  ouvtpe=$ouvtpe
               |  sv=${show(sv)}
               |  svraw=${showRaw(sv)}
               |  desc=$desc
