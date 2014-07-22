@@ -117,7 +117,8 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
   import context.universe._
   import context.abort
 
-  protected val debugOutputEnabled = context.settings.contains( "debugValidationTransform" )
+  protected val debugOutputEnabled = true
+//    context.settings.contains( "debugValidationTransform" )
   protected val traceOutputEnabled = context.settings.contains( "traceValidationTransform" )
 
   val Function( prototype :: prototypeTail, vimpl ) = v.tree
@@ -167,7 +168,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
     transformByPattern( tree ) {
       case Apply( TypeApply( s @ Select( _, `vboTerm` ), _ :: Nil ), e :: Nil ) =>
-        Apply( TypeApply( s, TypeTree( weakTypeOf[ T ] ) :: Nil ), e :: Nil )
+        Apply( TypeApply( s, TypeTree( weakTypeOf[ T ] ) :: Nil ), liftBooleanOps( e ) :: Nil )
     }
   }
 

@@ -41,44 +41,70 @@ class BooleanOpsTests extends WordSpec with Matchers with ResultMatchers {
     }
   }
   
-  "and" should {
+  "and (with two clauses)" should {
     "succeed when both sides of the operator validate successfully" in {
-      validate( CompoundTest( left = true, right = true ) )( andValidator ) should be( aSuccess )
+      validate( BinaryTest( left = true, right = true ) )( andValidator ) should be( aSuccess )
     }
     "fail when the left side of the operator fails to validate" in {
-      validate( CompoundTest( left = false, right = true ) )( andValidator ) should be( aFailure )
+      validate( BinaryTest( left = false, right = true ) )( andValidator ) should be( aFailure )
     }
     "fail when the right side of the operator fails to validate" in {
-      validate( CompoundTest( left = true, right = false ) )( andValidator ) should be( aFailure )
+      validate( BinaryTest( left = true, right = false ) )( andValidator ) should be( aFailure )
     }
     "fail when both sides of the operator fail to validate" in {
-      validate( CompoundTest( left = false, right = false ) )( andValidator ) should be( aFailure )
+      validate( BinaryTest( left = false, right = false ) )( andValidator ) should be( aFailure )
     }
   }
 
-  "or" should {
-    "succeed when both sides of the operator validate successfully" in {
-      validate( CompoundTest( left = true, right = true ) )( orValidator ) should be( aSuccess )
+  "and (with multiple clauses)" should {
+    "succeed when all clauses validate successfully" in {
+      validate( TrinaryTest( c1 = true, c2 = true, c3 = true ) )( nestedAndValidator ) should be( aSuccess )
     }
-    "succeed when only the left side of the operator validates successfully" in {
-      validate( CompoundTest( left = true, right = false ) )( orValidator ) should be( aSuccess )
-    }
-    "succeed when only the right side of the operator validates successfully" in {
-      validate( CompoundTest( left = false, right = true ) )( orValidator ) should be( aSuccess )
-    }
-    "fail when both sides of the operator fail to validate" in {
-      validate( CompoundTest( left = false, right = false ) )( orValidator ) should be( aFailure )
+    "fail when any clause fails to validate" in {
+      validate( TrinaryTest( c1 = false, c2 = true,  c3 = true  ) )( nestedAndValidator ) should be( aFailure )
+      validate( TrinaryTest( c1 = true,  c2 = false, c3 = true  ) )( nestedAndValidator ) should be( aFailure )
+      validate( TrinaryTest( c1 = true,  c2 = true,  c3 = false ) )( nestedAndValidator ) should be( aFailure )
     }
   }
+
+  "or (with two clauses)" should {
+    "succeed when both sides of the operator validate successfully" in {
+      validate( BinaryTest( left = true, right = true ) )( orValidator ) should be( aSuccess )
+    }
+    "succeed when only the left side of the operator validates successfully" in {
+      validate( BinaryTest( left = true, right = false ) )( orValidator ) should be( aSuccess )
+    }
+    "succeed when only the right side of the operator validates successfully" in {
+      validate( BinaryTest( left = false, right = true ) )( orValidator ) should be( aSuccess )
+    }
+    "fail when both sides of the operator fail to validate" in {
+      validate( BinaryTest( left = false, right = false ) )( orValidator ) should be( aFailure )
+    }
+  }
+
+  "or (with multiple clauses)" should {
+    "fail when all clauses fail to validate" in {
+      validate( TrinaryTest( c1 = false, c2 = false, c3 = false ) )( nestedOrValidator ) should be( aFailure )
+    }
+    "succeed when any clause validates successfully" in {
+      validate( TrinaryTest( c1 = true,  c2 = false, c3 = false ) )( nestedOrValidator ) should be( aSuccess )
+      validate( TrinaryTest( c1 = false, c2 = true,  c3 = false ) )( nestedOrValidator ) should be( aSuccess )
+      validate( TrinaryTest( c1 = false, c2 = false, c3 = true  ) )( nestedOrValidator ) should be( aSuccess )
+    }
+  }
+
 }
 
 object BooleanOpsTests {
   case class SimpleTest( f: Boolean )
-  case class CompoundTest( left: Boolean, right: Boolean )
+  case class BinaryTest( left: Boolean, right: Boolean )
+  case class TrinaryTest( c1: Boolean, c2: Boolean, c3: Boolean )
 
   import com.wix.accord.dsl._
-  val  trueValidator = validator[ SimpleTest ] { _.f is true }
-  val falseValidator = validator[ SimpleTest ] { _.f is false }
-  val   andValidator = validator[ CompoundTest ] { c => ( c.left is true ) and ( c.right is true ) }
-  val    orValidator = validator[ CompoundTest ] { c => ( c.left is true ) or  ( c.right is true ) }
+  val      trueValidator = validator[ SimpleTest ] { _.f is true }
+  val     falseValidator = validator[ SimpleTest ] { _.f is false }
+  val       andValidator = validator[ BinaryTest ] { b => ( b.left is true ) and ( b.right is true ) }
+  val        orValidator = validator[ BinaryTest ] { b => ( b.left is true ) or  ( b.right is true ) }
+  val nestedAndValidator = validator[ TrinaryTest ] { t => ( t.c1 is true ) and ( t.c2 is true ) and ( t.c3 is true ) }
+  val  nestedOrValidator = validator[ TrinaryTest ] { t => ( t.c1 is true ) or  ( t.c2 is true ) or  ( t.c3 is true ) }
 }
