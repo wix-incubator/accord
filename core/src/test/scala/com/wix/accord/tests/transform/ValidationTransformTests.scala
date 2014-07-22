@@ -41,6 +41,14 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       val obj = CompositeTest( FlatTest( null ) )
       validate( obj )( anonymousIndirectValidator ) should failWith( "member.field" -> "is a null" )
     }
+    "be generated for a multiple-clause boolean expression" in pendingUntilFixed {    // Issue #22
+      val obj = FlatTest( "123" )
+      validate( obj )( booleanExpressionValidator ) should failWith(
+        group( "field", "doesn't meet any of the requirements",
+          "field" -> "is not a null",
+          "field" -> "has size 3, expected more than 5"
+        ) )
+    }
     "be propagated for an explicitly-described expression" in {
       validate( FlatTest( null ) )( explicitlyDescribedValidator ) should failWith( "described" -> "is a null" )
     }
@@ -63,6 +71,7 @@ object ValidationTransformTests {
   val explicitlyDescribedValidator = validator[ FlatTest ] { t => t.field as "described" is notNull }
   val implicitlyDescribedValueValidator = validator[ String ] { _ is notNull }
   val adaptedValidator = implicitlyDescribedValueValidator compose { ( f: FlatTest ) => f.field }
+  val booleanExpressionValidator = validator[ FlatTest ] { t => ( t.field is aNull ) or ( t.field has size > 5 ) }
 
   case class CompositeTest( member: FlatTest )
   val compositeValidator = {
