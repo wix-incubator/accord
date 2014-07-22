@@ -73,6 +73,8 @@ trait PatternHelper[ C <: Context ] {
     found.toList
   }
 
+  type TransformAST = PartialFunction[ Tree, Tree ]
+
   /** Transforms an AST based on the specified pattern. The transformation is specified as a partial function from
     * [[scala.reflect.api.Universe.Tree]] to a another tree, where every subtree for which the function is defined
     * is replaced with the result of its application.
@@ -81,7 +83,7 @@ trait PatternHelper[ C <: Context ] {
     * @param pattern The search-and-replace pattern.
     * @return The transformed tree.
     */
-  def transformByPattern( tree: Tree )( pattern: PartialFunction[ Tree, Tree ] ): Tree = {
+  def transformByPattern( tree: Tree )( pattern: TransformAST ): Tree = {
     val transformed =
       new Transformer {
         override def transform( subtree: Tree ): Tree =

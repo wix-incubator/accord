@@ -35,6 +35,7 @@ trait BooleanOps {
     * @tparam T The type of the object under validation.
     */
   implicit class ValidatorBooleanOps[ T ]( validator: Validator[ T ] ) {
+    // TODO rework API to be typeless
     def and( other: Validator[ T ] ) = new And( validator, other ) // TODO shortcut multiple ANDs
     def or( other: Validator[ T ] ) = new Or( validator, other )   // TODO shortcut multiple ORs
   }

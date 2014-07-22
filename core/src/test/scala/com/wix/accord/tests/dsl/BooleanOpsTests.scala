@@ -45,7 +45,7 @@ class BooleanOpsTests extends WordSpec with Matchers with ResultMatchers {
     "succeed when both sides of the operator validate successfully" in {
       validate( CompoundTest( left = true, right = true ) )( andValidator ) should be( aSuccess )
     }
-    "fail when the left side of the operator fails to validate" in pendingUntilFixed {              // Issue #23
+    "fail when the left side of the operator fails to validate" in {
       validate( CompoundTest( left = false, right = true ) )( andValidator ) should be( aFailure )
     }
     "fail when the right side of the operator fails to validate" in {
@@ -60,7 +60,7 @@ class BooleanOpsTests extends WordSpec with Matchers with ResultMatchers {
     "succeed when both sides of the operator validate successfully" in {
       validate( CompoundTest( left = true, right = true ) )( orValidator ) should be( aSuccess )
     }
-    "succeed when only the left side of the operator validates successfully" in pendingUntilFixed {  // Issue #23
+    "succeed when only the left side of the operator validates successfully" in {
       validate( CompoundTest( left = true, right = false ) )( orValidator ) should be( aSuccess )
     }
     "succeed when only the right side of the operator validates successfully" in {

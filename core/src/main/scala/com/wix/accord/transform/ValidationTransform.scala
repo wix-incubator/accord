@@ -43,10 +43,8 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
   import context.abort
 
   sealed trait ValidatorApplication
-  protected case class Container( expr: Tree ) extends ValidatorApplication
+  protected case class BooleanExpression( expr: Tree ) extends ValidatorApplication
   protected case class Subvalidator( description: Tree, ouv: Tree, validation: Tree ) extends ValidatorApplication
-
-  val validatorType = typeOf[ Validator[_] ]
 
   /** An extractor for validation rules. The object under validation is, by design, wrapped in the implicit
     * DSL construct [[com.wix.accord.dsl.Contextualizer]], so that a validation rule can be defined with
@@ -57,14 +55,15 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
     */
   object ValidatorApplication {
     private val contextualizerTerm = typeOf[ dsl.Contextualizer[_] ].typeSymbol.name.toTermName
+    private val validatorType = typeOf[ Validator[_] ]
 
-    def extractObjectUnderValidation( t: Tree ): List[ Tree ] =
+    private def extractObjectUnderValidation( t: Tree ): List[ Tree ] =
       collectFromPattern( t ) {
         case Apply( TypeApply( Select( _, `contextualizerTerm` ), tpe :: Nil ), e :: Nil ) =>
           resetAttrs( e.duplicate )
       }
 
-    object AtLeastOneSelect {
+    private object AtLeastOneSelect {
       private def unapplyInternal( tree: Tree ): Option[ Tree ] = tree match {
         case Select( from, _ ) => unapplyInternal( from )
         case terminal => Some( terminal )
@@ -76,7 +75,7 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
       }
     }
 
-    def rewriteContextExpressionAsValidator( expr: Tree, extractor: Tree ) =
+    private def rewriteContextExpressionAsValidator( expr: Tree, extractor: Tree ) =
       transformByPattern( expr ) {
         case root @ Apply( AtLeastOneSelect( Apply( TypeApply( Select( _, `contextualizerTerm` ), _ ), _ :: Nil ) ), _ :: Nil ) =>
           rewriteExistentialTypes( root )
@@ -104,7 +103,7 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
           case _ =>
             // Multiple validators found; this can happen in case of a multiple-clause boolean expression,
             // e.g. "(f1 is notEmpty) or (f2 is notEmpty)".
-            Some( Container( expr ) )
+            Some( BooleanExpression( expr ) )
         }
 
       case _ => None
@@ -118,8 +117,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
   import context.universe._
   import context.abort
 
-  protected val debugOutputEnabled = true
-//    context.settings.contains( "debugValidationTransform" )
+  protected val debugOutputEnabled = context.settings.contains( "debugValidationTransform" )
   protected val traceOutputEnabled = context.settings.contains( "traceValidationTransform" )
 
   val Function( prototype :: prototypeTail, vimpl ) = v.tree
@@ -155,23 +153,34 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     rewrite
   }
 
-  def lift( tree: Tree ): Tree = {
+  /** Lifts a multiple-clause boolean expression to a [[com.wix.accord.Validator]] of `T`.
+    *
+    * Such an expression occurs via [[com.wix.accord.dsl.ValidatorBooleanOps]] of some type `U`, where `U` is the
+    * inferred LUB of both clauses; this method lifts the expression to `T` by rewriting the type parameter. This
+    * assumes both clauses were previously rewritten (via [[com.wix.accord.transform.ValidationTransform.rewriteOne]].
+    *
+    * @param tree The tree representing the boolean expression.
+    * @return A lifted tree per the description above.
+    */
+  def liftBooleanOps( tree: Tree ): Tree = {
     val vboTerm = typeOf[ dsl.ValidatorBooleanOps[_] ].typeSymbol.name.toTermName
 
     transformByPattern( tree ) {
       case Apply( TypeApply( s @ Select( _, `vboTerm` ), _ :: Nil ), e :: Nil ) =>
         Apply( TypeApply( s, TypeTree( weakTypeOf[ T ] ) :: Nil ), e :: Nil )
     }
-  /*
-      private val contextualizerTerm = typeOf[ dsl.Contextualizer[_] ].typeSymbol.name.toTermName
+  }
 
-    def extractObjectUnderValidation( t: Tree ): List[ Tree ] =
-      collectFromPattern( t ) {
-        case Apply( TypeApply( Select( _, `contextualizerTerm` ), tpe :: Nil ), e :: Nil ) =>
-          resetAttrs( e.duplicate )
-      }
+  /** A pattern which rewrites subvalidators found in the tree. */
+  val rewriteSubvalidators: TransformAST = {
+    case ValidatorApplication( sv: Subvalidator ) =>
+      rewriteOne( sv )
+  }
 
-   */
+  /** A pattern which lifts boolean expressions and rewrites their clauses. */
+  val processBooleanExpressions: TransformAST = {
+    case ValidatorApplication( BooleanExpression( tree ) ) =>
+      liftBooleanOps( transformByPattern( tree )( rewriteSubvalidators ) )
   }
 
   /** Returns the specified validation block, transformed into a single monolithic validator.
@@ -179,21 +188,8 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     * @return The transformed [[com.wix.accord.Validator]] of `T`.
     */
   def transformed: Expr[ TransformedValidator[ T ] ] = {
-
-    // Collect all top-level validators
     val subvalidators =
-      collectFromPattern( vimpl ) {
-        case ValidatorApplication( sv: Subvalidator ) => rewriteOne( sv )
-        case ValidatorApplication( Container( tree ) ) =>
-          lift(
-          // TODO lift
-          // TODO rework API to be typeless
-          transformByPattern( tree ) {
-            case ValidatorApplication( sv: Subvalidator ) => rewriteOne( sv )
-          }
-          )
-      }
-
+      collectFromPattern( vimpl )( rewriteSubvalidators orElse processBooleanExpressions )
     val result = context.Expr[ TransformedValidator[ T ] ](
       q"new com.wix.accord.transform.ValidationTransform.TransformedValidator( ..$subvalidators )" )
 
@@ -206,7 +202,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 }
 
 object ValidationTransform {
-  // TODO ScalaDocs
+  // TODO ScalaDocs, and/or find a way to get rid of this!
   class TransformedValidator[ T ]( predicates: Validator[ T ]* ) extends combinators.And[ T ]( predicates:_* ) {
     import scala.language.experimental.macros
     override def compose[ U ]( g: U => T ): Validator[ U ] = macro ValidationTransform.compose[ U, T ]
