@@ -155,6 +155,25 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     rewrite
   }
 
+  def lift( tree: Tree ): Tree = {
+    val vboTerm = typeOf[ dsl.ValidatorBooleanOps[_] ].typeSymbol.name.toTermName
+
+    transformByPattern( tree ) {
+      case Apply( TypeApply( s @ Select( _, `vboTerm` ), _ :: Nil ), e :: Nil ) =>
+        Apply( TypeApply( s, TypeTree( weakTypeOf[ T ] ) :: Nil ), e :: Nil )
+    }
+  /*
+      private val contextualizerTerm = typeOf[ dsl.Contextualizer[_] ].typeSymbol.name.toTermName
+
+    def extractObjectUnderValidation( t: Tree ): List[ Tree ] =
+      collectFromPattern( t ) {
+        case Apply( TypeApply( Select( _, `contextualizerTerm` ), tpe :: Nil ), e :: Nil ) =>
+          resetAttrs( e.duplicate )
+      }
+
+   */
+  }
+
   /** Returns the specified validation block, transformed into a single monolithic validator.
     *
     * @return The transformed [[com.wix.accord.Validator]] of `T`.
@@ -166,11 +185,13 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       collectFromPattern( vimpl ) {
         case ValidatorApplication( sv: Subvalidator ) => rewriteOne( sv )
         case ValidatorApplication( Container( tree ) ) =>
+          lift(
           // TODO lift
           // TODO rework API to be typeless
           transformByPattern( tree ) {
             case ValidatorApplication( sv: Subvalidator ) => rewriteOne( sv )
           }
+          )
       }
 
     val result = context.Expr[ TransformedValidator[ T ] ](
