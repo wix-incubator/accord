@@ -75,7 +75,7 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
       }
     }
 
-    private def rewriteContextExpressionAsValidator( expr: Tree, extractor: Tree ) =
+    private def rewriteContextExpressionAsValidator( expr: Tree ) =
       transformByPattern( expr ) {
         case root @ Apply( AtLeastOneSelect( Apply( TypeApply( Select( _, `contextualizerTerm` ), _ ), _ :: Nil ) ), _ :: Nil ) =>
           rewriteExistentialTypes( root )
@@ -88,7 +88,7 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
             abort( t.pos, s"Failed to extract object under validation from tree $t (raw=${showRaw(t)})" )
 
           case ouv :: Nil =>
-            val sv = rewriteContextExpressionAsValidator( expr, ouv )
+            val sv = rewriteContextExpressionAsValidator( expr )
             val desc = renderDescriptionTree( ouv )
             trace( s"""
                   |Found subvalidator:
