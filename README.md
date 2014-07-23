@@ -73,7 +73,7 @@ res3: com.wix.accord.Result = Failure(List(RuleViolation(List(),has size 0, expe
 Getting Started
 ===============
 
-Accord maintenance release 0.3.1 is available on Maven Central Repository. The next milestone is 0.4-SNAPSHOT and is available from the Sonatype snapshots repository. Be advised that, pending a fix for [issue #2](../../issues/2), Accord _requires_ Scala 2.10.3 or later.
+Accord version 0.4 is available on Maven Central Repository. Scala versions 2.10.3+ and 2.11.x are supported. The next milestone is 0.5-SNAPSHOT and is available from the Sonatype snapshots repository.
 
 SBT
 ---
@@ -81,7 +81,7 @@ SBT
 Simply add the `accord-core` module to your build settings:
 
 ```scala
-libraryDependencies += "com.wix" %% "accord-core" % "0.3.1"
+libraryDependencies += "com.wix" %% "accord-core" % "0.4"
 ```
 
 If you want to evaluate the upcoming snapshot release, add the Sonatype snapshot repository to your resolvers; typically this means adding the following to your `build.sbt` file:
@@ -89,7 +89,7 @@ If you want to evaluate the upcoming snapshot release, add the Sonatype snapshot
 ```scala
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
-libraryDependencies += "com.wix" %% "accord-core" % "0.4-SNAPSHOT"
+libraryDependencies += "com.wix" %% "accord-core" % "0.5-SNAPSHOT"
 ```
 
 Maven
@@ -102,7 +102,7 @@ Accord is published to the Maven Central Repository, so you simply have to add t
   <dependency>
     <groupId>com.wix</groupId>
     <artifactId>accord-core_${scala.tools.version}</artifactId>
-    <version>0.3.1</version>
+    <version>0.4</version>
   </dependency>
 </dependencies>
 ```
@@ -124,7 +124,7 @@ If you want to evaluate the upcoming snapshot release, add the Sonatype snapshot
   <dependency>
     <groupId>com.wix</groupId>
     <artifactId>accord-core_${scala.tools.version}</artifactId>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.5-SNAPSHOT</version>
   </dependency>
 </dependencies>
 ```
@@ -134,12 +134,16 @@ Roadmap
 
 Accord is still fairly rudimentary, and there's plenty of improvements to be made:
 
-* Major issues and improvements planned or under consideration for the [0.4 milestone](https://github.com/wix/accord/issues?milestone=4&state=open) release:
-    * Re-evaluate [issue #2](../../issues/2)
-    * Support inline expressions in validators [issue #6](../../issues/6)
+* Major issues and improvements planned or under consideration for the [0.5 milestone](https://github.com/wix/accord/issues?milestone=5&state=open) release:
+    * [#6](https://github.com/wix/accord/issues/6) Support inline expressions in validators
+    * [#19](https://github.com/wix/accord/issues/19) Scala.js support
+    * [#21](https://github.com/wix/accord/issues/21) i18n support
+    * Rethink binary expression API so that arbitrary types can be used
+* Future plans:
+    * Elide DSL implicit invocations from resulting tree for better performance and smaller code
     * Add syntax for custom violation message overrides (e.g. `p.firstName is notEmpty as "no first name!"`)
     * Support custom violation types (e.g. `p.firstName is notEmpty as MyServerError( code = -3 )`)
-* Future plans:
+    * Add a validation result rendering framework
     * Implement accord-hamcrest integration in a separate artifact
     * Add adapter for Specs² matcher module
 
