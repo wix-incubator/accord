@@ -1,0 +1,11 @@
+Version 0.4 adds support for Scala 2.11 and fixes a major bug around boolean expressions.
+
+* [#20](https://github.com/wix/accord/issues/20) Scala 2.11 support;
+* [#22](https://github.com/wix/accord/issues/22) Descriptions aren't generated for clauses on boolean expressions;
+* [#23](https://github.com/wix/accord/issues/23) Multiple-clause boolean expression evaluation is incorrect;
+* Upgraded to Macro Paradise 2.0.1;
+* Upgraded to Specs² 2.3.13;
+* Upgraded to ScalaTest 2.1.3
+
+Much thanks to Eugene Burmako ([@xeno_by](https://twitter.com/xeno_by)) for his assistance on this version! 
+As always, bug reports, pull requests and other ideas are welcome!
