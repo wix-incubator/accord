@@ -44,7 +44,7 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
 
   sealed trait ValidatorApplication
   protected case class BooleanExpression( expr: Tree ) extends ValidatorApplication
-  protected case class Subvalidator( description: Tree, ouv: Tree, validation: Tree ) extends ValidatorApplication
+  protected case class ValidationRule( description: Tree, ouv: Tree, validation: Tree ) extends ValidatorApplication
 
   /** An extractor for validation rules. The object under validation is, by design, wrapped in the implicit
     * DSL construct [[com.wix.accord.dsl.Contextualizer]], so that a validation rule can be defined with
@@ -91,14 +91,14 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
             val sv = rewriteContextExpressionAsValidator( expr )
             val desc = renderDescriptionTree( ouv )
             trace( s"""
-                  |Found subvalidator:
+                  |Found validation rule:
                   |  ouv=$ouv
                   |  ouvraw=${showRaw(ouv)}
                   |  sv=${show(sv)}
                   |  svraw=${showRaw(sv)}
                   |  desc=$desc
                   |""".stripMargin, ouv.pos )
-            Some( Subvalidator( desc, ouv, sv ) )
+            Some( ValidationRule( desc, ouv, sv ) )
 
           case _ =>
             // Multiple validators found; this can happen in case of a multiple-clause boolean expression,
@@ -127,13 +127,13 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
   // Rewrite expressions into a validation chain --
 
   /**
-   * Each subvalidator of type Validator[ U ] is essentially rewritten as Validator[ T ] via the
+   * Each validation rule of type Validator[ U ] is essentially rewritten as Validator[ T ] via the
    * its extractor; constraint violations are prefixed with the extracted description.
    *
-   * @param sv The subvalidator to rewrite
+   * @param sv The validation rule to rewrite
    * @return A valid expression representing a [[com.wix.accord.Validator]] of `T`.
    */
-  def rewriteOne( sv: Subvalidator ): Tree = {
+  def rewriteOne( sv: ValidationRule ): Tree = {
     val rewrite =
       q"""
           new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
@@ -145,7 +145,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
        """
 
     // Report and return the rewritten validator
-    debug( s"""|Subvalidator:
+    debug( s"""|Validation rule:
                |  Description: ${sv.description}
                |  Validation : ${sv.validation}
                |  Rewrite    : ${show( rewrite )}""".stripMargin, sv.validation.pos )
@@ -171,16 +171,16 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     }
   }
 
-  /** A pattern which rewrites subvalidators found in the tree. */
-  val rewriteSubvalidators: TransformAST = {
-    case ValidatorApplication( sv: Subvalidator ) =>
+  /** A pattern which rewrites validation rules found in the tree. */
+  val rewriteValidationRules: TransformAST = {
+    case ValidatorApplication( sv: ValidationRule ) =>
       rewriteOne( sv )
   }
 
   /** A pattern which lifts boolean expressions and rewrites their clauses. */
   val processBooleanExpressions: TransformAST = {
     case ValidatorApplication( BooleanExpression( tree ) ) =>
-      liftBooleanOps( transformByPattern( tree )( rewriteSubvalidators ) )
+      liftBooleanOps( transformByPattern( tree )( rewriteValidationRules ) )
   }
 
   /** Returns the specified validation block, transformed into a single monolithic validator.
@@ -188,10 +188,10 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     * @return The transformed [[com.wix.accord.Validator]] of `T`.
     */
   def transformed: Expr[ TransformedValidator[ T ] ] = {
-    val subvalidators =
-      collectFromPattern( vimpl )( rewriteSubvalidators orElse processBooleanExpressions )
+    val validationRules =
+      collectFromPattern( vimpl )( rewriteValidationRules orElse processBooleanExpressions )
     val result = context.Expr[ TransformedValidator[ T ] ](
-      q"new com.wix.accord.transform.ValidationTransform.TransformedValidator( ..$subvalidators )" )
+      q"new com.wix.accord.transform.ValidationTransform.TransformedValidator( ..$validationRules )" )
 
     debug( s"""|Result of validation transform:
                |  Clean: ${show( result )}
