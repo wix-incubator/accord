@@ -130,25 +130,25 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
    * Each validation rule of type Validator[ U ] is essentially rewritten as Validator[ T ] via the
    * its extractor; constraint violations are prefixed with the extracted description.
    *
-   * @param sv The validation rule to rewrite
+   * @param rule The validation rule to rewrite
    * @return A valid expression representing a [[com.wix.accord.Validator]] of `T`.
    */
-  def rewriteOne( sv: ValidationRule ): Tree = {
+  def rewriteOne( rule: ValidationRule ): Tree = {
     val rewrite =
       q"""
           new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
             def apply( $prototype ) = {
-              val sv = ${sv.validation}
-              sv( ${sv.ouv} ) withDescription ${sv.description}
+              val validation = ${rule.validation}
+              validation( ${rule.ouv} ) withDescription ${rule.description}
             }
           }
        """
 
     // Report and return the rewritten validator
     debug( s"""|Validation rule:
-               |  Description: ${sv.description}
-               |  Validation : ${sv.validation}
-               |  Rewrite    : ${show( rewrite )}""".stripMargin, sv.validation.pos )
+               |  Description: ${rule.description}
+               |  Validation : ${rule.validation}
+               |  Rewrite    : ${show( rewrite )}""".stripMargin, rule.validation.pos )
     trace(    s"  Raw        : ${showRaw( rewrite )}" )
     rewrite
   }
