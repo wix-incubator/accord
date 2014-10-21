@@ -55,6 +55,13 @@ object Root extends Build {
     )
   }
 
+  lazy val coverageSettings = {
+    import scoverage.ScoverageSbtPlugin._
+    import org.scoverage.coveralls.CoverallsPlugin.coverallsSettings
+
+    instrumentSettings ++ coverallsSettings
+  }
+
   lazy val compileOptions = Seq(
     scalaVersion := "2.11.1",
     crossScalaVersions := Seq( "2.10.3", "2.11.1" ),
@@ -71,11 +78,17 @@ object Root extends Build {
       ( scalacOptions in ( Compile, compile ) ).value filterNot { _ == "-Xfatal-warnings" }
   )
 
-  lazy val baseSettings = Project.defaultSettings ++ publishSettings ++ releaseSettings ++ compileOptions ++ Seq(
-    organization := "com.wix",
-    homepage := Some( url( "https://github.com/wix/accord" ) ),
-    licenses := Seq( "Apache 2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) )
-  )
+  lazy val baseSettings = 
+    Project.defaultSettings ++ 
+    publishSettings ++ 
+    releaseSettings ++
+    coverageSettings ++ 
+    compileOptions ++
+    Seq(
+      organization := "com.wix",
+      homepage := Some( url( "https://github.com/wix/accord" ) ),
+      licenses := Seq( "Apache 2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) )
+    )
 
   lazy val noPublish = Seq( publish := {}, publishLocal := {}, publishArtifact := false )
 

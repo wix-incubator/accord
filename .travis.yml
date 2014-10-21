@@ -1,7 +1,11 @@
 language: scala
 scala:
-  - "2.10.3"
+  - "2.10.4"
+  - "2.11.2"
+script:
+  - sbt coveralls
 jdk:
   - oraclejdk7
   - openjdk7
+  - oraclejdk8
 
