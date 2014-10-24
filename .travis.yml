@@ -2,8 +2,9 @@ language: scala
 scala:
   - "2.10.4"
   - "2.11.2"
-script:
-  - sbt coveralls
+# Disabled pending resolution of https://github.com/scoverage/sbt-coveralls/issues/25
+#script:
+#  - sbt coveralls
 jdk:
   - oraclejdk7
   - openjdk7
