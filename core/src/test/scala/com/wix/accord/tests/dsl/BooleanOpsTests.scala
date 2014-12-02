@@ -107,4 +107,7 @@ object BooleanOpsTests {
   val        orValidator = validator[ BinaryTest ] { b => ( b.left is true ) or  ( b.right is true ) }
   val nestedAndValidator = validator[ TrinaryTest ] { t => ( t.c1 is true ) and ( t.c2 is true ) and ( t.c3 is true ) }
   val  nestedOrValidator = validator[ TrinaryTest ] { t => ( t.c1 is true ) or  ( t.c2 is true ) or  ( t.c3 is true ) }
+
+  case class HGTypeTest( f1: Boolean, f2: String )
+  val hgTypeValidator = validator[ HGTypeTest ] { hg => ( hg.f1 is false ) or ( hg.f2 is notEmpty ) }
 }
