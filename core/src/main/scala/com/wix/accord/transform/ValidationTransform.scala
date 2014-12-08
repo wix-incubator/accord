@@ -172,7 +172,10 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
     transformByPattern( tree ) {
       case TypeApply( Select( Apply( TypeApply( s @ Select( _, `vboTerm` ), _ :: Nil ), e :: Nil ), name ), _ :: Nil ) =>
-         TypeApply( Select( Apply( TypeApply( s, typeTreeT :: Nil ), liftBooleanOps( e ) :: Nil ), name ), typeTreeT :: Nil )
+        val lhs = liftBooleanOps( e )
+        val tt = weakTypeOf[ T ]
+        val combinator = name.toTermName
+        q"com.wix.accord.dsl.ValidatorBooleanOps[ $tt ]( $lhs ).$combinator[ $tt ]"
     }
   }
 
