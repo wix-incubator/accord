@@ -34,9 +34,6 @@ trait BooleanOps {
     * @param validator The validator to be extended.
     */
   implicit class ValidatorBooleanOps[ T ]( validator: Validator[ T ] ) {
-    import scala.language.existentials
-
-    // TODO rework API to be typeless
     def and[ U ]( other: Validator[ U ] ) = new And( validator, other ) // TODO shortcut multiple ANDs
     def or[ U ]( other: Validator[ U ] ) = new Or( validator, other )   // TODO shortcut multiple ORs
   }
