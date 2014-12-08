@@ -155,19 +155,24 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
   /** Lifts a multiple-clause boolean expression to a [[com.wix.accord.Validator]] of `T`.
     *
-//    * Such an expression occurs via [[com.wix.accord.dsl.ValidatorBooleanOps]] of some type `U`, where `U` is the
-//    * inferred LUB of both clauses; this method lifts the expression to `T` by rewriting the type parameter. This
-//    * assumes both clauses were previously rewritten (via [[com.wix.accord.transform.ValidationTransform.rewriteOne]].
+    * Such an expression occurs via [[com.wix.accord.dsl.ValidatorBooleanOps]] of some type `U`, where `U` is the
+    * inferred LUB of both clauses; this method lifts the expression to `T` by rewriting the type parameter.
+    * Additionally, the boolean combinator itself (e.g. [[com.wix.accord.dsl.ValidatorBooleanOps#or]]) takes a
+    * type parameter for the right-hand clause, which needs to be lifted to `T`.
+    *
+    * This assumes both clauses were previously rewritten (via
+    * [[com.wix.accord.transform.ValidationTransform.rewriteOne]]).
     *
     * @param tree The tree representing the boolean expression.
     * @return A lifted tree per the description above.
     */
   def liftBooleanOps( tree: Tree ): Tree = {
     val vboTerm = typeOf[ dsl.ValidatorBooleanOps[_] ].typeSymbol.name.toTermName
+    val typeTreeT = TypeTree( weakTypeOf[ T ] )
 
     transformByPattern( tree ) {
       case TypeApply( Select( Apply( TypeApply( s @ Select( _, `vboTerm` ), _ :: Nil ), e :: Nil ), name ), _ :: Nil ) =>
-         TypeApply( Select( Apply( TypeApply( s, TypeTree( weakTypeOf[ T ] ) :: Nil ), liftBooleanOps( e ) :: Nil ), name ), TypeTree(weakTypeOf[T])::Nil)
+         TypeApply( Select( Apply( TypeApply( s, typeTreeT :: Nil ), liftBooleanOps( e ) :: Nil ), name ), typeTreeT :: Nil )
     }
   }
 
