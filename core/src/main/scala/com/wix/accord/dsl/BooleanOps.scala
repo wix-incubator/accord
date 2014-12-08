@@ -32,12 +32,10 @@ trait BooleanOps {
   /** Extends validators with useful helpers.
     *
     * @param validator The validator to be extended.
-    * @tparam T The type of the object under validation.
     */
   implicit class ValidatorBooleanOps[ T ]( validator: Validator[ T ] ) {
-    // TODO rework API to be typeless
-    def and( other: Validator[ T ] ) = new And( validator, other ) // TODO shortcut multiple ANDs
-    def or( other: Validator[ T ] ) = new Or( validator, other )   // TODO shortcut multiple ORs
+    def and[ U ]( other: Validator[ U ] ) = new And( validator, other ) // TODO shortcut multiple ANDs
+    def or[ U ]( other: Validator[ U ] ) = new Or( validator, other )   // TODO shortcut multiple ORs
   }
 
 }
