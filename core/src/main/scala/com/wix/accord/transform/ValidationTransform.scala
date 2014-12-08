@@ -166,8 +166,8 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     val vboTerm = typeOf[ dsl.ValidatorBooleanOps[_] ].typeSymbol.name.toTermName
 
     transformByPattern( tree ) {
-      case Apply( TypeApply( s @ Select( _, `vboTerm` ), _ :: Nil ), e :: Nil ) =>
-        Apply( TypeApply( s, TypeTree( weakTypeOf[ T ] ) :: Nil ), liftBooleanOps( e ) :: Nil )
+      case TypeApply( Select( Apply( TypeApply( s @ Select( _, `vboTerm` ), _ :: Nil ), e :: Nil ), name ), _ :: Nil ) =>
+         TypeApply( Select( Apply( TypeApply( s, TypeTree( weakTypeOf[ T ] ) :: Nil ), liftBooleanOps( e ) :: Nil ), name ), TypeTree(weakTypeOf[T])::Nil)
     }
   }
 
