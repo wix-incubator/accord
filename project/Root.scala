@@ -55,13 +55,6 @@ object Root extends Build {
     )
   }
 
-  lazy val coverageSettings = {
-    import scoverage.ScoverageSbtPlugin._
-    import org.scoverage.coveralls.CoverallsPlugin.coverallsSettings
-
-    instrumentSettings ++ coverallsSettings
-  }
-
   lazy val compileOptions = Seq(
     scalaVersion := "2.11.1",
     crossScalaVersions := Seq( "2.10.3", "2.11.1" ),
@@ -79,10 +72,8 @@ object Root extends Build {
   )
 
   lazy val baseSettings = 
-    Project.defaultSettings ++ 
-    publishSettings ++ 
+    publishSettings ++
     releaseSettings ++
-    coverageSettings ++ 
     compileOptions ++
     Seq(
       organization := "com.wix",
