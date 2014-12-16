@@ -14,8 +14,9 @@
   limitations under the License.
  */
 
-package com.wix.accord
+package com.wix.accord.dsl
 
+import com.wix.accord.Domain
 import com.wix.accord.transform.ValidationTransform.TransformedValidator
 
 import scala.language.implicitConversions
@@ -47,12 +48,13 @@ import com.wix.accord.transform.ValidationTransform
   * so that violation messages are automatically generated; for instance, the rule `p.firstName is notEmpty`
   * will generate the violation message "firstName must not be empty" automatically.
   */
-package object dsl
+trait DSL
   extends StringOps
      with CollectionOps
      with GenericOps
      with OrderingOps
      with BooleanOps {
+  self: Domain =>
 
   /** Takes a code block and rewrites it into a validation chain (see description in [[com.wix.accord.dsl]].
     *

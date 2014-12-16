@@ -17,17 +17,17 @@
 package com.wix.accord
 
 /** Provides alternative syntax for validation. Instead of having to explicitly call
-  * [[com.wix.accord.validate]], an object can be validated by calling
+  * [[com.wix.accord.Validation.validate]], an object can be validated by calling
   * `instanceUnderTest.validate`. This is strictly an aesthetic preference, there are
   * no differences in implementation or execution.
   */
 object Implicits {
-  implicit class ExtendObjectForValidation[ T : Validator ]( x: T ) {
+  implicit class ExtendObjectForValidation[ V <: Validation with Results, T : V#Validator ]( x: T ) {
     /** Executes the validation rule for this instance.
       *
-      * @return A [[com.wix.accord.Result]] indicating whether or not validation
+      * @return A [[com.wix.accord.Results#Result]] indicating whether or not validation
       *         was successful.
       */
-    def validate: Result = implicitly[ Validator[ T ] ].apply( x )
+    def validate: V#Result = implicitly[ V#Validator[ T ] ].apply( x )
   }
 }

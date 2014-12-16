@@ -20,7 +20,7 @@ import scala.language.implicitConversions
 import com.wix.accord._
 import org.specs2.matcher.{Expectable, Matcher}
 
-/** Extends a specification with a set of matchers over validation [[com.wix.accord.Result]]s. */
+/** Extends a specification with a set of matchers over validation [[com.wix.accord.Results#Result]]s. */
 trait ResultMatchers {
 
   /** Abstracts over validators for the various violation type. */

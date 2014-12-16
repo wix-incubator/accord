@@ -16,14 +16,11 @@
 
 package com.wix.accord
 
-trait Domain extends Results
-
 trait Results {
-  type Constraint
-  def nullFailureConstraint: Constraint
+  self: Constraints =>
 
   /** The default failure for null validations. */
-  val nullFailure = Failure( Set( RuleViolation( null, nullFailureConstraint, None ) ) )
+  val nullFailure: Failure = Failure( Set( RuleViolation( null, nullFailureConstraint, None ) ) )
 
   /** A base trait for all violation types. */
   trait Violation {
@@ -32,7 +29,7 @@ trait Results {
     /** A textual description of the constraint being violated (for example, "must not be empty"). */
     def constraint: Constraint
     /** The textual description of the object under validation (this is the expression that, when evaluated at
-      * runtime, produces the value in [[com.wix.accord.Domain#Violation.value]]). This is normally filled in
+      * runtime, produces the value in [[com.wix.accord.Results#Violation.value]]). This is normally filled in
       * by the validation transform macro, but can also be explicitly provided via the DSL.
       */
     def description: Option[ String ]

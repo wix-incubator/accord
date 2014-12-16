@@ -17,20 +17,30 @@
 package com.wix.accord.combinators
 
 import com.wix.accord._
-import com.wix.accord.ViolationBuilder._
+
+trait GeneralPurposeCombinatorConstraints extends ConstraintBuilders {
+  self: Constraints =>
+
+  protected def orGroupConstraint: Constraint                     // "doesn't meet any of the requirements"
+  protected def invalidGroupConstraint: Constraint                 // "is invalid"
+  protected def equalsConstraint[ T ]: ConstraintBuilder[ T ]     // s"does not equal $to"
+  protected def notEqualsConstraint[ T ]: ConstraintBuilder[ T ]  // s"equals $to"
+}
 
 /** Non type-specific combinators. */
-trait GeneralPurposeCombinators {
+trait GeneralPurposeCombinators extends BaseValidators with ViolationBuilders {
+  self: GeneralPurposeCombinatorConstraints =>
+
   /** A combinator that takes a chain of predicates and implements logical AND between them.
     * @param predicates The predicates to chain together.
     * @tparam T The type on which this validator operates.
     */
   class And[ T ]( predicates: Validator[ T ]* ) extends Validator[ T ] {
-    def apply( x: T ) = predicates.map { _ apply x }.fold( Success ) { _ and _ }
+    def apply( x: T ): Result = predicates.map { _ apply x }.fold( Success ) { _ and _ }
   }
 
   /** A combinator that takes a chain of predicates and implements logical OR between them. When all predicates
-    * fail, a [[com.wix.accord.GroupViolation]] is produced; the predicates comprise the group's children.
+    * fail, a [[com.wix.accord.Results#GroupViolation]] is produced; the predicates comprise the group's children.
     *
     * @param predicates The predicates to chain together.
     * @tparam T The type on which this validator operates.
@@ -39,7 +49,7 @@ trait GeneralPurposeCombinators {
     def apply( x: T ) = {
       val results = predicates.map { _ apply x }.toSet
       val failures = results.collect { case Failure( violations ) => violations }.flatten
-      result( results exists { _ == Success }, x -> "doesn't meet any of the requirements" -> failures )
+      result( results exists { _ == Success }, x -> orGroupConstraint -> failures )
     }
   }
 
@@ -47,7 +57,7 @@ trait GeneralPurposeCombinators {
     * @param message The violation message.
     * @tparam T The type on which this validator operates.
     */
-  class Fail[ T ]( message: => String ) extends Validator[ T ] {
+  class Fail[ T ]( message: => Constraint ) extends Validator[ T ] {
     def apply( x: T ) = result( test = false, x -> message )
   }
 
@@ -59,23 +69,23 @@ trait GeneralPurposeCombinators {
   }
 
   /** A validator that succeeds only if the provided object is `null`. */
-  class IsNull extends BaseValidator[ AnyRef ]( _ == null, _ -> "is not a null" )
+  class IsNull extends BaseValidator[ AnyRef ]( _ == null, _ => nullFailure )
 
   /** A validator that succeeds only if the provided object is not `null`. */
-  class IsNotNull extends BaseValidator[ AnyRef ]( _ != null, _ -> "is a null" )
+  class IsNotNull extends BaseValidator[ AnyRef ]( _ != null, _ -> nullFailureConstraintNeg )
 
   /** A validator that succeeds only if the validated object is equal to the specified value. Respects nulls
     * and delegates equality checks to [[java.lang.Object.equals]]. */
   class EqualTo[ T ]( to: T ) extends Validator[ T ] {
     private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
-    def apply( x: T ) = result( test = safeEq( x, to ), x -> s"does not equal $to" )
+    def apply( x: T ) = result( test = safeEq( x, to ), x -> equalsConstraint( x ) )
   }
 
   /** A validator that succeeds only if the validated object is not equal to the specified value. Respects nulls
     * and delegates equality checks to [[java.lang.Object.equals]]. */
   class NotEqualTo[ T ]( to: T ) extends Validator[ T ] {
     private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
-    def apply( x: T ) = result( test = !safeEq( x, to ), x -> s"equals $to" )
+    def apply( x: T ) = result( test = !safeEq( x, to ), x -> notEqualsConstraint( x ) )
   }
 
   /** A validator which merely delegates to another, implicitly available validator. This is necessary for the
@@ -98,19 +108,19 @@ trait GeneralPurposeCombinators {
     * ```
     *
     * `c.teacher` actually delegates to the `personValidator`, which means a correct error message would be
-    * a [[com.wix.accord.GroupViolation]] aggregating the actual rule violations.
+    * a [[com.wix.accord.Results#GroupViolation]] aggregating the actual rule violations.
     *
-    * @tparam T The object type this validator operates on. An implicit [[com.wix.accord.Validator]]
+    * @tparam T The object type this validator operates on. An implicit [[com.wix.accord.Validation#Validator]]
     *           over type `T` must be in scope.
     */
   class Valid[ T : Validator ] extends Validator[ T ] {
     def apply( x: T ) =
       if ( x == null )
-        Validator.nullFailure
+        nullFailure
       else
         implicitly[ Validator[ T ] ].apply( x ) match {
           case Success => Success
-          case Failure( rules ) => Failure( Set( x -> "is invalid" -> rules ) )
+          case Failure( rules ) => Failure( Set( x -> invalidGroupConstraint -> rules ) )
         }
   }
 }

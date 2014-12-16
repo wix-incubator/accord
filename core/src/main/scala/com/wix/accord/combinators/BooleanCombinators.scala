@@ -16,14 +16,21 @@
 
 package com.wix.accord.combinators
 
-import com.wix.accord._
-import com.wix.accord.ViolationBuilder._
+import com.wix.accord.{Domain, ViolationBuilders, BaseValidators, ConstraintBuilders, Constraints}
+
 
 /** Simple boolean combinators. */
-trait BooleanCombinators {
+trait BooleanCombinators extends BaseValidators with ViolationBuilders with BooleanCombinatorConstraints {
   /** A boolean validator that matches only on true. */
-  class IsTrue extends BaseValidator[ Boolean ]( identity, _ -> "must be true" )
+  class IsTrue extends BaseValidator[ Boolean ]( identity, _ -> isTrueConstraint )
 
   /** A boolean validator that matches only on false. */
-  class IsFalse extends BaseValidator[ Boolean ]( !_, _ -> "must be false" )
+  class IsFalse extends BaseValidator[ Boolean ]( !_, _ -> isFalseConstraint )
+}
+
+trait BooleanCombinatorConstraints {
+  self: Constraints =>
+
+  protected def isTrueConstraint: Constraint    // "must be true"
+  protected def isFalseConstraint: Constraint   // "must be false"
 }

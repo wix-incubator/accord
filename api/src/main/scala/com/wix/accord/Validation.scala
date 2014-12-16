@@ -19,7 +19,7 @@ package com.wix.accord
 import scala.annotation.implicitNotFound
 
 trait Validation {
-  self: Domain =>
+  self: Results =>
 
   /** A validator is a function `T => Result`, where `T` is the type of the object under validation
     * and Result is an instance of [[com.wix.accord.Results#Result]].

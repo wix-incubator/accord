@@ -16,20 +16,29 @@
 
 package com.wix.accord.combinators
 
-import com.wix.accord.NullSafeValidator
-import com.wix.accord.ViolationBuilder._
 import java.util.regex.Pattern
 
+import com.wix.accord.{Constraints, ConstraintBuilders, ViolationBuilders, BaseValidators}
+
+trait StringCombinatorConstraints extends ConstraintBuilders {
+  self: Constraints =>
+  
+  protected def startsWithConstraint: ConstraintBuilder[ String ]       // s"must start with '$prefix'"
+  protected def endsWithConstraint: ConstraintBuilder[ String ]         // s"must end with '$suffix'"
+  protected def matchRegexConstraint: ConstraintBuilder[ Pattern ]      // s"must match regular expression '$pattern'"
+  protected def fullyMatchRegexConstraint: ConstraintBuilder[ Pattern ] // s"must fully match regular expression '$pattern'"
+}
+
 /** Combinators that operate specifically on strings. */
-trait StringCombinators {
+trait StringCombinators extends BaseValidators with ViolationBuilders with StringCombinatorConstraints {
 
   /** A validator that succeeds only if the provided string starts with the specified prefix. */
   class StartsWith( prefix: String )
-    extends NullSafeValidator[ String ]( _ startsWith prefix, _ -> s"must start with '$prefix'" )
+    extends NullSafeValidator[ String ]( _ startsWith prefix, _ -> startsWithConstraint( prefix ) )
 
   /** A validator that succeeds only if the provided string starts with the specified suffix. */
   class EndsWith( suffix: String )
-    extends NullSafeValidator[ String ]( _ endsWith suffix, _ -> s"must end with '$suffix'" )
+    extends NullSafeValidator[ String ]( _ endsWith suffix, _ -> endsWithConstraint( suffix ) )
 
   /** A validator that succeeds only if the provided string matches the specified pattern.
     *
@@ -41,6 +50,6 @@ trait StringCombinators {
   class MatchesRegex( pattern: Pattern, partialMatchAllowed: Boolean = true )
     extends NullSafeValidator[ String ](
       v => if ( partialMatchAllowed ) pattern.matcher( v ).find() else pattern.matcher( v ).matches(),
-      v => if ( partialMatchAllowed ) v -> s"must match regular expression '$pattern'"
-                                 else v -> s"must fully match regular expression '$pattern'" )
+      v => if ( partialMatchAllowed ) v -> matchRegexConstraint( pattern )
+                                 else v -> fullyMatchRegexConstraint( pattern ) )
 }

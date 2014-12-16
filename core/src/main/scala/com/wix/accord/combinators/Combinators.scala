@@ -14,14 +14,26 @@
   limitations under the License.
  */
 
-package com.wix.accord
+package com.wix.accord.combinators
+
+import com.wix.accord.Constraints
 
 /** Aggregates all implemented combinators for use by the DSL. Can, though not intended to, be used
   * directly by end-user code.
   */
-package object combinators
+trait Combinators
   extends GeneralPurposeCombinators
      with CollectionCombinators
      with StringCombinators
      with OrderingCombinators
      with BooleanCombinators
+     with CombinatorConstraints
+
+trait CombinatorConstraints
+  extends GeneralPurposeCombinatorConstraints
+     with CollectionCombinatorConstraints
+     with StringCombinatorConstraints
+     with OrderingCombinatorConstraints
+     with BooleanCombinatorConstraints {
+  self: Constraints =>
+}
