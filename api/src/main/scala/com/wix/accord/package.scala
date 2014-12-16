@@ -18,15 +18,8 @@ package com.wix
 
 /** The entry-point to the Accord library. To execute a validator, simply import it into the local scope,
   * import this package and execute `validate( objectUnderValidation )`.
+  *
+  * @deprecated Starting with Accord 0.5, you should explicitly import the desired constraint model
   */
 package object accord {
-  /** Validates the specified object and returns a validation [[com.wix.accord.Result]]. An implicit
-    * [[com.wix.accord.Validator]] must be in scope for this call to succeed.
-    *
-    * @param x The object to validate.
-    * @param validator A validator for objects of type `T`.
-    * @tparam T The type of the object to validate.
-    * @return A [[com.wix.accord.Result]] indicating success or failure of the validation.
-    */
-  def validate[ T ]( x: T )( implicit validator: Validator[ T ] ) = validator( x )
 }
