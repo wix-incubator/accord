@@ -42,7 +42,8 @@ trait OrderingCombinatorConstraints extends ConstraintBuilders {
   * implicits are defined in the [[scala.math.Ordering]] companion and would therefore not be imported
   * by default at the call site.
   */
-trait OrderingCombinators extends BaseValidators with ViolationBuilders with OrderingCombinatorConstraints {
+trait OrderingCombinators extends BaseValidators with ResultBuilders {
+  self: Validation with Results with Constraints with OrderingCombinatorConstraints =>
 
   /** A validator that succeeds only for values greater than the specified bound.
     *

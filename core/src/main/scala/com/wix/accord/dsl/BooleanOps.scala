@@ -16,11 +16,13 @@
 
 package com.wix.accord.dsl
 
-import com.wix.accord.Validator
-import com.wix.accord.combinators.{IsTrue, IsFalse, And, Or}
+import com.wix.accord.combinators.{GeneralPurposeCombinators, BooleanCombinators}
+import com.wix.accord.{Results, Validation, Domain, Validator}
 
 /** Provides a DSL for booleans. */
 trait BooleanOps {
+  self: Validation with BooleanCombinators with GeneralPurposeCombinators =>
+
   import scala.language.implicitConversions
 
   /** An implicit conversion from boolean to a respective `IsTrue`/`IsFalse` instance; this enables syntax

@@ -16,13 +16,16 @@
 
 package com.wix.accord.scalatest
 
+import com.wix.accord.{Constraints, Results}
 import org.scalatest.{WordSpec, Matchers}
-import com.wix.accord._
-import com.wix.accord.GroupViolation
-import com.wix.accord.RuleViolation
-import com.wix.accord.Failure
 
-class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
+trait SimpleDomain extends Results with Constraints {
+  type Constraint = String
+  def nullFailureConstraint = ???
+  def nullFailureConstraintNeg = ???
+}
+
+class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers[ SimpleDomain ] with SimpleDomain {
 
   "RuleViolationMatcher" should {
 

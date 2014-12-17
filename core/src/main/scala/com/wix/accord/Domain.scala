@@ -6,5 +6,7 @@ trait Domain
   extends Validation
   with Constraints
   with Results
-  with Combinators
+  with Combinators {
 
+  implicit def accordDomain: Domain = this
+}

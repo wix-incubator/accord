@@ -7,7 +7,7 @@ import com.wix.accord.combinators._
  * Created by tomer on 12/16/14.
  */
 
-private trait SimpleConstraints
+sealed trait SimpleConstraints
   extends Constraints
   with BooleanCombinatorConstraints
   with GeneralPurposeCombinatorConstraints

@@ -16,15 +16,18 @@
 
 package com.wix.accord.dsl
 
-import com.wix.accord.Validator
-import com.wix.accord.combinators.HasEmpty
-import com.wix.accord.combinators.Empty
-import com.wix.accord.combinators.NotEmpty
-import scala.language.implicitConversions
+import com.wix.accord.Validation
+import com.wix.accord.combinators.CollectionCombinators
+import com.wix.accord.combinators.CollectionCombinators.HasEmpty
+import com.wix.accord.dsl.CollectionOps.HasSize
+
 import scala.collection.GenTraversableOnce
+import scala.language.implicitConversions
 
 /** Provides a DSL for collection-like objects. Works in conjunction with [[com.wix.accord.dsl.DslContext]]. */
 trait CollectionOps {
+  self: Validation with CollectionCombinators  =>
+
   /** Specifies a validator that succeeds on empty instances; the object under validation must implement
     * `def isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
     */
@@ -34,9 +37,6 @@ trait CollectionOps {
     * `def isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
     */
   def notEmpty[ T <: AnyRef <% HasEmpty ]: Validator[ T ] = new NotEmpty[ T ]
-
-  /** A structural type representing any object that has a size. */
-  type HasSize = Any { def size: Int }
 
   /**
    * An implicit conversion to enable any collection-like object (e.g. strings, options) to be handled by
@@ -62,4 +62,9 @@ trait CollectionOps {
     * `c.students has size > 0`.
     */
   val size = new OrderingOps { override def snippet = "has size" }
+}
+
+object CollectionOps {
+  /** A structural type representing any object that has a size. */
+  type HasSize = Any { def size: Int }
 }

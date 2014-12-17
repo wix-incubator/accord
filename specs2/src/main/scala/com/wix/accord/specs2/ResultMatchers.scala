@@ -16,17 +16,23 @@
 
 package com.wix.accord.specs2
 
+import com.wix.accord.{Constraints, Results}
+
 import scala.language.implicitConversions
-import com.wix.accord._
 import org.specs2.matcher.{Expectable, Matcher}
 
-/** Extends a specification with a set of matchers over validation [[com.wix.accord.Results#Result]]s. */
+/** Extends a specification with a set of matchers over validation [[com.wix.accord.Results#Results#Result]]s. */
 trait ResultMatchers {
+  protected implicit val domain: Constraints with Results { type Constraint >: Null <: AnyRef }
+  import domain._
+
+  /** HACK the typer won't let me assign nulls to Constraint, even though it's refined to be nullable. */
+//  private var nullConstraint: Constraint = _
 
   /** Abstracts over validators for the various violation type. */
   sealed trait ViolationMatcher extends Matcher[ Violation ]
 
-  /** A matcher over [[com.wix.accord.RuleViolation]]s. To generate a violation rule "pattern", call
+  /** A matcher over [[com.wix.accord.Results#Results#RuleViolation]]s. To generate a violation rule "pattern", call
     * the constructor with the required predicates, for example:
     *
     * ```
@@ -38,9 +44,9 @@ trait ResultMatchers {
     * @param value A predicate specifying the object under validation.
     * @param constraint A predicate specifying the constraint being violated.
     * @param description A predicate specifying the description of the object being validated.
-    * @see [[com.wix.accord.RuleViolation]]
+    * @see [[com.wix.accord.Results#Results#RuleViolation]]
     */
-  case class RuleViolationMatcher( value: Any = null, constraint: String = null, description: String = null )
+  case class RuleViolationMatcher( value: Any = null, constraint: Constraint = null, description: String = null )
     extends ViolationMatcher {
 
     require( value != null || constraint != null || description != null )
@@ -75,10 +81,10 @@ trait ResultMatchers {
     * val rule = RuleViolationMatcher( description = "firstName", constraint = "must not be empty" )
     * ```
     */
-  implicit def stringTuple2RuleMatcher( v: ( String, String ) ) =
+  implicit def tupleToRuleMatcher( v: ( String, Constraint ) ): RuleViolationMatcher =
     RuleViolationMatcher( description = v._1, constraint = v._2 )
 
-  /** A matcher over [[com.wix.accord.GroupViolation]]s. To generate a violation rule "pattern", call
+  /** A matcher over [[com.wix.accord.Results#GroupViolation]]s. To generate a violation rule "pattern", call
     * the constructor with the required predicates, for example:
     *
     * ```
@@ -94,9 +100,9 @@ trait ResultMatchers {
     * @param constraint A predicate specifying the constraint being violated.
     * @param description A predicate specifying the description of the object being validated.
     * @param violations The set of violations that comprise the group being validated.
-    * @see [[com.wix.accord.GroupViolation]]
+    * @see [[com.wix.accord.Results#GroupViolation]]
     */
-  case class GroupViolationMatcher( value: Any = null, constraint: String = null, description: String = null,
+  case class GroupViolationMatcher( value: Any = null, constraint: Constraint = null, description: String = null,
                                     violations: Set[ ViolationMatcher ] = null )
     extends ViolationMatcher {
 
@@ -129,7 +135,7 @@ trait ResultMatchers {
                                  Option( violations  ) getOrElse "_" ).mkString( "GroupViolation(", ",", ")" )
   }
 
-  /** A matcher over validation [[com.wix.accord.Result]]s. Takes a set of expected violations
+  /** A matcher over validation [[com.wix.accord.Results#Result]]s. Takes a set of expected violations
     * and return a suitable match result in case of failure.
     *
     * @param expectedViolations The set of expected violations for this matcher.
@@ -166,7 +172,7 @@ trait ResultMatchers {
     * ```
     *
     * @param expectedViolations The set of expected violations.
-    * @return A matcher over validation [[com.wix.accord.Result]]s.
+    * @return A matcher over validation [[com.wix.accord.Results#Result]]s.
     */
   def failWith( expectedViolations: ViolationMatcher* ): Matcher[ Result ] = ResultMatcher( expectedViolations.toSet )
 
@@ -181,12 +187,12 @@ trait ResultMatchers {
     * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
     * @param description The textual description of the object under validation.
     * @param expectedViolations The set of expected violations that comprise the group.
-    * @return A matcher over [[com.wix.accord.GroupViolation]]s.
+    * @return A matcher over [[com.wix.accord.Results#GroupViolation]]s.
     */
-  def group( description: String, constraint: String, expectedViolations: ( String, String )* ) =
+  def group( description: String, constraint: Constraint, expectedViolations: ( String, Constraint )* ) =
     new GroupViolationMatcher( constraint  = constraint,
                                description = description,
-                               violations  = ( expectedViolations map stringTuple2RuleMatcher ).toSet )
+                               violations  = ( expectedViolations map tupleToRuleMatcher ).toSet )
 
   /** Enables syntax like `someResult should fail` */
   val fail = new Matcher[ Result ] {

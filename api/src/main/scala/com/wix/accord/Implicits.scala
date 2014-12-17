@@ -25,7 +25,7 @@ object Implicits {
   implicit class ExtendObjectForValidation[ V <: Validation with Results, T : V#Validator ]( x: T ) {
     /** Executes the validation rule for this instance.
       *
-      * @return A [[com.wix.accord.Results#Result]] indicating whether or not validation
+      * @return A [[com.wix.accord.Results#Results#Result]] indicating whether or not validation
       *         was successful.
       */
     def validate: V#Result = implicitly[ V#Validator[ T ] ].apply( x )

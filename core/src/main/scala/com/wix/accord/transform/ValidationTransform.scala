@@ -226,7 +226,7 @@ object ValidationTransform {
     val rewrite =
      q"""
         new com.wix.accord.Validator[ ${weakTypeOf[ U ]} ] {
-          override def apply( v1: ${weakTypeOf[ U ]} ): com.wix.accord.Result =
+          override def apply( v1: ${weakTypeOf[ U ]} ): com.wix.accord.Results#Result =
             ${c.prefix} apply $g( v1 ) withDescription $description
         }
       """

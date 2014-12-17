@@ -16,7 +16,8 @@
 
 package com.wix.accord
 
-trait BaseValidators extends Validation with Constraints with Results {
+trait BaseValidators {
+  self: Validation with Constraints with Results =>
 
   /** Simplifies base validator implementation. Validators typically consist of an assertion/test and a resulting
     * violation; this implementation takes two functions that describe this behavior and wires the appropriate logic. For
@@ -27,8 +28,8 @@ trait BaseValidators extends Validation with Constraints with Results {
     * ```
     *
     * @param test The predicate that determines whether or not validation is successful.
-    * @param failure A generator function for producing [[com.wix.accord.Results#Failure]]s if validation fails.
-    *                The helper methods in [[com.wix.accord.ViolationBuilders]] can be used to simplify this task.
+    * @param failure A generator function for producing [[com.wix.accord.Results#Results#Failure]]s if validation fails.
+    *                The helper methods in [[com.wix.accord.ResultBuilders]] can be used to simplify this task.
     * @tparam T The object type this validator operates on.
     */
   class BaseValidator[ T ]( val test: T => Boolean, val failure: T => Failure ) extends Validator [ T ] {
@@ -39,9 +40,9 @@ trait BaseValidators extends Validation with Constraints with Results {
   /** An extension to [[com.wix.accord.BaseValidators#BaseValidator]] that transparently fails on nulls.
     *
     * @param test The predicate that determines whether or not validation is successful.
-    * @param failure A generator function for producing [[com.wix.accord.Results#Failure]]s if validation fails.
-    *                The helper methods in [[com.wix.accord.ViolationBuilders]] can be used to simplify this task.
-    * @param onNull The resulting failure for nulls. Defaults to [[com.wix.accord.Results#nullFailure]].
+    * @param failure A generator function for producing [[com.wix.accord.Results#Results#Failure]]s if validation fails.
+    *                The helper methods in [[com.wix.accord.ResultBuilders]] can be used to simplify this task.
+    * @param onNull The resulting failure for nulls. Defaults to [[com.wix.accord.Results#Results#nullFailure]].
     * @tparam T The object type this validator operates on.
     */
   class NullSafeValidator[ T <: AnyRef ]( test: T => Boolean,

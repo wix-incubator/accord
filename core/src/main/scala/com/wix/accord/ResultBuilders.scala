@@ -23,32 +23,36 @@ package com.wix.accord
   * - Group violations can be created by extending the above to include children, as in:
   *   `v -> "does not match any of the rules" -> Seq( v.firstName -> "first name must be empty", ... )`
   */
-trait ViolationBuilders {
+trait ResultBuilders {
   self: Constraints with Results =>
 
   import scala.language.implicitConversions
 
-  /** Converts a tuple of the form value->constraint to a [[com.wix.accord.Results#RuleViolation]]. */
-  implicit def ruleViolationFromTuple( v: ( Any, Constraint ) ): RuleViolation =
+  /** Converts a tuple of the form value->constraint to a [[com.wix.accord.Results#Results#RuleViolation]]. */
+  implicit protected def ruleViolationFromTuple( v: ( Any, Constraint ) ): RuleViolation =
     RuleViolation( value = v._1, constraint = v._2, description = None )
 
   /** Converts an extended tuple of the form value->constraint->ruleSeq to a
-    * [[com.wix.accord.Results#GroupViolation]]. */
-  implicit def groupViolationFromTuple( v: ( ( Any, Constraint ), Set[ Violation ] ) ): GroupViolation =
+    * [[com.wix.accord.Results#Results#GroupViolation]]. */
+  implicit protected def groupViolationFromTuple( v: ( ( Any, Constraint ), Set[ Violation ] ) ): GroupViolation =
     GroupViolation( value = v._1._1, constraint = v._1._2, description = None, children = v._2 )
 
-  /** Wraps a single violation to a [[com.wix.accord.Results#Failure]]. */
-  implicit def singleViolationToFailure[ V <% Violation ]( v: V ): Failure =
+  implicit protected def staticConstraintToFailureBuilder( c: Constraint ): ( Any => Failure ) =
+    v => Failure( Set( RuleViolation( value = v, constraint = c, description = None ) ) )
+
+  /** Wraps a single violation to a [[com.wix.accord.Results#Results#Failure]]. */
+  implicit protected def singleViolationToFailure[ V <% Violation ]( v: V ): Failure =
     Failure( Set( v ) )
 
+
   /** A convenience method that takes a predicate and a violation generator, evaluates the predicate and constructs
-    * the appropriate [[com.wix.accord.Results#Result]].
+    * the appropriate [[com.wix.accord.Results#Results#Result]].
     *
     * @param test The predicate to be evaluated.
     * @param violation A violation generator; only gets executed if the test fails.
-    * @return [[com.wix.accord.Results#Success]] if the predicate evaluated successfully, or a
-    *        [[com.wix.accord.Results#Failure]] with the generated violation otherwise.
+    * @return [[com.wix.accord.Results#Results#Success]] if the predicate evaluated successfully, or a
+    *        [[com.wix.accord.Results#Results#Failure]] with the generated violation otherwise.
     */
-  def result( test: => Boolean, violation: => Violation ): Result =
+  protected def result( test: => Boolean, violation: => Violation ): Result =
     if ( test ) Success else Failure( Set( violation ) )
 }

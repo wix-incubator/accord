@@ -43,7 +43,7 @@ import com.wix.accord.transform.ValidationTransform
   * }
   * ```
   *
-  * These validators can later be executed via [[com.wix.accord.validate]]. A macro transforms each
+  * These validators can later be executed via [[com.wix.accord.Validation#validate]]. A macro transforms each
   * validation block into a chain of validation rules at compile-time, and annotates accesses to getters
   * so that violation messages are automatically generated; for instance, the rule `p.firstName is notEmpty`
   * will generate the violation message "firstName must not be empty" automatically.
@@ -60,7 +60,8 @@ trait DSL
     *
     * @param v The validation code block; may contain any combination of validation statements.
     * @tparam T The type under validation.
-    * @return The validation code block rewritten as a [[com.wix.accord.Validator]] for the specified type `T`.
+    * @return The validation code block rewritten as a [[com.wix.accord.Validation#Validator]] for the
+    *         specified type `T`.
     */
   def validator[ T ]( v: T => Unit ): TransformedValidator[ T ] = macro ValidationTransform.apply[ T ]
 
@@ -93,7 +94,7 @@ trait DSL
       * personValidator: com.wix.accord.combinators.And[Person] = <function1>
       *
       * scala> validate( Person( "", "last" ) )
-      * res0: com.wix.accord.Result = Failure(List(Violation(first name must not be empty,)))
+      * res0: com.wix.accord.Results#Result = Failure(List(Violation(first name must not be empty,)))
       * ```
       *
       * With the explicit description, the violation would read "firstName must not be empty".

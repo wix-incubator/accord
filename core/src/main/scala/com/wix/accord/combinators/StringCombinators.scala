@@ -18,7 +18,7 @@ package com.wix.accord.combinators
 
 import java.util.regex.Pattern
 
-import com.wix.accord.{Constraints, ConstraintBuilders, ViolationBuilders, BaseValidators}
+import com.wix.accord._
 
 trait StringCombinatorConstraints extends ConstraintBuilders {
   self: Constraints =>
@@ -30,7 +30,8 @@ trait StringCombinatorConstraints extends ConstraintBuilders {
 }
 
 /** Combinators that operate specifically on strings. */
-trait StringCombinators extends BaseValidators with ViolationBuilders with StringCombinatorConstraints {
+trait StringCombinators extends BaseValidators with ResultBuilders {
+  self: Validation with Results with Constraints with StringCombinatorConstraints =>
 
   /** A validator that succeeds only if the provided string starts with the specified prefix. */
   class StartsWith( prefix: String )

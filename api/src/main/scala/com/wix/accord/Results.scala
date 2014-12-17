@@ -29,7 +29,7 @@ trait Results {
     /** A textual description of the constraint being violated (for example, "must not be empty"). */
     def constraint: Constraint
     /** The textual description of the object under validation (this is the expression that, when evaluated at
-      * runtime, produces the value in [[com.wix.accord.Results#Violation.value]]). This is normally filled in
+      * runtime, produces the value in [[com.wix.accord.Results#Results#Violation.value]]). This is normally filled in
       * by the validation transform macro, but can also be explicitly provided via the DSL.
       */
     def description: Option[ String ]
@@ -67,11 +67,23 @@ trait Results {
   }
 
   /** A base trait for validation results.
-    * @see [[com.wix.accord.Results#Success]], [[com.wix.accord.Results#Failure]]
+    * @see [[com.wix.accord.Results#Results#Success]], [[com.wix.accord.Results#Results#Failure]]
     */
   sealed trait Result {
     def and( other: Result ): Result
     def or( other: Result ): Result
+
+    def fold[ T ]( ifSuccess: => T )( ifFailure: Failure => T ): T
+    def success: Option[ Success.type ] =
+      fold( Option( Success ) )( _ => None )
+    def failure: Option[ Failure ] =
+      fold[ Option[ Failure ] ]( None )( Option.apply )
+    def isSuccess: Boolean = fold( true )( _ => false )
+    def isFailure: Boolean = fold( false )( _ => true )
+    def ifSuccess[ T ]( pred: => T ): Option[ T ] =
+      fold( Option( pred ) )( _ => None )
+    def ifFailure[ T ]( pred: Failure => T ): Option[ T ] =
+      fold[ Option[ T ] ]( None )( pred andThen Option.apply )
 
     /** Rewrites the description for all violations, if applicable.
       *
@@ -82,24 +94,27 @@ trait Results {
   }
 
   /** An object representing a successful validation result. */
-  case object Success extends Result {
+  sealed abstract class Success extends Result {
     def and( other: Result ) = other
     def or( other: Result ) = this
     def withDescription( rewrite: String ) = this
+    def fold[ T ]( ifSuccess: => T )( ifFailure: Failure => T ): T = ifSuccess
   }
+  case object Success extends Success
 
   /** An object representing a failed validation result.
     * @param violations The violations that caused the validation to fail.
     */
   case class Failure( violations: Set[ Violation ] ) extends Result {
     def and( other: Result ) = other match {
-      case Success => this
+      case _: Success => this
       case Failure( vother ) => Failure( violations ++ vother )
     }
     def or( other: Result ) = other match {
-      case Success => other
+      case _: Success => other
       case Failure(_) => this
     }
     def withDescription( rewrite: String ) = Failure( violations map { _ withDescription rewrite } )
+    def fold[ T ]( ifSuccess: => T )( ifFailure: Failure => T ): T = ifFailure( this )
   }
 }

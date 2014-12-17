@@ -22,7 +22,7 @@ trait Validation {
   self: Results =>
 
   /** A validator is a function `T => Result`, where `T` is the type of the object under validation
-    * and Result is an instance of [[com.wix.accord.Results#Result]].
+    * and Result is an instance of [[com.wix.accord.Results#Results#Result]].
     *
     * Implementation note: While theoretically a validator can be defined as a type alias, in practice this
     * doesn't allow to specify an error message when it's implicitly missing at the call site (see
@@ -71,13 +71,13 @@ trait Validation {
     implicit class PromoteBooleanValidator( v: Validator[ Boolean ] ) extends PromotedPrimitiveValidator[ Boolean, java.lang.Boolean   ]( v )
   }
 
-  /** Validates the specified object and returns a validation [[com.wix.accord.Results#Result]]. An implicit
+  /** Validates the specified object and returns a validation [[com.wix.accord.Results#Results#Result]]. An implicit
     * [[com.wix.accord.Validation#Validator]] must be in scope for this call to succeed.
     *
     * @param x The object to validate.
     * @param validator A validator for objects of type `T`.
     * @tparam T The type of the object to validate.
-    * @return A [[com.wix.accord.Results#Result]] indicating success or failure of the validation.
+    * @return A [[com.wix.accord.Results#Results#Result]] indicating success or failure of the validation.
     */
   def validate[ T ]( x: T )( implicit validator: Validator[ T ] ) = validator( x )
 }

@@ -16,17 +16,13 @@
 
 package com.wix.accord.dsl
 
-import com.wix.accord.Validator
-import com.wix.accord.combinators.And
-import com.wix.accord.combinators.Or
-import com.wix.accord.combinators.Valid
-import com.wix.accord.combinators.IsNull
-import com.wix.accord.combinators.IsNotNull
-import com.wix.accord.combinators.EqualTo
-import com.wix.accord.combinators.NotEqualTo
+import com.wix.accord.Validation
+import com.wix.accord.combinators.GeneralPurposeCombinators
 
 /** Provides a DSL for untyped validators. */
 trait GenericOps {
+  self: Validation with GeneralPurposeCombinators =>
+
   /** Delegates validation to a pre-defined validation rule, which is encoded as an implicit
     * [[com.wix.accord.Validator]] in scope. Enables composition of validation rules, as in:
     *

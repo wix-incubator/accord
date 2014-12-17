@@ -16,7 +16,8 @@
 
 package com.wix.accord.combinators
 
-import com.wix.accord.{ViolationBuilders, Constraints, BaseValidators}
+import com.wix.accord.combinators.CollectionCombinators.HasEmpty
+import com.wix.accord.{ResultBuilders, Constraints, BaseValidators}
 
 trait CollectionCombinatorConstraints {
   self: Constraints =>
@@ -26,11 +27,10 @@ trait CollectionCombinatorConstraints {
 }
 
 /** Combinators that operate on collections and collection-like structures. */
-trait CollectionCombinators extends BaseValidators with ViolationBuilders with CollectionCombinatorConstraints {
-  import scala.language.implicitConversions
+trait CollectionCombinators {
+  self: BaseValidators with ResultBuilders with CollectionCombinatorConstraints =>
 
-  /** A structural type representing any object that can be empty. */
-  type HasEmpty = { def isEmpty: Boolean }
+  import scala.language.implicitConversions
 
   /**
     * An implicit conversion to enable any collection-like object (e.g. strings, options) to be handled by the
@@ -41,28 +41,36 @@ trait CollectionCombinators extends BaseValidators with ViolationBuilders with C
     * [[scala.collection.IndexedSeqOptimized]], via an implicit conversion and an inheritance stack), and this is
     * a case where the Scala compiler does not always infer structural types correctly. By requiring
     * a view bound from `T` to [[scala.collection.GenTraversableOnce]] we can force any collection-like structure
-    * to conform to the structural type [[com.wix.accord.combinators.HasEmpty]], and by requiring
-    * a view bound from `T` to [[com.wix.accord.combinators.HasEmpty]] at the call site (e.g.
+    * to conform to the structural type [[com.wix.accord.combinators.CollectionCombinators#HasEmpty]], and by requiring
+    * a view bound from `T` to [[com.wix.accord.combinators.CollectionCombinators#HasEmpty]] at the call site (e.g.
     * [[com.wix.accord.dsl.empty]]) we additionally support any class that directly conforms to the
     * structural type as well.
     *
     * @param gto An object that is, or is implicitly convertible to, [[scala.collection.GenTraversableOnce]].
-    * @tparam T The type that conforms, directly or implicitly, to [[com.wix.accord.combinators.HasEmpty]].
-    * @return The specified object, strictly-typed as [[com.wix.accord.combinators.HasEmpty]].
+    * @tparam T The type that conforms, directly or implicitly, to
+   *           [[com.wix.accord.combinators.CollectionCombinators#HasEmpty]].
+    * @return The specified object, strictly-typed as [[com.wix.accord.combinators.CollectionCombinators#HasEmpty]].
     */
   implicit def genericTraversableOnce2HasEmpty[ T <% scala.collection.GenTraversableOnce[_] ]( gto: T ): HasEmpty = gto
 
   /** A validator that operates on objects that can be empty, and succeeds only if the provided instance is
     * empty.
-    * @tparam T A type that implements `isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
-    * @see [[com.wix.accord.combinators.NotEmpty]]
+    * @tparam T A type that implements `isEmpty: Boolean` (see
+    *           [[com.wix.accord.combinators.CollectionCombinators#HasEmpty]]).
+    * @see [[com.wix.accord.combinators.CollectionCombinators#NotEmpty]]
     */
-  class Empty[ T <: AnyRef <% HasEmpty ] extends NullSafeValidator[ T ]( _.isEmpty, _ -> emptyConstraint )
+  class Empty[ T <: AnyRef <% HasEmpty ] extends NullSafeValidator[ T ]( _.isEmpty, emptyConstraint )
 
   /** A validator that operates on objects that can be empty, and succeeds only if the provided instance is ''not''
     * empty.
-    * @tparam T A type that implements `isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
-    * @see [[com.wix.accord.combinators.Empty]]
+    * @tparam T A type that implements `isEmpty: Boolean` (see
+    *           [[com.wix.accord.combinators.CollectionCombinators#HasEmpty]]).
+    * @see [[com.wix.accord.combinators.CollectionCombinators#Empty]]
     */
-  class NotEmpty[ T <: AnyRef <% HasEmpty ] extends NullSafeValidator[ T ]( !_.isEmpty, _ -> nonEmptyConstraint )
+  class NotEmpty[ T <: AnyRef <% HasEmpty ] extends NullSafeValidator[ T ]( !_.isEmpty, nonEmptyConstraint )
+}
+
+object CollectionCombinators {
+  /** A structural type representing any object that can be empty. */
+  type HasEmpty = { def isEmpty: Boolean }
 }

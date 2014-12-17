@@ -16,12 +16,17 @@
 
 package com.wix.accord.specs2
 
+import com.wix.accord.{Results, Constraints}
 import org.specs2.mutable.Specification
-import com.wix.accord._
-import com.wix.accord.GroupViolation
-import com.wix.accord.RuleViolation
 
 class ResultMatchersSpec extends Specification with ResultMatchers {
+  implicit val domain =
+    new Constraints with Results {
+      type Constraint = String
+      def nullFailureConstraint = ???
+      def nullFailureConstraintNeg = ???
+    }
+  import domain._
 
   "RuleViolationMatcher" should {
 

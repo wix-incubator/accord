@@ -28,8 +28,8 @@ trait GeneralPurposeCombinatorConstraints extends ConstraintBuilders {
 }
 
 /** Non type-specific combinators. */
-trait GeneralPurposeCombinators extends BaseValidators with ViolationBuilders {
-  self: GeneralPurposeCombinatorConstraints =>
+trait GeneralPurposeCombinators extends BaseValidators with ResultBuilders {
+  self: Validation with Results with Constraints with GeneralPurposeCombinatorConstraints =>
 
   /** A combinator that takes a chain of predicates and implements logical AND between them.
     * @param predicates The predicates to chain together.
@@ -40,7 +40,7 @@ trait GeneralPurposeCombinators extends BaseValidators with ViolationBuilders {
   }
 
   /** A combinator that takes a chain of predicates and implements logical OR between them. When all predicates
-    * fail, a [[com.wix.accord.Results#GroupViolation]] is produced; the predicates comprise the group's children.
+    * fail, a [[com.wix.accord.Results#Results#GroupViolation]] is produced; the predicates comprise the group's children.
     *
     * @param predicates The predicates to chain together.
     * @tparam T The type on which this validator operates.
@@ -108,7 +108,7 @@ trait GeneralPurposeCombinators extends BaseValidators with ViolationBuilders {
     * ```
     *
     * `c.teacher` actually delegates to the `personValidator`, which means a correct error message would be
-    * a [[com.wix.accord.Results#GroupViolation]] aggregating the actual rule violations.
+    * a [[com.wix.accord.Results#Results#GroupViolation]] aggregating the actual rule violations.
     *
     * @tparam T The object type this validator operates on. An implicit [[com.wix.accord.Validation#Validator]]
     *           over type `T` must be in scope.

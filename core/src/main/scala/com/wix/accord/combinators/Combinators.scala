@@ -16,7 +16,7 @@
 
 package com.wix.accord.combinators
 
-import com.wix.accord.Constraints
+import com.wix.accord.{Validation, Results, Constraints}
 
 /** Aggregates all implemented combinators for use by the DSL. Can, though not intended to, be used
   * directly by end-user code.
@@ -27,7 +27,10 @@ trait Combinators
      with StringCombinators
      with OrderingCombinators
      with BooleanCombinators
-     with CombinatorConstraints
+     with CombinatorConstraints {
+
+  self: Validation with Constraints with Results =>
+}
 
 trait CombinatorConstraints
   extends GeneralPurposeCombinatorConstraints
