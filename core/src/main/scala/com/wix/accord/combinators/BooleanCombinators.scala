@@ -16,14 +16,15 @@
 
 package com.wix.accord.combinators
 
-import com.wix.accord._
-import com.wix.accord.ViolationBuilder._
+import com.wix.accord.{Violation, Failure, Validator, BaseValidator}
+import scala.language.existentials
 
 /** Simple boolean combinators. */
 trait BooleanCombinators {
-  /** A boolean validator that matches only on true. */
-  class IsTrue extends BaseValidator[ Boolean ]( identity, _ -> "must be true" )
 
+  /** A boolean validator that matches only on true. */
+  class IsTrue[ C ] extends BaseValidator[ Boolean, C ]( identity, _ -> "must be true" )
+  
   /** A boolean validator that matches only on false. */
-  class IsFalse extends BaseValidator[ Boolean ]( !_, _ -> "must be false" )
+  class IsFalse[ C ] extends BaseValidator[ Boolean, C ]( !_, _ -> "must be false" )
 }

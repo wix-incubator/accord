@@ -17,15 +17,18 @@
 package com.wix.accord.specs2
 
 import org.specs2.mutable.Specification
-import com.wix.accord._
-import com.wix.accord.GroupViolation
-import com.wix.accord.RuleViolation
 
 class ResultMatchersSpec extends Specification with ResultMatchers {
 
+  val resultModel = new com.wix.accord.ResultModel {
+    type Constraint = String
+    def nullConstraint = ???
+  }
+  import resultModel._
+
   "RuleViolationMatcher" should {
 
-    val sampleViolation = RuleViolation( "value", "constraint", Some( "description" ) )
+    val sampleViolation = new RuleViolation( "value", "constraint", Some( "description" ) )
 
     "correctly match a rule violation based on value" in {
       val matchRule = RuleViolationMatcher( value = "value" )
@@ -50,8 +53,8 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
 
   "GroupViolationMatcher" should {
 
-    val sampleRule = RuleViolation( "value", "constraint", Some( "description" ) )
-    val sampleGroup = GroupViolation( value = "group", constraint = "violation", description = Some( "ftw" ), children = Set( sampleRule ) )
+    val sampleRule = new RuleViolation( "value", "constraint", Some( "description" ) )
+    val sampleGroup = new GroupViolation( value = "group", constraint = "violation", description = Some( "ftw" ), children = Set( sampleRule ) )
 
     "correctly match a group violation based on value" in {
       val matchRule = GroupViolationMatcher( value = "group" )
@@ -112,7 +115,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
 
   "failWith matcher" should {
 
-    val result: Result = Failure( Set( RuleViolation( "value", "constraint", Some( "description" ) ) ) )
+    val result = new Failure( Set( new RuleViolation( "value", "constraint", Some( "description" ) ) ) )
 
     "succeed if a validation rule matches successfully" in {
       result should failWith( "description" -> "constraint" )
@@ -130,7 +133,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
     }
 
     "fail if matching a Failure" in {
-      Failure( Set.empty ) should not( succeed )
+      new Failure( Set.empty ) should not( succeed )
     }
   }
 
@@ -141,7 +144,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
     }
 
     "succeed if matching a Failure" in {
-      Failure( Set.empty ) should fail
+      new Failure( Set.empty ) should fail
     }
   }
 }

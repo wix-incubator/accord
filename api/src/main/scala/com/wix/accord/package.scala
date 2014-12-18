@@ -19,7 +19,7 @@ package com.wix
 /** The entry-point to the Accord library. To execute a validator, simply import it into the local scope,
   * import this package and execute `validate( objectUnderValidation )`.
   */
-package object accord {
+package object accord {//extends LowPriorityDefaultModel {
   /** Validates the specified object and returns a validation [[com.wix.accord.Result]]. An implicit
     * [[com.wix.accord.Validator]] must be in scope for this call to succeed.
     *
@@ -28,5 +28,14 @@ package object accord {
     * @tparam T The type of the object to validate.
     * @return A [[com.wix.accord.Result]] indicating success or failure of the validation.
     */
-  def validate[ T ]( x: T )( implicit validator: Validator[ T ] ) = validator( x )
+  def validate[ T, R <: ResultModel ]( x: T )( implicit model: R, validator: Validator[ T, R#Constraint ] ): Result[ R#Constraint ] =
+    validator( x )
+
 }
+
+//trait LowPriorityDefaultModel {
+//  implicit val defaultModel: ResultModel = new ResultModel {
+//    type Constraint = String
+//    def nullConstraint = "is a null"
+//  }
+//}

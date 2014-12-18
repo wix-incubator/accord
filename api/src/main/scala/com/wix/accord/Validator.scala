@@ -31,7 +31,7 @@ import scala.annotation.implicitNotFound
   "A validator for type ${T} not found. Did you forget to import an implicit validator for " +
   "this type? (alternatively, if you own the code, you may want to move the validator to " +
   "the companion object for ${T} so it's automatically imported)." )
-trait Validator[ -T ] extends ( T => Result ) {
+trait Validator[ -T, +C ] extends ( T => Result[ C ] ) {
   self =>
 
   /** Adapts this validator to a type `U`. Each application of the new validator applies the the specified
@@ -46,27 +46,52 @@ trait Validator[ -T ] extends ( T => Result ) {
     * @tparam U The target type of the adaption.
     * @return An adapted validator of `U`.
     */
-  override def compose[ U ]( g: U => T ): Validator[ U ] = new Validator[ U ] {
-    override def apply( v1: U ): Result = self apply g( v1 )
+  override def compose[ U ]( g: U => T ): Validator[ U, C ] = new Validator[ U, C ] {
+    override def apply( v1: U ): Result[ C ] = self apply g( v1 )
   }
+}
+
+trait ResultModel {
+  type Constraint
+  def nullConstraint: Constraint
+
+  type Validator[ -T ] = com.wix.accord.Validator[ T, Constraint ]
+  type Violation = com.wix.accord.Violation[ Constraint ]
+  type RuleViolation = com.wix.accord.RuleViolation[ Constraint ]
+  val RuleViolation = com.wix.accord.RuleViolation
+  type GroupViolation = com.wix.accord.GroupViolation[ Constraint ]
+  val GroupViolation = com.wix.accord.GroupViolation
+  type Failure = com.wix.accord.Failure[ Constraint ]
+  val Success = com.wix.accord.Success
+  val Failure = com.wix.accord.Failure
+  type Result = com.wix.accord.Result[ Constraint ]
 }
 
 object Validator {
   /** The default failure for null validations. */
-  val nullFailure = Failure( Set( RuleViolation( null, "is a null", None ) ) )
-
-  abstract class PromotedPrimitiveValidator[ U, B ]( validator: Validator[ U ] )( implicit unbox: B => U ) {
+  // is a null
+  def nullFailure( implicit model: ResultModel ): Failure[ model.Constraint ] =
+    Failure( Set( RuleViolation( null, model.nullConstraint, None ) ) )
+//
+  abstract class PromotedPrimitiveValidator[ U, B, R <: ResultModel ]( validator: Validator[ U, R#Constraint ] )( implicit unbox: B => U, model: R ) {
     /** Transforms this validator to a null-safe variant over the reference type. */
-    def boxed = new Validator[ B ] {
+    def boxed = new Validator[ B, R#Constraint ] {
       def apply( v: B ) = if ( v == null ) nullFailure else validator( v )
     }
   }
 
-  implicit class PromotedByteValidator  ( v: Validator[ Byte    ] ) extends PromotedPrimitiveValidator[ Byte,    java.lang.Byte      ]( v )
-  implicit class PromoteCharValidator   ( v: Validator[ Char    ] ) extends PromotedPrimitiveValidator[ Char,    java.lang.Character ]( v )
-  implicit class PromoteIntValidator    ( v: Validator[ Int     ] ) extends PromotedPrimitiveValidator[ Int,     java.lang.Integer   ]( v )
-  implicit class PromoteLongValidator   ( v: Validator[ Long    ] ) extends PromotedPrimitiveValidator[ Long,    java.lang.Long      ]( v )
-  implicit class PromoteFloatValidator  ( v: Validator[ Float   ] ) extends PromotedPrimitiveValidator[ Float,   java.lang.Float     ]( v )
-  implicit class PromoteDoubleValidator ( v: Validator[ Double  ] ) extends PromotedPrimitiveValidator[ Double,  java.lang.Double    ]( v )
-  implicit class PromoteBooleanValidator( v: Validator[ Boolean ] ) extends PromotedPrimitiveValidator[ Boolean, java.lang.Boolean   ]( v )
+  implicit class PromotedByteValidator[ R <: ResultModel ]( v: Validator[ Byte, R#Constraint ] )( implicit model: R )
+    extends PromotedPrimitiveValidator[ Byte, java.lang.Byte, R ]( v )
+  implicit class PromoteCharValidator[ R <: ResultModel ]( v: Validator[ Char, R#Constraint ] )( implicit model: R )
+    extends PromotedPrimitiveValidator[ Char, java.lang.Character, R ]( v )
+  implicit class PromoteIntValidator[ R <: ResultModel ]( v: Validator[ Int, R#Constraint ] )( implicit model: R )
+    extends PromotedPrimitiveValidator[ Int, java.lang.Integer, R ]( v )
+  implicit class PromoteLongValidator[ R <: ResultModel ]( v: Validator[ Long, R#Constraint ] )( implicit model: R )
+    extends PromotedPrimitiveValidator[ Long, java.lang.Long, R ]( v )
+  implicit class PromoteFloatValidator[ R <: ResultModel ]( v: Validator[ Float, R#Constraint ] )( implicit model: R )
+    extends PromotedPrimitiveValidator[ Float, java.lang.Float, R ]( v )
+  implicit class PromoteDoubleValidator[ R <: ResultModel ]( v: Validator[ Double, R#Constraint ] )( implicit model: R )
+    extends PromotedPrimitiveValidator[ Double, java.lang.Double, R ]( v )
+  implicit class PromoteBooleanValidator[ R <: ResultModel ]( v: Validator[ Boolean, R#Constraint ] )( implicit model: R )
+    extends PromotedPrimitiveValidator[ Boolean, java.lang.Boolean, R ]( v )
 }

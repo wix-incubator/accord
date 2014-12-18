@@ -29,7 +29,7 @@ package com.wix.accord
   *                methods in [[com.wix.accord.ViolationBuilder]] can be used to simplify this task.
   * @tparam T The object type this validator operates on.
   */
-class BaseValidator[ T ]( val test: T => Boolean, val failure: T => Failure ) extends Validator [ T ] {
+class BaseValidator[ T, C ]( val test: T => Boolean, val failure: T => Failure[ C ] ) extends Validator[ T, C ] {
   def apply( value: T ): Result =
     if ( test( value ) ) Success else failure( value )
 }

@@ -16,17 +16,19 @@
 
 package com.wix.accord.scalatest
 
-import org.scalatest.{WordSpec, Matchers}
-import com.wix.accord._
-import com.wix.accord.GroupViolation
-import com.wix.accord.RuleViolation
-import com.wix.accord.Failure
+import org.scalatest.{Matchers, WordSpec}
 
 class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
 
+  val resultModel = new com.wix.accord.ResultModel {
+    type Constraint = String
+    def nullConstraint = ???
+  }
+  import resultModel._
+
   "RuleViolationMatcher" should {
 
-    val sampleViolation = RuleViolation( "value", "constraint", Some( "description" ) )
+    val sampleViolation = new RuleViolation( "value", "constraint", Some( "description" ) )
 
     "correctly match a rule violation based on value" in {
       val matchRule = RuleViolationMatcher( value = "value" )
@@ -51,8 +53,8 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
 
   "GroupViolationMatcher" should {
 
-    val sampleRule = RuleViolation( "value", "constraint", Some( "description" ) )
-    val sampleGroup = GroupViolation( value = "group", constraint = "violation", description = Some( "ftw" ), children = Set( sampleRule ) )
+    val sampleRule = new RuleViolation( "value", "constraint", Some( "description" ) )
+    val sampleGroup = new GroupViolation( value = "group", constraint = "violation", description = Some( "ftw" ), children = Set( sampleRule ) )
 
     "correctly match a group violation based on value" in {
       val matchRule = GroupViolationMatcher( value = "group" )
@@ -107,7 +109,7 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
 
   "failWith matcher" should {
 
-    val result: Result = Failure( Set( RuleViolation( "value", "constraint", Some( "description" ) ) ) )
+    val result = Failure( Set[ Violation ]( new RuleViolation( "value", "constraint", Some( "description" ) ) ) )
 
     "succeed if a validation rule matches successfully" in {
       result should failWith( "description" -> "constraint" )
@@ -125,7 +127,7 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
     }
 
     "fail if matching a Failure" in {
-      Failure( Set.empty ) shouldNot be( aSuccess )
+      Failure( Set.empty[ Violation ] ) shouldNot be( aSuccess )
     }
   }
 
@@ -136,7 +138,7 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
     }
 
     "succeed if matching a Failure" in {
-      Failure( Set.empty ) should be( aFailure )
+      Failure( Set.empty[ Violation ] ) should be( aFailure )
     }
   }
 }

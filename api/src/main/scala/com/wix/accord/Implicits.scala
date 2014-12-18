@@ -22,12 +22,12 @@ package com.wix.accord
   * no differences in implementation or execution.
   */
 object Implicits {
-  implicit class ExtendObjectForValidation[ T : Validator ]( x: T ) {
+  implicit class ExtendObjectForValidation[ T, C ]( x: T )( implicit validator: Validator[ T, C ] ) {
     /** Executes the validation rule for this instance.
       *
       * @return A [[com.wix.accord.Result]] indicating whether or not validation
       *         was successful.
       */
-    def validate: Result = implicitly[ Validator[ T ] ].apply( x )
+    def validate: Result[ C ] = validator apply x
   }
 }

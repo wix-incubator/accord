@@ -17,11 +17,11 @@
 package com.wix.accord
 
 /** A base trait for all violation types. */ 
-trait Violation {
+trait Violation[ +C ] {
   /** The actual runtime value of the object under validation. */
   def value: Any
   /** A textual description of the constraint being violated (for example, "must not be empty"). */
-  def constraint: String
+  def constraint: C
   /** The textual description of the object under validation (this is the expression that, when evaluated at
     * runtime, produces the value in [[com.wix.accord.Violation.value]]). This is normally filled in
     * by the validation transform macro, but can also be explicitly provided via the DSL.
@@ -34,7 +34,7 @@ trait Violation {
     * @param rewrite The rewritten description.
     * @return A modified copy of this violation with the new description in place.
     */
-  def withDescription( rewrite: String ): Violation
+  def withDescription( rewrite: String ): Violation[ C ]
 }
 
 /** Describes the violation of a validation rule or constraint.
@@ -43,7 +43,7 @@ trait Violation {
   * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
   * @param description The textual description of the object under validation.
   */
-case class RuleViolation( value: Any, constraint: String, description: Option[ String ] ) extends Violation {
+case class RuleViolation[ C ]( value: Any, constraint: C, description: Option[ String ] ) extends Violation[ C ] {
   def withDescription( rewrite: String ) = this.copy( description = Some( rewrite ) )
 }
 
@@ -55,44 +55,53 @@ case class RuleViolation( value: Any, constraint: String, description: Option[ S
   * @param description The textual description of the object under validation.
   * @param children The set of violations contained within the group.
   */
-case class GroupViolation( value: Any, constraint: String, description: Option[ String ], children: Set[ Violation ] )
-  extends Violation {
+case class GroupViolation[ C ]( value: Any, constraint: C, description: Option[ String ], children: Set[ Violation[ C ] ] )
+  extends Violation[ C ] {
   def withDescription( rewrite: String ) = this.copy( description = Some( rewrite ) )
 }
 
 /** A base trait for validation results.
   * @see [[com.wix.accord.Success]], [[com.wix.accord.Failure]]
   */
-sealed trait Result {
-  def and( other: Result ): Result
-  def or( other: Result ): Result
+sealed trait Result[ +C ] {
+  def and[ C2 >: C ]( other: Result[ C2 ] ): Result[ C2 ]
+  def or[ C2 >: C ]( other: Result[ C2 ] ): Result[ C2 ]
 
   /** Rewrites the description for all violations, if applicable.
     *
     * @param rewrite The rewritten description.
     * @return A modified copy of this result with the new description in place.
     */
-  def withDescription( rewrite: String ): Result
+  def withDescription( rewrite: String ): Result[ C ]
 }
 
 /** An object representing a successful validation result. */
-case object Success extends Result {
-  def and( other: Result ) = other
-  def or( other: Result ) = this
+case object Success extends Result[ Nothing ] {
+  def and[ C2 ]( other: Result[ C2 ] ): Result[ C2 ] = other
+  def or[ C2 ]( other: Result[ C2 ] ): Result[ C2 ] = this
   def withDescription( rewrite: String ) = this
 }
 
 /** An object representing a failed validation result.
   * @param violations The violations that caused the validation to fail.
   */
-case class Failure( violations: Set[ Violation ] ) extends Result {
-  def and( other: Result ) = other match {
-    case Success => this
-    case Failure( vother ) => Failure( violations ++ vother )
-  }
-  def or( other: Result ) = other match {
-    case Success => other
-    case Failure(_) => this
-  }
-  def withDescription( rewrite: String ) = Failure( violations map { _ withDescription rewrite } )
+case class Failure[ C ]( violations: Set[ Violation[ C ] ] ) extends Result[ C ] {
+  def and[ C2 >: C ]( other: Result[ C2 ] ): Result[ C2 ] =
+    other match {
+      case Success => this
+      case Failure( vother ) =>
+        // Not entirely sure why the ascription on the next line is needed, but the typer spits out
+        // Set[Violation[Any]] otherwise...
+        val s = ( ( vother: Iterable[ Violation[ C2 ] ] ) ++ violations.toIterable ).toSet
+        Failure( s )
+    }
+
+  def or[ C2 >: C ]( other: Result[ C2 ] ): Result[ C2 ] =
+    other match {
+      case Success => other
+      case Failure(_) => this
+    }
+
+  def withDescription( rewrite: String ): Result[ C ] =
+    Failure( violations map { _ withDescription rewrite } )
 }
