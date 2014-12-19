@@ -16,14 +16,15 @@
 
 package com.wix.accord.dsl
 
-import com.sun.xml.internal.ws.developer.MemberSubmissionAddressing.Validation
-import com.wix.accord._
+import com.wix.accord.{Domain, Validation, Results}
 import com.wix.accord.dsl.CollectionOps.HasSize
 
 // TODO ScalaDocs
 
-trait Aggregates {
-  self: Validation with Results =>
+abstract sealed class DslContext[ Inner, Outer ]( implicit val domain: Validation with Results ) {
+  import domain._
+
+  protected def transform: Validator[ Inner ] => Validator[ Outer ]
 
   private def aggregate[ Coll, Element ]( validator: Validator[ Element ], aggregator: Traversable[ Result ] => Result )
                                         ( implicit ev: Coll => Traversable[ Element ] ): Validator[ Coll ] =
@@ -34,12 +35,6 @@ trait Aggregates {
   protected def all[ Coll, Element ]( validator: Validator[ Element ] )
                                     ( implicit ev: Coll => Traversable[ Element ] ): Validator[ Coll ] =
     aggregate( validator, r => ( r fold Success )( _ and _ ) )
-}
-
-trait DslContext[ Inner, Outer ] extends Aggregates {
-  self: Validation with Results =>
-
-  protected def transform: Validator[ Inner ] => Validator[ Outer ]
 
   def is    ( validator: Validator[ Inner ] ): Validator[ Outer ] = transform apply validator
   def should( validator: Validator[ Inner ] ): Validator[ Outer ] = transform apply validator
@@ -53,7 +48,9 @@ trait DslContext[ Inner, Outer ] extends Aggregates {
     */
   def each[ Element ]( implicit ev: Inner => Traversable[ Element ] ) =
     new DslContext[ Element, Outer ] {
-      protected override def transform = self.transform compose all[ Inner, Element ]
+      private val innerToOuter = DslContext.this.transform.asInstanceOf[ domain.Validator[ Inner ] => domain.Validator[ Outer ] ]
+      private val elementToInner = all[ Inner, Element ] _
+      protected override def transform = elementToInner andThen innerToOuter
     }
 
   trait SizeContext {
@@ -63,16 +60,15 @@ trait DslContext[ Inner, Outer ] extends Aggregates {
     }
   }
 
-  class CollectionDslContext( protected val transform: Validator[ Inner ] => Validator[ Outer ] )
-    extends SizeContext
+  object CollectionDslContext extends /*DslContext[ Inner, Outer ] with*/ SizeContext
 
-
-  private val collContext = new DslContext[ Inner, Outer ] with SizeContext { def transform = self.transform }
-  def has: CollectionDslContext = collContext
-  def have: CollectionDslContext = collContext
+  def has = CollectionDslContext
+  def have = CollectionDslContext
 }
 
 trait SimpleDslContext[ U ] extends DslContext[ U, U ] {
+  self: Validation with Results =>
+
   override def transform = identity
 }
 

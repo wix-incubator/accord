@@ -16,8 +16,9 @@
 
 package com.wix.accord.dsl
 
-import com.wix.accord.Validator
-import com.wix.accord.combinators._
+import com.wix.accord.Validation
+import com.wix.accord.combinators.OrderingCombinators
+
 import scala.collection.immutable.NumericRange
 
 /** Provides a DSL for objects implementing [[scala.math.Ordering]].
@@ -26,6 +27,8 @@ import scala.collection.immutable.NumericRange
   * implicits are defined in the Ordering companion and would therefore not be imported by default at the call site.
   */
 trait OrderingOps {
+  self: OrderingCombinators with Validation =>
+
   protected def snippet: String = "got"
 
   /** Generates a validator that succeeds only if the provided value is greater than the specified bound. */
@@ -41,7 +44,7 @@ trait OrderingOps {
   def <=[ T : Ordering ]( other: T ) = new LesserThanOrEqual( other, snippet )
 
   /** Generates a validator that succeeds if the provided value is exactly equal to the specified value. */
-  def ==[ T : Ordering ]( other: T ) = new EqualTo( other, snippet )
+  def ==[ T : Ordering ]( other: T ) = new EquivalentTo( other, snippet )
 
   /** Generates a validator that succeeds if the provided value is between (inclusive) the specified bounds.
     * The method `exclusive` is provided to specify an exclusive upper bound.
