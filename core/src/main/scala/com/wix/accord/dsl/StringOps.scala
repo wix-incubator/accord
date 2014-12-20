@@ -16,15 +16,14 @@
 
 package com.wix.accord.dsl
 
-import com.wix.accord.Validation
-import com.wix.accord.combinators.StringCombinators
-
-import scala.util.matching.Regex
 import java.util.regex.Pattern
+import com.wix.accord.Domain
+import scala.util.matching.Regex
 
 /** Provides a DSL for string validators. */
 trait StringOps {
-  self: StringCombinators with Validation =>
+  protected implicit val domain: Domain
+  import domain._
 
   /** Specifies a validator that operates on strings and succeeds only if the validation expression starts with
     * the specified prefix.

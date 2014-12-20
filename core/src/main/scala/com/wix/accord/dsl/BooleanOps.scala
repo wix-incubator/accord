@@ -16,14 +16,14 @@
 
 package com.wix.accord.dsl
 
-import com.wix.accord.combinators.{GeneralPurposeCombinators, BooleanCombinators}
-import com.wix.accord.{Results, Validation, Domain, Validator}
+import com.wix.accord.Domain
 
 /** Provides a DSL for booleans. */
 trait BooleanOps {
-  self: Validation with BooleanCombinators with GeneralPurposeCombinators =>
+  protected implicit val domain: Domain
+  import domain._
 
-  import scala.language.implicitConversions
+import scala.language.implicitConversions
 
   /** An implicit conversion from boolean to a respective `IsTrue`/`IsFalse` instance; this enables syntax
     * such as `customer.emailOptIn is true`.

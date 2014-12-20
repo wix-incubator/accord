@@ -1,12 +1,13 @@
 package com.wix.accord
 
-import com.wix.accord.combinators.{CombinatorConstraints, Combinators}
+import com.wix.accord.combinators.Combinators
 
 trait Domain
   extends Validation
   with Constraints
   with Results
-  with Combinators {
+  with Combinators
+  with dsl.DSL {
 
-  implicit def accordDomain: Domain = this
+  implicit val domain: Domain = this
 }

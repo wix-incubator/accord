@@ -5,8 +5,8 @@ package com.wix.accord
  */
 trait Constraints {
   type Constraint
-  def nullFailureConstraint: Constraint
-  def nullFailureConstraintNeg: Constraint
+  protected def nullFailureConstraint: Constraint
+  protected def nullFailureConstraintNeg: Constraint
 }
 
 trait ConstraintBuilders {

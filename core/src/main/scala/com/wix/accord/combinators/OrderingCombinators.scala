@@ -22,7 +22,7 @@ trait OrderingCombinatorConstraints extends ConstraintBuilders {
   self: Constraints =>
 
   import scala.language.implicitConversions
-  protected final case class Bound[ T ]( prefix: String, value: T, bound: T )
+  protected case class Bound[ T ]( prefix: String, value: T, bound: T )
   implicit def elevateTupleToBound[ T ]( t: ( String, T, T ) ): Bound[ T ] = Bound( t._1, t._2, t._3 )
   protected type BoundConstraint[ T ] = ConstraintBuilder[ Bound[ T ] ]
 

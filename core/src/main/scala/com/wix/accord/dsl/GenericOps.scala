@@ -16,12 +16,12 @@
 
 package com.wix.accord.dsl
 
-import com.wix.accord.Validation
-import com.wix.accord.combinators.GeneralPurposeCombinators
+import com.wix.accord.Domain
 
 /** Provides a DSL for untyped validators. */
 trait GenericOps {
-  self: Validation with GeneralPurposeCombinators =>
+  implicit protected val domain: Domain
+  import domain._
 
   /** Delegates validation to a pre-defined validation rule, which is encoded as an implicit
     * [[com.wix.accord.Validator]] in scope. Enables composition of validation rules, as in:

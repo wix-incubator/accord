@@ -16,12 +16,13 @@
 
 package com.wix.accord.dsl
 
-import com.wix.accord.{Domain, Validation, Results}
 import com.wix.accord.dsl.CollectionOps.HasSize
+import com.wix.accord.{Domain, Results, Validation}
 
 // TODO ScalaDocs
 
-abstract sealed class DslContext[ Inner, Outer ]( implicit val domain: Validation with Results ) {
+trait DslContext[ Inner, Outer ] {
+  implicit protected val domain: Domain
   import domain._
 
   protected def transform: Validator[ Inner ] => Validator[ Outer ]
@@ -48,6 +49,7 @@ abstract sealed class DslContext[ Inner, Outer ]( implicit val domain: Validatio
     */
   def each[ Element ]( implicit ev: Inner => Traversable[ Element ] ) =
     new DslContext[ Element, Outer ] {
+      implicit protected val domain: Domain = DslContext.this.domain
       private val innerToOuter = DslContext.this.transform.asInstanceOf[ domain.Validator[ Inner ] => domain.Validator[ Outer ] ]
       private val elementToInner = all[ Inner, Element ] _
       protected override def transform = elementToInner andThen innerToOuter
@@ -67,8 +69,5 @@ abstract sealed class DslContext[ Inner, Outer ]( implicit val domain: Validatio
 }
 
 trait SimpleDslContext[ U ] extends DslContext[ U, U ] {
-  self: Validation with Results =>
-
   override def transform = identity
 }
-

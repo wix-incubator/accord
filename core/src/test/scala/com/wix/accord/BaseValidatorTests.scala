@@ -18,10 +18,12 @@ package com.wix.accord
 
 import org.scalatest.{LoneElement, Matchers, WordSpec}
 
-class BaseValidatorTests extends WordSpec with Matchers with LoneElement with ViolationBuilder {
-  "BaseValidator.report" should {
+class BaseValidatorTests extends WordSpec with Matchers with LoneElement with BaseValidators with TestDomain {
 
-    val validator = new NullSafeValidator[ String ]( _ startsWith "ok", _ -> "no good" )
+  "BaseValidator.report" should {
+    case object NoGood
+
+    val validator = new NullSafeValidator[ String ]( _ startsWith "ok", _ -> NoGood )
     "return a Failure with a default violation on nulls" in {
       val result = validator.apply( null )
       result shouldBe a[ Failure ]
