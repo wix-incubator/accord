@@ -39,9 +39,9 @@ import scala.language.experimental.macros
 trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] with PatternHelper[ C ] {
   import context.universe._
 
-  protected val domain: C#Expr[ Domain ]
-  private val resolvedDomain = context.eval( domain.asInstanceOf[ context.Expr[ Domain ] ] )
-  import resolvedDomain._
+//  protected val domain: C#Expr[ Domain ]
+//  private val resolvedDomain = context.eval( domain.asInstanceOf[ context.Expr[ Domain ] ] )
+//  import resolvedDomain._
 
   /** The function prototype; specifically, the single function parameter's definition as a `ValDef`. Must be
     * provided by the inheritor.
@@ -73,11 +73,11 @@ trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] with PatternH
     * description tree.
     */
   private object ExplicitDescriptor {
-    private val descriptorTerm = typeOf[ Descriptor[_] ].typeSymbol.name.toTermName
+    private val descriptorTerm = tq"${context.internal.enclosingOwner}.Descriptor"
     private val asTerm = termName( "as" )
 
     def unapply( ouv: Tree ): Option[ Tree ] = ouv match {
-      case Apply( Select( Apply( TypeApply( Select( _, `descriptorTerm` ), _ ), _ ), `asTerm` ), literal :: Nil ) =>
+      case Apply( Select( Apply( TypeApply( `descriptorTerm`, _ ), _ ), `asTerm` ), literal :: Nil ) =>
         Some( literal )
       case _ => None
     }

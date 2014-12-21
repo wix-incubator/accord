@@ -52,10 +52,10 @@ trait DSL
      with CollectionOps
      with GenericOps
      with OrderingOps
-     with BooleanOps {
-
-  protected implicit val domain: Domain
-  import domain._
+     with BooleanOps
+     with Context {
+  
+  self: Domain =>
 
   /** Takes a code block and rewrites it into a validation chain (see description in [[com.wix.accord.dsl]].
     *
@@ -64,7 +64,7 @@ trait DSL
     * @return The validation code block rewritten as a [[com.wix.accord.Validation#Validator]] for the
     *         specified type `T`.
     */
-  def validator[ T ]( v: T => Unit )( implicit domain: Domain ): domain.Validator[ T ] =
+  def validator[ T ]( v: T => Unit ): Validator[ T ] =
     macro ValidationTransform.apply[ T ]
 
   /** Wraps expressions under validation with a specialized scope (this is later used during the macro transform).

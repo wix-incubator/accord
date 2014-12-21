@@ -16,12 +16,12 @@
 
 package com.wix.accord.dsl
 
-import com.wix.accord.Domain
+import com.wix.accord.combinators.BooleanCombinators
+import com.wix.accord.{Validation, Domain}
 
 /** Provides a DSL for booleans. */
 trait BooleanOps {
-  protected implicit val domain: Domain
-  import domain._
+  self: Domain =>
 
   import scala.language.implicitConversions
 

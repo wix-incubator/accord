@@ -22,8 +22,7 @@ import scala.util.matching.Regex
 
 /** Provides a DSL for string validators. */
 trait StringOps {
-  protected implicit val domain: Domain
-  import domain._
+  self: Domain =>
 
   /** Specifies a validator that operates on strings and succeeds only if the validation expression starts with
     * the specified prefix.

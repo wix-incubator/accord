@@ -2,6 +2,7 @@ package com.wix.accord.simple
 
 import java.util.regex.Pattern
 
+import com.wix.accord.dsl.OrderingOps
 import com.wix.accord.{Constraints, Domain}
 import com.wix.accord.combinators._
 
@@ -54,6 +55,11 @@ sealed trait SimpleConstraints
   protected def fullyMatchRegexConstraint( pattern: Pattern ) = s"must fully match regular expression '$pattern'"
 }
 
-trait SimpleDomain extends Domain with SimpleConstraints
+trait SimpleDomain extends Domain with SimpleConstraints {
+  protected def newOrderingOps( snippet: String ) = {
+    val s = snippet   // Stable identifier etc.
+    new OrderingOps with SimpleDomain { override def snippet = s }
+  }
+}
 
 package object simple extends SimpleDomain

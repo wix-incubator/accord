@@ -41,9 +41,9 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
   import context.universe._
   import context.abort
 
-  protected val domain: C#Expr[ Domain ]
-  private val resolvedDomain = context.eval( domain.asInstanceOf[ context.Expr[ Domain ] ] )
-  import resolvedDomain._
+//  protected val domain: C#Expr[ Domain ]
+//  private val resolvedDomain = context.eval( domain.asInstanceOf[ context.Expr[ Domain ] ] )
+//  import resolvedDomain._
 
   sealed trait ValidatorApplication
   protected case class BooleanExpression( expr: Tree ) extends ValidatorApplication
@@ -57,8 +57,8 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
     * and yields the Object Under Validation (OUV).
     */
   object ValidatorApplication {
-    private val contextualizerTerm = typeOf[ Contextualizer[_] ].typeSymbol.name.toTermName
-    private val validatorType = typeOf[ Validator[_] ]
+    private val contextualizerTerm = tq"${context.internal.enclosingOwner}.Contextualizer"
+    private val validatorType = context.typecheck( tq"${context.internal.enclosingOwner}.Validator" ).tpe
 
     private def extractObjectUnderValidation( t: Tree ): List[ Tree ] =
       collectFromPattern( t ) {
@@ -114,7 +114,7 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
   }
 }
 
-private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ], val domain: C#Expr[ Domain ] )
+private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] )
   extends ExpressionFinder[ C ] with MacroLogging[ C ] {
 
   import context.universe._
@@ -139,7 +139,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
   def rewriteOne( rule: ValidationRule ): Tree = {
     val rewrite =
       q"""
-          new ${domain.asInstanceOf[ context.Expr[ Domain ]]}.Validator[ ${weakTypeOf[ T ] } ] {
+          new ${context.internal.enclosingOwner}.Validator[ ${weakTypeOf[ T ] } ] {
             def apply( $prototype ) = {
               val validation = ${rule.validation}
               validation( ${rule.ouv} ) withDescription ${rule.description}
@@ -156,9 +156,6 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     rewrite
   }
 
-  private val resolvedDomain = context.eval( domain.asInstanceOf[ context.Expr[ Domain ] ] )
-  import resolvedDomain._
-
   /** Lifts a multiple-clause boolean expression to a [[com.wix.accord.Validator]] of `T`.
     *
     * Such an expression occurs via [[com.wix.accord.dsl.ValidatorBooleanOps]] of some type `U`, where `U` is the
@@ -173,11 +170,11 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     * @return A lifted tree per the description above.
     */
   def liftBooleanOps( tree: Tree ): Tree = {
-    val vboTerm = typeOf[ ValidatorBooleanOps[_] ].typeSymbol.name.toTermName
+    val VboTerm = tq"${context.internal.enclosingOwner}.ValidatorBooleanOps"
     val typeTreeT = TypeTree( weakTypeOf[ T ] )
 
     transformByPattern( tree ) {
-      case TypeApply( Select( Apply( TypeApply( s @ Select( _, `vboTerm` ), _ :: Nil ), e :: Nil ), name ), _ :: Nil ) =>
+      case TypeApply( Select( Apply( TypeApply( VboTerm, _ :: Nil ), e :: Nil ), name ), _ :: Nil ) =>
         val lhs = liftBooleanOps( e )
         val tt = weakTypeOf[ T ]
         val combinator = name.toTermName
@@ -204,7 +201,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
   def transformed: Tree = { //Expr[ TransformedValidator[ T ] ] = {
     val validationRules =
       collectFromPattern( vimpl )( rewriteValidationRules orElse processBooleanExpressions )
-    val result = q"new ${domain.asInstanceOf[ context.Expr[ Domain ] ]}.And[ ${weakTypeOf[ T ]} ]( ..$validationRules )"
+    val result = q"new ${context.internal.enclosingOwner}.And[ ${weakTypeOf[ T ]} ]( ..$validationRules )"
 //    val result = context.Expr[ TransformedValidator[ T ] ](
 //      q"new com.wix.accord.transform.ValidationTransform.TransformedValidator( ..$validationRules )" )
 
@@ -223,9 +220,8 @@ object ValidationTransform {
 //    override def compose[ U ]( g: U => T ): domain.Validator[ U ] = macro ValidationTransform.compose[ U, T ]
 //  }
 
-  def apply[ T : c.WeakTypeTag ]( c: Context )
-                                ( v: c.Expr[ T => Unit ] )( domain: c.Expr[ Domain ] ): c.Tree =
-    new ValidationTransform[ c.type, T ]( c, v, domain ).transformed
+  def apply[ T : c.WeakTypeTag ]( c: Context )( v: c.Expr[ T => Unit ] ): c.Tree =
+    new ValidationTransform[ c.type, T ]( c, v ).transformed
 
 //  def compose[ U : c.WeakTypeTag, T : c.WeakTypeTag ]( c: Context )( g: c.Expr[ U => T ] )( implicit domain: c.Expr[ Domain ] ): c.Expr[ Validator[ U ] ] = {
 //    val description = ExpressionDescriber.apply( c )( g )

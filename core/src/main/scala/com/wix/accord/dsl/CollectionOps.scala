@@ -25,8 +25,7 @@ import scala.language.implicitConversions
 
 /** Provides a DSL for collection-like objects. Works in conjunction with [[com.wix.accord.dsl.DslContext]]. */
 trait CollectionOps {
-  protected implicit val domain: Domain
-  import domain._
+  self: Domain =>
 
   /** Specifies a validator that succeeds on empty instances; the object under validation must implement
     * `def isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
@@ -61,10 +60,7 @@ trait CollectionOps {
     * `def size: Int`, see [[com.wix.accord.dsl.CollectionOps.HasSize]]). Enables syntax such as
     * `c.students has size > 0`.
     */
-  val size: OrderingOps = new OrderingOps {
-    protected implicit val domain = CollectionOps.this.domain
-    override def snippet = "has size"
-  }
+  val size: OrderingOps = newOrderingOps( "has size" )
 }
 
 object CollectionOps {

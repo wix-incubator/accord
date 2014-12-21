@@ -20,8 +20,7 @@ import com.wix.accord.Domain
 
 /** Provides a DSL for untyped validators. */
 trait GenericOps {
-  implicit protected val domain: Domain
-  import domain._
+  self: Domain =>
 
   /** Delegates validation to a pre-defined validation rule, which is encoded as an implicit
     * [[com.wix.accord.Validator]] in scope. Enables composition of validation rules, as in:

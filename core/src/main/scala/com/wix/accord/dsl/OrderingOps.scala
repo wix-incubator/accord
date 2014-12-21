@@ -16,7 +16,8 @@
 
 package com.wix.accord.dsl
 
-import com.wix.accord.Domain
+import com.wix.accord.{Constraints, Validation, Domain}
+import com.wix.accord.combinators.OrderingCombinators
 
 import scala.collection.immutable.NumericRange
 
@@ -26,8 +27,7 @@ import scala.collection.immutable.NumericRange
   * implicits are defined in the Ordering companion and would therefore not be imported by default at the call site.
   */
 trait OrderingOps {
-  protected implicit val domain: Domain
-  import domain._
+  self: Domain =>
 
   protected def snippet: String = "got"
 
