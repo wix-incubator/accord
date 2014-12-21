@@ -1,51 +1,60 @@
 package com.wix.accord
 
+import java.util.regex.Pattern
+
 /**
  * Created by tomer on 12/20/14.
  */
 trait TestDomain extends Domain {
-  type Constraint = AnyRef
+  trait Constraint
 
-  case object OrGroup
-  protected def orGroupConstraint = OrGroup
-  case object Invalid
+  object Constraints {
+    import java.util.regex.Pattern
+
+    case object NoMatch extends Constraint
+    case object Invalid extends Constraint
+    case class NotEquals[ T ]( to: T ) extends Constraint
+    case class Equals[ T ]( to: T ) extends Constraint
+    case class Between[ T ]( lower: T, upper: T ) extends Constraint
+    case class GreaterThanEqual[ T ]( bound: T ) extends Constraint
+    case class EquivalentTo[ T ]( bound: T ) extends Constraint
+    case class LesserThanEqual[ T ] ( bound: T ) extends Constraint
+    case class GreaterThan[ T ] ( bound: T ) extends Constraint
+    case class LesserThan[ T ] ( bound: T ) extends Constraint
+    case class BetweenExclusively[ T ]( lower: T, upper: T ) extends Constraint
+    case class StartsWith( prefix: String ) extends Constraint
+    case class EndsWith( suffix: String ) extends Constraint
+    case class MatchRegex( pattern: Pattern ) extends Constraint
+    case class FullyMatchRegex( pattern: Pattern ) extends Constraint
+    case object IsFalse extends Constraint
+    case object IsTrue extends Constraint
+    case object Empty extends Constraint
+    case object NonEmpty extends Constraint
+    case object IsNull extends Constraint
+    case object IsNotNull extends Constraint
+  }
+
+  import Constraints._
+  protected def noMatchingClauseConstraint = NoMatch
   protected def invalidGroupConstraint = Invalid
-  case object NotEquals
-  protected def notEqualsConstraint[ T ] = _ => NotEquals
-  case object Equals
-  protected def equalsConstraint[ T ] = _ => Equals
-  case object Between
-  protected def betweenConstraint[ T ] = _ => Between
-  case object GreaterThanEqual
-  protected def greaterThanEqualConstraint[ T ] = _ => GreaterThanEqual
-  case object EquivalentTo
-  protected def equivalentToConstraint[ T ] = _ => EquivalentTo
-  case object LesserThanEqual
-  protected def lesserThanEqualConstraint[ T ] = _ => LesserThanEqual
-  case object GreaterThan
-  protected def greaterThanConstraint[ T ] = _ => GreaterThan
-  case object LesserThan
-  protected def lesserThanConstraint[ T ] = _ => LesserThan
-  case object BetweenExclusively
-  protected def betweenExclusivelyConstraint[ T ] = _ => BetweenExclusively
-  case object StartsWith
-  protected def startsWithConstraint = _ => StartsWith
-  case object MatchRegex
-  protected def matchRegexConstraint = _ => MatchRegex
-  case object EndsWith
-  protected def endsWithConstraint = _ => EndsWith
-  case object FullyMatchRegex
-  protected def fullyMatchRegexConstraint = _ => FullyMatchRegex
-  case object IsFalse
+  protected def startsWithConstraint( prefix: String ) = StartsWith( prefix )
+  protected def matchRegexConstraint( pattern: Pattern ) = MatchRegex( pattern )
+  protected def endsWithConstraint( suffix: String ) = EndsWith( suffix )
+  protected def fullyMatchRegexConstraint( pattern: Pattern ) = FullyMatchRegex( pattern )
+  protected def betweenConstraint[ T ]( prefix: String, value: T, lower: T, upper: T ) = Between( lower, upper )
+  protected def greaterThanEqualConstraint[ T ]( prefix: String, value: T, bound: T ) = GreaterThanEqual( bound )
+  protected def equivalentToConstraint[ T ]( prefix: String, value: T, other: T ) = EquivalentTo( other )
+  protected def lesserThanEqualConstraint[ T ]( prefix: String, value: T, bound: T ) = LesserThanEqual( bound )
+  protected def greaterThanConstraint[ T ]( prefix: String, value: T, bound: T ) = GreaterThan( bound )
+  protected def lesserThanConstraint[ T ]( prefix: String, value: T, bound: T ) = LesserThan( bound )
+  protected def betweenExclusivelyConstraint[ T ]( prefix: String, value: T, lower: T, upper: T ) =
+    BetweenExclusively( lower, upper )
+  protected def notEqualsConstraint[ T ]( to: T ) = NotEquals( to )
+  protected def equalsConstraint[ T ]( to: T ) = Equals( to )
   protected def isFalseConstraint = IsFalse
-  case object IsTrue
   protected def isTrueConstraint = IsTrue
-  case object Empty
   protected def emptyConstraint = Empty
-  case object NonEmpty
   protected def nonEmptyConstraint = NonEmpty
-  case object NullFailure
-  protected def nullFailureConstraint = NullFailure
-  case object NullFailureNeg
-  protected def nullFailureConstraintNeg = NullFailureNeg
+  protected def isNullConstraint = IsNull
+  protected def notNullConstraint = IsNotNull
 }

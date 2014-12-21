@@ -23,8 +23,8 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
   implicit val domain =
     new Constraints with Results {
       type Constraint = String
-      def nullFailureConstraint = ???
-      def nullFailureConstraintNeg = ???
+      def isNullConstraint = ???
+      def notNullConstraint = ???
     }
   import domain._
 

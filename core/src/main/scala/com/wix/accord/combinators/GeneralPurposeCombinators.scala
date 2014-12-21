@@ -18,13 +18,13 @@ package com.wix.accord.combinators
 
 import com.wix.accord._
 
-trait GeneralPurposeCombinatorConstraints extends ConstraintBuilders {
+trait GeneralPurposeCombinatorConstraints {
   self: Constraints =>
 
-  protected def orGroupConstraint: Constraint                     // "doesn't meet any of the requirements"
-  protected def invalidGroupConstraint: Constraint                 // "is invalid"
-  protected def equalsConstraint[ T ]: ConstraintBuilder[ T ]     // s"does not equal $to"
-  protected def notEqualsConstraint[ T ]: ConstraintBuilder[ T ]  // s"equals $to"
+  protected def noMatchingClauseConstraint: Constraint
+  protected def invalidGroupConstraint: Constraint
+  protected def equalsConstraint[ T ]( to: T ): Constraint
+  protected def notEqualsConstraint[ T ]( to: T ): Constraint
 }
 
 /** Non type-specific combinators. */
@@ -49,7 +49,7 @@ trait GeneralPurposeCombinators extends BaseValidators with ResultBuilders {
     def apply( x: T ) = {
       val results = predicates.map { _ apply x }.toSet
       val failures = results.collect { case Failure( violations ) => violations }.flatten
-      result( results exists { _ == Success }, x -> orGroupConstraint -> failures )
+      result( results exists { _ == Success }, x -> noMatchingClauseConstraint -> failures )
     }
   }
 
@@ -72,7 +72,7 @@ trait GeneralPurposeCombinators extends BaseValidators with ResultBuilders {
   class IsNull extends BaseValidator[ AnyRef ]( _ == null, _ => nullFailure )
 
   /** A validator that succeeds only if the provided object is not `null`. */
-  class IsNotNull extends BaseValidator[ AnyRef ]( _ != null, _ -> nullFailureConstraintNeg )
+  class IsNotNull extends BaseValidator[ AnyRef ]( _ != null, _ -> notNullConstraint )
 
   /** A validator that succeeds only if the validated object is equal to the specified value. Respects nulls
     * and delegates equality checks to [[java.lang.Object.equals]]. */

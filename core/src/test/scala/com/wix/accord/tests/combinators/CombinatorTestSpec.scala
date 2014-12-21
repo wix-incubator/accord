@@ -20,7 +20,8 @@ import com.wix.accord.TestDomain
 import org.scalatest.{WordSpec, Matchers}
 import com.wix.accord.scalatest.ResultMatchers
 
-trait CombinatorTestSpec extends WordSpec with Matchers with ResultMatchers with TestDomain {
+trait CombinatorTestSpec extends WordSpec with ResultMatchers[ TestDomain ] with TestDomain with Matchers {
   import scala.language.implicitConversions
-  implicit def elevateSingletonToRuleViolationMatcher[ T <: Singleton ]( s: T ) = RuleViolationMatcher( constraint = s )
+  implicit def elevateConstraintToRuleViolationMatcher[ T <: Constraint ]( s: T ): RuleViolationMatcher =
+    RuleViolationMatcher( constraint = s )
 }

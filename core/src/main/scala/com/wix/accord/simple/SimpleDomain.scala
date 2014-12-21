@@ -1,5 +1,7 @@
 package com.wix.accord.simple
 
+import java.util.regex.Pattern
+
 import com.wix.accord.{Constraints, Domain}
 import com.wix.accord.combinators._
 
@@ -16,48 +18,40 @@ sealed trait SimpleConstraints
   with StringCombinatorConstraints
 {
   type Constraint = String
-  protected def nullFailureConstraint = "is a null"
-  protected def nullFailureConstraintNeg = "is not a null"
+  protected def isNullConstraint = "is a null"
+  protected def notNullConstraint = "is not a null"
 
   protected def isFalseConstraint = "must be true"
   protected def isTrueConstraint = "must be false"
 
-  protected def orGroupConstraint = "doesn't meet any of the requirements"
+  protected def noMatchingClauseConstraint = "doesn't meet any of the requirements"
   protected def invalidGroupConstraint = "is invalid"
-  protected def equalsConstraint[ T ] = to => s"does not equal $to"
-  protected def notEqualsConstraint[ T ] = to => s"equals $to"
+  protected def equalsConstraint[ T ]( to: T ) = s"does not equal $to"
+  protected def notEqualsConstraint[ T ]( to: T ) = s"equals $to"
 
   protected def emptyConstraint = "must not be empty"
   protected def nonEmptyConstraint = "must be empty"
 
-  protected def betweenConstraint[ T ] = {
-    case ( prefix, value, lowerBound, upperBound ) =>
-      s"$prefix $value, expected between $lowerBound and $upperBound"
-  }
-  protected def greaterThanEqualConstraint[ T ] = {
-    case Bound( prefix, value, bound ) => s"$prefix $value, expected $bound or more"
-  }
-  protected def equivalentToConstraint[ T ] = {
-    case Bound( prefix, value, other ) => s"$prefix $value, expected $other"
-  }
-  protected def greaterThanConstraint[ T ] = {
-    case Bound( prefix, value, bound ) => s"$prefix $value, expected more than $bound"
-  }
-  protected def lesserThanConstraint[ T ] = {
-    case Bound( prefix, value, bound ) => s"$prefix $value, expected less than $bound"
-  }
-  protected def lesserThanEqualConstraint[ T ] = {
-    case Bound( prefix, value, bound ) => s"$prefix $value, expected $bound or less"
-  }
-  protected def betweenExclusivelyConstraint[ T ] = {
-    case ( prefix, value, lowerBound, upperBound ) =>
-      s"$prefix $value, expected between $lowerBound and $upperBound (exclusively)"
-  }
+  protected def betweenConstraint[ T ]( prefix: String, value: T, lower: T, upper: T ) =
+    s"$prefix $value, expected between $lower and $upper"
+  protected def betweenExclusivelyConstraint[ T ]( prefix: String, value: T, lower: T, upper: T ) =
+    s"$prefix $value, expected between $lower and $upper (exclusively)"
 
-  protected def startsWithConstraint = prefix => s"must start with '$prefix'"
-  protected def endsWithConstraint = suffix => s"must end with '$suffix'"
-  protected def matchRegexConstraint = pattern => s"must match regular expression '$pattern'"
-  protected def fullyMatchRegexConstraint = pattern => s"must fully match regular expression '$pattern'"
+  protected def greaterThanConstraint[ T ]( prefix: String, value: T, bound: T ) =
+    s"$prefix $value, expected more than $bound"
+  protected def greaterThanEqualConstraint[ T ]( prefix: String, value: T, bound: T ) =
+    s"$prefix $value, expected $bound or more"
+  protected def lesserThanConstraint[ T ]( prefix: String, value: T, bound: T ) =
+    s"$prefix $value, expected less than $bound"
+  protected def lesserThanEqualConstraint[ T ]( prefix: String, value: T, bound: T ) =
+    s"$prefix $value, expected $bound or less"
+  protected def equivalentToConstraint[ T ]( prefix: String, value: T, other: T ) =
+    s"$prefix $value, expected $other"
+
+  protected def startsWithConstraint( prefix: String ) = s"must start with '$prefix'"
+  protected def matchRegexConstraint( pattern: Pattern ) = s"must match regular expression '$pattern'"
+  protected def endsWithConstraint( suffix: String ) = s"must end with '$suffix'"
+  protected def fullyMatchRegexConstraint( pattern: Pattern ) = s"must fully match regular expression '$pattern'"
 }
 
 trait SimpleDomain extends Domain with SimpleConstraints

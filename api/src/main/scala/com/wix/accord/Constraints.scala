@@ -5,18 +5,6 @@ package com.wix.accord
  */
 trait Constraints {
   type Constraint
-  protected def nullFailureConstraint: Constraint
-  protected def nullFailureConstraintNeg: Constraint
+  protected def isNullConstraint: Constraint
+  protected def notNullConstraint: Constraint
 }
-
-trait ConstraintBuilders {
-  self: Constraints =>
-
-  protected type ConstraintBuilder[ -T ] = T => Constraint
-
-  import scala.language.implicitConversions
-
-  implicit def elevateStaticConstraintToBuilder( constraint: Constraint ): ConstraintBuilder[ Any ] =
-    _ => constraint
-}
-

@@ -20,13 +20,13 @@ import java.util.regex.Pattern
 
 import com.wix.accord._
 
-trait StringCombinatorConstraints extends ConstraintBuilders {
+trait StringCombinatorConstraints {
   self: Constraints =>
   
-  protected def startsWithConstraint: ConstraintBuilder[ String ]       // s"must start with '$prefix'"
-  protected def endsWithConstraint: ConstraintBuilder[ String ]         // s"must end with '$suffix'"
-  protected def matchRegexConstraint: ConstraintBuilder[ Pattern ]      // s"must match regular expression '$pattern'"
-  protected def fullyMatchRegexConstraint: ConstraintBuilder[ Pattern ] // s"must fully match regular expression '$pattern'"
+  protected def startsWithConstraint( prefix: String ): Constraint
+  protected def endsWithConstraint( suffix: String ): Constraint
+  protected def matchRegexConstraint( pattern: Pattern ): Constraint
+  protected def fullyMatchRegexConstraint( pattern: Pattern ): Constraint
 }
 
 /** Combinators that operate specifically on strings. */

@@ -18,22 +18,16 @@ package com.wix.accord.combinators
 
 import com.wix.accord._
 
-trait OrderingCombinatorConstraints extends ConstraintBuilders {
+trait OrderingCombinatorConstraints {
   self: Constraints =>
 
-  import scala.language.implicitConversions
-  protected case class Bound[ T ]( prefix: String, value: T, bound: T )
-  implicit def elevateTupleToBound[ T ]( t: ( String, T, T ) ): Bound[ T ] = Bound( t._1, t._2, t._3 )
-  protected type BoundConstraint[ T ] = ConstraintBuilder[ Bound[ T ] ]
-
-  protected def greaterThanConstraint     [ T ]: BoundConstraint[ T ]  // s"$prefix $v, expected more than $bound"
-  protected def greaterThanEqualConstraint[ T ]: BoundConstraint[ T ]  // s"$prefix $v, expected $bound or more"
-  protected def lesserThanConstraint      [ T ]: BoundConstraint[ T ]  // s"$prefix $v, expected less than $bound"
-  protected def lesserThanEqualConstraint [ T ]: BoundConstraint[ T ]  // s"$prefix $v, expected $bound or less"
-  protected def equivalentToConstraint    [ T ]: BoundConstraint[ T ]  // s"$prefix $v, expected $other"
-
-  protected def betweenConstraint[ T ]: ConstraintBuilder[( String, T, T, T )]
-  protected def betweenExclusivelyConstraint[ T ]: ConstraintBuilder[( String, T, T, T )]  // s"$prefix $v, expected between $lowerBound and $upperBound (exclusively)"
+  protected def greaterThanConstraint[ T ]( prefix: String, value: T, bound: T ): Constraint
+  protected def greaterThanEqualConstraint[ T ]( prefix: String, value: T, bound: T ): Constraint
+  protected def lesserThanConstraint[ T ]( prefix: String, value: T, bound: T ): Constraint
+  protected def lesserThanEqualConstraint[ T ]( prefix: String, value: T, bound: T ): Constraint
+  protected def equivalentToConstraint[ T ]( prefix: String, value: T, other: T ): Constraint
+  protected def betweenConstraint[ T ]( prefix: String, value: T, lower: T, upper: T ): Constraint
+  protected def betweenExclusivelyConstraint[ T ]( prefix: String, value: T, lower: T, upper: T ): Constraint
 }
 
 /** Provides combinators over objects implementing [[scala.math.Ordering]].

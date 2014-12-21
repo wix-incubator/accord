@@ -16,8 +16,6 @@
 
 package com.wix.accord.tests.combinators
 
-import com.wix.accord.combinators.{Empty, NotEmpty}
-
 class CollectionCombinatorTests extends CombinatorTestSpec {
 
   "Empty combinator" should {
@@ -39,7 +37,7 @@ class CollectionCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation" in {
       val left = Some( "content" )
       val validator = new Empty[ Option[ String ] ]
-      validator( left ) should failWith( "must be empty" )
+      validator( left ) should failWith( Constraints.Empty )
     }
   }
 
@@ -62,7 +60,7 @@ class CollectionCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation" in {
       val left = None
       val validator = new NotEmpty[ Option[ String ] ]
-      validator( left ) should failWith( "must not be empty" )
+      validator( left ) should failWith( Constraints.NonEmpty )
     }
   }
 }

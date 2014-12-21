@@ -20,8 +20,11 @@ import com.wix.accord.scalatest.ResultMatchers
 import org.scalatest.{WordSpec, Matchers}
 import com.wix.accord._
 
-class BooleanOpsTests extends WordSpec with Matchers with ResultMatchers {
+object TestDomain extends TestDomain
+
+class BooleanOpsTests extends WordSpec with ResultMatchers[ TestDomain.type ] with Matchers {
   import BooleanOpsTests._
+  import TestDomain._
 
   "true" should {
     "succeed on true" in {
@@ -100,7 +103,7 @@ object BooleanOpsTests {
   case class BinaryTest( left: Boolean, right: Boolean )
   case class TrinaryTest( c1: Boolean, c2: Boolean, c3: Boolean )
 
-  import com.wix.accord.dsl._
+  import TestDomain._
   val      trueValidator = validator[ SimpleTest ] { _.f is true }
   val     falseValidator = validator[ SimpleTest ] { _.f is false }
   val       andValidator = validator[ BinaryTest ] { b => ( b.left is true ) and ( b.right is true ) }

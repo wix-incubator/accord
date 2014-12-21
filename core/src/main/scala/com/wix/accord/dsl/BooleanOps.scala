@@ -23,7 +23,7 @@ trait BooleanOps {
   protected implicit val domain: Domain
   import domain._
 
-import scala.language.implicitConversions
+  import scala.language.implicitConversions
 
   /** An implicit conversion from boolean to a respective `IsTrue`/`IsFalse` instance; this enables syntax
     * such as `customer.emailOptIn is true`.
@@ -39,5 +39,4 @@ import scala.language.implicitConversions
     def and[ U ]( other: Validator[ U ] ) = new And( validator, other ) // TODO shortcut multiple ANDs
     def or[ U ]( other: Validator[ U ] ) = new Or( validator, other )   // TODO shortcut multiple ORs
   }
-
 }

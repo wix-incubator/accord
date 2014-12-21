@@ -17,12 +17,13 @@
 package com.wix.accord.scalatest
 
 import com.wix.accord.{Constraints, Results}
-import org.scalatest.{WordSpec, Matchers}
+import org.scalatest.{Matchers, WordSpec}
 
 trait SimpleDomain extends Results with Constraints {
   type Constraint = String
-  def nullFailureConstraint = ???
-  def nullFailureConstraintNeg = ???
+  def isNullConstraint = ???
+  def notNullConstraint = ???
+  implicit val domain = this
 }
 
 class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers[ SimpleDomain ] with SimpleDomain {

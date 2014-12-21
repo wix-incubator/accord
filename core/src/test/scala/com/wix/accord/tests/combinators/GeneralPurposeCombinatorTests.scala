@@ -16,9 +16,6 @@
 
 package com.wix.accord.tests.combinators
 
-import com.wix.accord.combinators._
-import com.wix.accord.BaseValidator
-
 class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
 
   "And combinator with a two-clause rule" should {
@@ -30,13 +27,13 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
       validator( "okay" ) should be( aSuccess )
     }
     "render a correct rule violation when the first clause is not satisfied" in {
-      validator( "ok" ) should failWith( "must end with 'ay'" )
+      validator( "ok" ) should failWith( Constraints.EndsWith( "ay" ) )
     }
     "render a correct rule violation when the second clause is not satisfied" in {
-      validator( "gray" ) should failWith( "must start with 'ok'" )
+      validator( "gray" ) should failWith( Constraints.StartsWith( "ok" ) )
     }
     "render a correct rule violation when both clauses are not satisfied" in {
-      validator( "no" ) should failWith( "must start with 'ok'", "must end with 'ay'" )
+      validator( "no" ) should failWith( Constraints.EndsWith( "ay" ), Constraints.StartsWith( "ok" ) )
     }
   }
 
@@ -56,16 +53,17 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation when both clauses are not satisfied" in {
       validator( "no" ) should failWith( GroupViolationMatcher(
-        constraint = "doesn't meet any of the requirements",
-        violations = Set( "must start with 'ok'", "must end with 'ay'" )
+        constraint = Constraints.NoMatch,
+        violations = Set( Constraints.EndsWith( "ay" ), Constraints.StartsWith( "ok" ) )
       ) )
     }
   }
 
   "Fail combinator" should {
     "render a correct rule violation" in {
-      val validator = new Fail[ String ]( "message" )
-      validator( "whatever" ) should failWith( "message" )
+      object message extends Constraint
+      val validator = new Fail[ String ]( message )
+      validator( "whatever" ) should failWith( message )
     }
   }
 
@@ -83,7 +81,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new EqualTo[ String ]( "test" )
-      validator( "invalid" ) should failWith( "does not equal test" )
+      validator( "invalid" ) should failWith( Constraints.NotEquals( "test" ) )
     }
   }
 
@@ -95,7 +93,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new NotEqualTo[ String ]( "test" )
-      validator( "test" ) should failWith( "equals test" )
+      validator( "test" ) should failWith( Constraints.Equals( "test" ) )
     }
   }
 
@@ -106,7 +104,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new IsNull
-      validator( "test" ) should failWith( "is not a null" )
+      validator( "test" ) should failWith( Constraints.IsNotNull )
     }
   }
 
@@ -117,18 +115,18 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new IsNotNull
-      validator( null ) should failWith( "is a null" )
+      validator( null ) should failWith( Constraints.IsNull )
     }
   }
 
   "Valid validator" should {
     "be null-safe" in {
-      import com.wix.accord.ViolationBuilder._
+      case object message extends Constraint    // Safety not. Shouldn't really happen
       case class Test( f: String )
-      implicit val delegate = new BaseValidator[ Test ]( _.f == "anything", _ -> "just a safety net, shouldn't happen" )
+      implicit val delegate = new BaseValidator[ Test ]( _.f == "anything", _ -> message )
 
       val validator = new Valid[ Test ]
-      validator( null ) should failWith( "is a null" )
+      validator( null ) should failWith( Constraints.IsNull )
     }
   }
 }
