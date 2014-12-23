@@ -86,11 +86,13 @@ object Root extends Build {
   // Projects --
 
   lazy val api = Project( id = "accord-api", base = file( "api" ), settings = baseSettings )
-  lazy val scalatest = Project( id = "accord-scalatest", base = file( "scalatest" ), settings = baseSettings).dependsOn( api )
+  lazy val scalatest = Project( id = "accord-scalatest", base = file( "scalatest" ), settings = baseSettings ).dependsOn( api )
   lazy val specs2 = Project( id = "accord-specs2", base = file( "specs2" ), settings = baseSettings ).dependsOn( api )
   lazy val core = Project( id = "accord-core", base = file( "core" ), settings = baseSettings ).dependsOn( api, scalatest % "test->compile" )
   lazy val spring3 = Project( id = "accord-spring3", base = file ( "spring3" ), settings = baseSettings )
     .dependsOn( api, scalatest % "test->compile", core % "test->compile" )
+  lazy val examples = Project( id = "accord-examples", base = file( "examples" ), settings = baseSettings ++ noPublish )
+    .dependsOn( api, core, scalatest % "test->compile", specs2 % "test->compile", spring3 )
   lazy val root = Project( id = "root", base = file( "." ), settings = baseSettings ++ noPublish )
-    .aggregate( api, core, scalatest, specs2, spring3 )
+    .aggregate( api, core, scalatest, specs2, spring3, examples )
 }
