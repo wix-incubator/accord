@@ -16,6 +16,8 @@
 
 package com.wix.accord.tests.combinators
 
+import com.wix.accord.TestDomain._
+
 class BooleanCombinatorTests extends CombinatorTestSpec {
 
   "IsTrue combinator" should {

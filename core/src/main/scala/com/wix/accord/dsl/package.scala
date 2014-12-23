@@ -51,9 +51,10 @@ trait DSL
   extends StringOps
      with CollectionOps
      with GenericOps
-     with OrderingOps
+//     with OrderingOps
+  with OrderingContext
      with BooleanOps
-     with Context {
+     with Contexts {
   
   self: Domain =>
 
@@ -73,9 +74,7 @@ trait DSL
     * @param value The value to wrap with a validation context.
     * @tparam U The type of the provided expression.
     */
-  implicit class Contextualizer[ U ]( value: U ) extends SimpleDslContext[ U ] {
-    protected val domain = DSL.this.domain
-  }
+  implicit class Contextualizer[ U ]( value: U ) extends SimpleDslContext[ U ]
 
   /** Wraps expression under validation with an explicit description; after macro transformation, the resulting
     * validator will use the specified description to render violations. See the
@@ -109,5 +108,5 @@ trait DSL
   }
 
   /** A proxy for ordering ops. Enables syntax such as `p.age should be > 5`. */
-  val be: OrderingOps = this
+  object be extends OrderingOps { protected override def snippet = "got" }
 }

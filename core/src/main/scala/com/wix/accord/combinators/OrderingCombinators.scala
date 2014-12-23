@@ -117,6 +117,6 @@ trait OrderingCombinators extends BaseValidators with ResultBuilders {
       */
     def exclusive = new BaseValidator[ T ](
       v => ev.gteq( v, lowerBound ) && ev.lt( v, upperBound ),
-      v => v -> betweenConstraint( prefix, v, lowerBound, upperBound ) )
+      v => v -> betweenExclusivelyConstraint( prefix, v, lowerBound, upperBound ) )
   }
 }

@@ -24,7 +24,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
     new Constraints with Results {
       type Constraint = String
       def isNullConstraint = ???
-      def notNullConstraint = ???
+      def isNotNullConstraint = ???
     }
   import domain._
 

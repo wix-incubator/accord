@@ -16,13 +16,11 @@
 
 package com.wix.accord.tests.dsl
 
+import com.wix.accord.TestDomainMatchers
 import org.scalatest.{WordSpec, Matchers}
-import com.wix.accord._
-import com.wix.accord.scalatest.ResultMatchers
+import com.wix.accord.TestDomain._
 
 object OrderingOpsTests {
-  import dsl._
-
   case class IntTest( i: Int )
   implicit val intTestValidator = validator[ IntTest ] { _.i should be > 0 }
 
@@ -52,7 +50,7 @@ object OrderingOpsTests {
 }
 
 import OrderingOpsTests._
-class OrderingOpsTests extends WordSpec with Matchers with ResultMatchers {
+class OrderingOpsTests extends WordSpec with Matchers with TestDomainMatchers {
 
   "OrderingOps as exposed by dsl" should {
     // The following are all just sanity checks (the real tests are in tests.combinators.OrderingOpsSpec);

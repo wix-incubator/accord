@@ -6,5 +6,5 @@ package com.wix.accord
 trait Constraints {
   type Constraint
   protected def isNullConstraint: Constraint
-  protected def notNullConstraint: Constraint
+  protected def isNotNullConstraint: Constraint
 }

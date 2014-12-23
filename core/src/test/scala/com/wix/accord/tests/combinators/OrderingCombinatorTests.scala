@@ -16,6 +16,8 @@
 
 package com.wix.accord.tests.combinators
 
+import com.wix.accord.TestDomain._
+
 class OrderingCombinatorTests extends CombinatorTestSpec {
 
   // Some arbitrary test class with its own implementation of Ordering

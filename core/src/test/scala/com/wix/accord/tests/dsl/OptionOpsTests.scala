@@ -16,11 +16,11 @@
 
 package com.wix.accord.tests.dsl
 
-import com.wix.accord.scalatest.ResultMatchers
-import org.scalatest.{WordSpec, Matchers}
-import com.wix.accord.Validator
+import com.wix.accord.{TestDomain, TestDomainMatchers}
+import org.scalatest.{Matchers, WordSpec}
+import TestDomain._
 
-class OptionOpsTests extends WordSpec with Matchers with ResultMatchers {
+class OptionOpsTests extends WordSpec with TestDomainMatchers with Matchers {
   import OptionOpsTests._
 
   // Quick and dirty helper to make the tests a little more terse
@@ -74,7 +74,6 @@ class OptionOpsTests extends WordSpec with Matchers with ResultMatchers {
 object OptionOpsTests {
   case class Test( o: Option[ String ] )
 
-  import com.wix.accord.dsl._
   val eachValidator = validator[ Test ] {  _.o.each should startWith( "test" ) }
   val emptyValidator = validator[ Test ] {  _.o is empty }
   val notEmptyValidator = validator[ Test ] {  _.o is notEmpty }

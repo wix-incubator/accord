@@ -14,16 +14,22 @@
   limitations under the License.
  */
 
-package com.wix.accord
+package com.wix.accord.asdf
+
+import com.wix.accord.{BaseValidators, TestDomain}
 
 import org.scalatest.{LoneElement, Matchers, WordSpec}
 
-class BaseValidatorTests extends WordSpec with Matchers with LoneElement with BaseValidators with TestDomain {
+class BaseValidatorTests extends WordSpec with Matchers with LoneElement {
+
+  object TestContext extends BaseValidators with TestDomain {
+    case object NoGood extends Constraint
+    val validator = new NullSafeValidator[ String ]( _ startsWith "ok", _ -> NoGood )
+  }
+  import TestContext._
 
   "BaseValidator.report" should {
-    case object NoGood extends Constraint
 
-    val validator = new NullSafeValidator[ String ]( _ startsWith "ok", _ -> NoGood )
     "return a Failure with a default violation on nulls" in {
       val result = validator.apply( null )
       result shouldBe a[ Failure ]

@@ -2,7 +2,7 @@ package com.wix.accord.simple
 
 import java.util.regex.Pattern
 
-import com.wix.accord.dsl.OrderingOps
+//import com.wix.accord.dsl.OrderingOps
 import com.wix.accord.{Constraints, Domain}
 import com.wix.accord.combinators._
 
@@ -16,19 +16,20 @@ sealed trait SimpleConstraints
   with GeneralPurposeCombinatorConstraints
   with CollectionCombinatorConstraints
   with OrderingCombinatorConstraints
-  with StringCombinatorConstraints
-{
+  with StringCombinatorConstraints {
+
   type Constraint = String
+
   protected def isNullConstraint = "is a null"
-  protected def notNullConstraint = "is not a null"
+  protected def isNotNullConstraint = "is not a null"
 
   protected def isFalseConstraint = "must be true"
   protected def isTrueConstraint = "must be false"
 
   protected def noMatchingClauseConstraint = "doesn't meet any of the requirements"
   protected def invalidGroupConstraint = "is invalid"
-  protected def equalsConstraint[ T ]( to: T ) = s"does not equal $to"
-  protected def notEqualsConstraint[ T ]( to: T ) = s"equals $to"
+  protected def equalToConstraint[ T ]( to: T ) = s"does not equal $to"
+  protected def notEqualToConstraint[ T ]( to: T ) = s"equals $to"
 
   protected def emptyConstraint = "must not be empty"
   protected def nonEmptyConstraint = "must be empty"
@@ -56,10 +57,10 @@ sealed trait SimpleConstraints
 }
 
 trait SimpleDomain extends Domain with SimpleConstraints {
-  protected def newOrderingOps( snippet: String ) = {
-    val s = snippet   // Stable identifier etc.
-    new OrderingOps with SimpleDomain { override def snippet = s }
-  }
+//  protected def newOrderingOps( snippet: String ) = {
+//    val s = snippet   // Stable identifier etc.
+//    new OrderingOps with SimpleDomain { override def snippet = s }
+//  }
 }
 
 package object simple extends SimpleDomain

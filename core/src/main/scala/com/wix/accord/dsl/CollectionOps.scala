@@ -60,7 +60,7 @@ trait CollectionOps {
     * `def size: Int`, see [[com.wix.accord.dsl.CollectionOps.HasSize]]). Enables syntax such as
     * `c.students has size > 0`.
     */
-  val size: OrderingOps = newOrderingOps( "has size" )
+  val size = new OrderingOps { override protected def snippet = "has size" }
 }
 
 object CollectionOps {

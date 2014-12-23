@@ -28,20 +28,22 @@ trait ResultBuilders {
 
   import scala.language.implicitConversions
 
+  // TODO reconsider visibility pending subsequent refactoring to DSL module
+
   /** Converts a tuple of the form value->constraint to a [[com.wix.accord.Results#Results#RuleViolation]]. */
-  implicit protected def ruleViolationFromTuple( v: ( Any, Constraint ) ): RuleViolation =
+  implicit /*protected*/ def ruleViolationFromTuple( v: ( Any, Constraint ) ): RuleViolation =
     RuleViolation( value = v._1, constraint = v._2, description = None )
 
   /** Converts an extended tuple of the form value->constraint->ruleSeq to a
     * [[com.wix.accord.Results#Results#GroupViolation]]. */
-  implicit protected def groupViolationFromTuple( v: ( ( Any, Constraint ), Set[ Violation ] ) ): GroupViolation =
+  implicit /*protected*/ def groupViolationFromTuple( v: ( ( Any, Constraint ), Set[ Violation ] ) ): GroupViolation =
     GroupViolation( value = v._1._1, constraint = v._1._2, description = None, children = v._2 )
 
-  implicit protected def staticConstraintToFailureBuilder( c: Constraint ): ( Any => Failure ) =
+  implicit /*protected*/ def staticConstraintToFailureBuilder( c: Constraint ): ( Any => Failure ) =
     v => Failure( Set( RuleViolation( value = v, constraint = c, description = None ) ) )
 
   /** Wraps a single violation to a [[com.wix.accord.Results#Results#Failure]]. */
-  implicit protected def singleViolationToFailure[ V <% Violation ]( v: V ): Failure =
+  implicit /*protected*/ def singleViolationToFailure[ V <% Violation ]( v: V ): Failure =
     Failure( Set( v ) )
 
 

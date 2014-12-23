@@ -2,7 +2,6 @@ package com.wix.accord
 
 import java.util.regex.Pattern
 
-import com.wix.accord.dsl.OrderingOps
 import com.wix.accord.scalatest.ResultMatchers
 
 /**
@@ -11,15 +10,13 @@ import com.wix.accord.scalatest.ResultMatchers
 trait TestDomain extends Domain {
   trait Constraint
 
-  protected def newOrderingOps( snippet: String ) = new OrderingOps with TestDomain
-
   object Constraints {
     import java.util.regex.Pattern
 
     case object NoMatch extends Constraint
     case object Invalid extends Constraint
-    case class NotEquals[ T ]( to: T ) extends Constraint
-    case class Equals[ T ]( to: T ) extends Constraint
+    case class NotEqualTo[ T ]( to: T ) extends Constraint
+    case class EqualTo[ T ]( to: T ) extends Constraint
     case class Between[ T ]( lower: T, upper: T ) extends Constraint
     case class GreaterThanEqual[ T ]( bound: T ) extends Constraint
     case class EquivalentTo[ T ]( bound: T ) extends Constraint
@@ -54,17 +51,19 @@ trait TestDomain extends Domain {
   protected def lesserThanConstraint[ T ]( prefix: String, value: T, bound: T ) = LesserThan( bound )
   protected def betweenExclusivelyConstraint[ T ]( prefix: String, value: T, lower: T, upper: T ) =
     BetweenExclusively( lower, upper )
-  protected def notEqualsConstraint[ T ]( to: T ) = NotEquals( to )
-  protected def equalsConstraint[ T ]( to: T ) = Equals( to )
+  protected def notEqualToConstraint[ T ]( to: T ) = NotEqualTo( to )
+  protected def equalToConstraint[ T ]( to: T ) = EqualTo( to )
   protected def isFalseConstraint = IsFalse
   protected def isTrueConstraint = IsTrue
   protected def emptyConstraint = Empty
   protected def nonEmptyConstraint = NonEmpty
   protected def isNullConstraint = IsNull
-  protected def notNullConstraint = IsNotNull
+  protected def isNotNullConstraint = IsNotNull
 }
 
 import org.scalatest.Suite
-trait TestDomainMatchers extends ResultMatchers[ TestDomain ] with TestDomain {
+trait TestDomainMatchers extends ResultMatchers[ TestDomain ] {
   self: Suite =>
 }
+
+object TestDomain extends TestDomain

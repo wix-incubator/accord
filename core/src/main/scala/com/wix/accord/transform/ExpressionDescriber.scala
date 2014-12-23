@@ -69,11 +69,10 @@ trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] with PatternH
     * description tree.
     */
   private object ExplicitDescriptor {
-    private val descriptorTerm = tq"${context.internal.enclosingOwner}.Descriptor"
     private val asTerm = termName( "as" )
 
     def unapply( ouv: Tree ): Option[ Tree ] = ouv match {
-      case Apply( Select( Apply( TypeApply( `descriptorTerm`, _ ), _ ), `asTerm` ), literal :: Nil ) =>
+      case q"$_.Descriptor[ $_ ]( $_ ).as( $literal )" =>
         Some( literal )
       case _ => None
     }

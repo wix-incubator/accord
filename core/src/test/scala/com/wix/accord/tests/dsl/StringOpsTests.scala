@@ -16,12 +16,12 @@
 
 package com.wix.accord.tests.dsl
 
-import com.wix.accord.scalatest.ResultMatchers
-import org.scalatest.{WordSpec, Matchers}
-import com.wix.accord.Validator
+import com.wix.accord.TestDomain._
+import com.wix.accord.TestDomainMatchers
+import org.scalatest.{Matchers, WordSpec}
 
-class StringOpsTests extends WordSpec with Matchers with ResultMatchers {
-  import StringOpsTests._
+class StringOpsTests extends WordSpec with TestDomainMatchers with Matchers {
+  import com.wix.accord.tests.dsl.StringOpsTests._
 
   // Quick and dirty helper to make the tests a little more terse
   implicit class EnrichString( text: String ) {
@@ -90,7 +90,6 @@ class StringOpsTests extends WordSpec with Matchers with ResultMatchers {
 }
 
 object StringOpsTests {
-  import com.wix.accord.dsl._
   case class Test( s: String )
 
   val               startsWithValidator = validator[ Test ] { _.s should startWith( "test" ) }

@@ -22,8 +22,6 @@ import com.wix.accord._
 object Issue10 {
   case class Foo( bar: Option[ String ] )
 
-  import com.wix.accord.dsl._
-
   implicit val questionValidator = validator[ Foo ] { f =>
     f.bar has size > 2
   }

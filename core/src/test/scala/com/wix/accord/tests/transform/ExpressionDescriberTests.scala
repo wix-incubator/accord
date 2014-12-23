@@ -20,7 +20,8 @@ import org.scalatest.{WordSpec, Matchers}
 import com.wix.accord.transform.ExpressionDescriber
 
 class ExpressionDescriberTests extends WordSpec with Matchers {
-  import com.wix.accord.dsl.Descriptor
+
+  import com.wix.accord.TestDomain.Descriptor
 
   case class Test( field1: String, field2: String )
 

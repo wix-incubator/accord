@@ -16,13 +16,10 @@
 
 package com.wix.accord.tests.dsl
 
-import com.wix.accord.scalatest.ResultMatchers
+import com.wix.accord.{TestDomain, TestDomainMatchers}
 import org.scalatest.{WordSpec, Matchers}
-import com.wix.accord._
 
-object TestDomain extends TestDomain
-
-class BooleanOpsTests extends WordSpec with ResultMatchers[ TestDomain.type ] with Matchers {
+class BooleanOpsTests extends WordSpec with TestDomainMatchers with Matchers {
   import BooleanOpsTests._
   import TestDomain._
 

@@ -16,18 +16,57 @@
 
 package com.wix.accord.dsl
 
-import com.wix.accord.{Constraints, Validation, Domain}
-import com.wix.accord.combinators.OrderingCombinators
+import com.wix.accord.Domain
 
 import scala.collection.immutable.NumericRange
 
-/** Provides a DSL for objects implementing [[scala.math.Ordering]].
-  *
-  * Implementation note: All methods here should only require [[scala.math.PartialOrdering]], but the canonical
-  * implicits are defined in the Ordering companion and would therefore not be imported by default at the call site.
-  */
-trait OrderingOps {
+trait OrderingContext {
   self: Domain =>
+
+  /** Provides a DSL for objects implementing [[scala.math.Ordering]].
+    *
+    * Implementation note: All methods here should only require [[scala.math.PartialOrdering]], but the canonical
+    * implicits are defined in the Ordering companion and would therefore not be imported by default at the call site.
+    */
+  trait OrderingOps {
+    protected def snippet: String
+
+    /** Generates a validator that succeeds only if the provided value is greater than the specified bound. */
+    def >[ T : Ordering ]( other: T ) = new GreaterThan( other, snippet )
+
+    /** Generates a validator that succeeds only if the provided value is less than the specified bound. */
+    def <[ T : Ordering ]( other: T ) = new LesserThan( other, snippet )
+
+    /** Generates a validator that succeeds if the provided value is greater than or equal to the specified bound. */
+    def >=[ T : Ordering ]( other: T ) = new GreaterThanOrEqual( other, snippet )
+
+    /** Generates a validator that succeeds if the provided value is less than or equal to the specified bound. */
+    def <=[ T : Ordering ]( other: T ) = new LesserThanOrEqual( other, snippet )
+
+    /** Generates a validator that succeeds if the provided value is exactly equal to the specified value. */
+    def ==[ T : Ordering ]( other: T ) = new EquivalentTo( other, snippet )
+
+    /** Generates a validator that succeeds if the provided value is between (inclusive) the specified bounds.
+      * The method `exclusive` is provided to specify an exclusive upper bound.
+      */
+    def between[ T : Ordering ]( lowerBound: T, upperBound: T ): Between[ T ] = new Between( lowerBound, upperBound, snippet )
+
+    /** Generates a validator that succeeds if the provided value is within the specified range. */
+    def within( range: Range ): Validator[ Int ] = {
+      val v = between( range.start, range.end )
+      if ( range.isInclusive ) v else v.exclusive
+    }
+
+    /** Generates a validator that succeeds if the provided value is within the specified range. */
+    def within[ T : Ordering ]( range: NumericRange[ T ] ): Validator[ T ] = {
+      val v = between( range.start, range.end )
+      if ( range.isInclusive ) v else v.exclusive
+    }
+  }
+
+  // ----
+  // The following is, for now, a copy-paste of the above, except in the "global" DSL context. I haven't found a way
+  // around this yet, and will carry on violating DRY for now. Yes, ech.
 
   protected def snippet: String = "got"
 
@@ -63,3 +102,4 @@ trait OrderingOps {
     if ( range.isInclusive ) v else v.exclusive
   }
 }
+

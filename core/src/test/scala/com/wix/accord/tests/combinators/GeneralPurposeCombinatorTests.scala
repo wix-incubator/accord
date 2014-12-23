@@ -16,6 +16,8 @@
 
 package com.wix.accord.tests.combinators
 
+import com.wix.accord.TestDomain._
+
 class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
 
   "And combinator with a two-clause rule" should {
@@ -81,7 +83,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new EqualTo[ String ]( "test" )
-      validator( "invalid" ) should failWith( Constraints.NotEquals( "test" ) )
+      validator( "invalid" ) should failWith( Constraints.EqualTo( "invalid" ) )
     }
   }
 
@@ -93,7 +95,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new NotEqualTo[ String ]( "test" )
-      validator( "test" ) should failWith( Constraints.Equals( "test" ) )
+      validator( "test" ) should failWith( Constraints.NotEqualTo( "test" ) )
     }
   }
 
@@ -104,7 +106,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new IsNull
-      validator( "test" ) should failWith( Constraints.IsNotNull )
+      validator( "test" ) should failWith( Constraints.IsNull )
     }
   }
 
@@ -115,7 +117,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new IsNotNull
-      validator( null ) should failWith( Constraints.IsNull )
+      validator( null ) should failWith( Constraints.IsNotNull )
     }
   }
 

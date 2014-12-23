@@ -16,6 +16,8 @@
 
 package com.wix.accord.tests.combinators
 
+import com.wix.accord.TestDomain._
+
 class StringCombinatorTests extends CombinatorTestSpec {
 
   "StartsWith combinator" should {

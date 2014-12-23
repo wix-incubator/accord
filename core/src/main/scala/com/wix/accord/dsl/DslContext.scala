@@ -16,12 +16,12 @@
 
 package com.wix.accord.dsl
 
+import com.wix.accord.Domain
 import com.wix.accord.dsl.CollectionOps.HasSize
-import com.wix.accord.{Domain, Results, Validation}
 
 // TODO ScalaDocs
 
-trait Context {
+trait Contexts {
   self: Domain =>
 
   trait DslContext[ Inner, Outer ] {

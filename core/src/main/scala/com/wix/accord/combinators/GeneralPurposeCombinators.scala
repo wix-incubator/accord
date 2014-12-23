@@ -23,8 +23,8 @@ trait GeneralPurposeCombinatorConstraints {
 
   protected def noMatchingClauseConstraint: Constraint
   protected def invalidGroupConstraint: Constraint
-  protected def equalsConstraint[ T ]( to: T ): Constraint
-  protected def notEqualsConstraint[ T ]( to: T ): Constraint
+  protected def equalToConstraint[ T ]( to: T ): Constraint
+  protected def notEqualToConstraint[ T ]( to: T ): Constraint
 }
 
 /** Non type-specific combinators. */
@@ -69,23 +69,23 @@ trait GeneralPurposeCombinators extends BaseValidators with ResultBuilders {
   }
 
   /** A validator that succeeds only if the provided object is `null`. */
-  class IsNull extends BaseValidator[ AnyRef ]( _ == null, _ => nullFailure )
+  class IsNull extends BaseValidator[ AnyRef ]( _ == null, _ -> isNullConstraint )
 
   /** A validator that succeeds only if the provided object is not `null`. */
-  class IsNotNull extends BaseValidator[ AnyRef ]( _ != null, _ -> notNullConstraint )
+  class IsNotNull extends BaseValidator[ AnyRef ]( _ != null, _ -> isNotNullConstraint )
 
   /** A validator that succeeds only if the validated object is equal to the specified value. Respects nulls
     * and delegates equality checks to [[java.lang.Object.equals]]. */
   class EqualTo[ T ]( to: T ) extends Validator[ T ] {
     private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
-    def apply( x: T ) = result( test = safeEq( x, to ), x -> equalsConstraint( x ) )
+    def apply( x: T ) = result( test = safeEq( x, to ), x -> equalToConstraint( x ) )
   }
 
   /** A validator that succeeds only if the validated object is not equal to the specified value. Respects nulls
     * and delegates equality checks to [[java.lang.Object.equals]]. */
   class NotEqualTo[ T ]( to: T ) extends Validator[ T ] {
     private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
-    def apply( x: T ) = result( test = !safeEq( x, to ), x -> notEqualsConstraint( x ) )
+    def apply( x: T ) = result( test = !safeEq( x, to ), x -> notEqualToConstraint( x ) )
   }
 
   /** A validator which merely delegates to another, implicitly available validator. This is necessary for the

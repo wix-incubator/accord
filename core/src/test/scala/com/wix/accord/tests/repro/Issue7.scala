@@ -16,21 +16,21 @@
 
 package com.wix.accord.tests.repro
 
+import com.wix.accord.TestDomainMatchers
 import org.scalatest.{Matchers, FlatSpec}
-import com.wix.accord.scalatest.ResultMatchers
 
 /**
   * Test case for [[https://github.com/wix/accord/issues/7 issue 7]]
   */
-import Issue7._
-class Issue7 extends FlatSpec with Matchers with ResultMatchers {
+import com.wix.accord.tests.repro.Issue7._
+class Issue7 extends FlatSpec with TestDomainMatchers with Matchers {
   "nullSafeValidator" should "fail on notNull validation" in {
     nullSafeValidator apply Test( null ) shouldBe aFailure
   }
 }
 
 object Issue7 {
-  import com.wix.accord.dsl._
+  import com.wix.accord.TestDomain._
   case class Test( s: String )
 
   val nullSafeValidator = validator[ Test ] { t =>

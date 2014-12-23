@@ -16,10 +16,12 @@
 
 package com.wix.accord.tests.dsl
 
-import com.wix.accord.TestDomainMatchers
+import com.wix.accord.{TestDomain, TestDomainMatchers}
 import org.scalatest.{WordSpec, Matchers}
+import TestDomain._
 
-class CollectionOpsTests extends WordSpec with Matchers with TestDomainMatchers {
+class CollectionOpsTests extends WordSpec with TestDomainMatchers with Matchers {
+  import CollectionOpsTests._
 
   "empty" should {
     "successfully validate a empty collection" in {
@@ -42,7 +44,7 @@ class CollectionOpsTests extends WordSpec with Matchers with TestDomainMatchers 
     // one to ensure correct constraint generation.
     "generate a correctly prefixed constraint" in {
       validate( Seq.empty )( seqSizeValidator ) should
-        failWith( RuleViolationMatcher( constraint = "has size 0, expected more than 0" ) )
+        failWith( RuleViolationMatcher( constraint = Constraints.GreaterThan( 0 ) ) )
     }
   }
   "each extension" should {
@@ -50,7 +52,9 @@ class CollectionOpsTests extends WordSpec with Matchers with TestDomainMatchers 
       validate( null )( seqEachValidator ) should be( aFailure )
     }
   }
+}
 
+object CollectionOpsTests {
   val seqEmptyValidator = validator[ Seq[_] ] { _ is empty }
   val seqNotEmptyValidator = validator[ Seq[_] ] { _ is notEmpty }
   val seqSizeValidator = validator[ Seq[_] ] { _ has size > 0 }

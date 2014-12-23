@@ -16,50 +16,57 @@
 
 package com.wix.accord.tests.transform
 
-import com.wix.accord.TestDomainMatchers
+import com.wix.accord.{TestDomain, TestDomainMatchers}
 import org.scalatest.{Matchers, WordSpec}
+import TestDomain._
 
-class ValidationTransformTests extends WordSpec with Matchers with TestDomainMatchers {
+class ValidationTransformTests extends WordSpec with TestDomainMatchers with Matchers {
+  import ValidationTransformTests._
+  
   "Validator description" should {
     "be generated for a fully-qualified field selector" in {
-      validate( FlatTest( null ) )( implicitlyDescribedNamedValidator ) should failWith( "field" -> Constraints.IsNull )
+      validate( FlatTest( null ) )( implicitlyDescribedNamedValidator ) should failWith( "field" -> Constraints.IsNotNull )
     }
     "be generated for an anonymously-qualified field selector" in {
-      validate( FlatTest( null ) )( implicitlyDescribedAnonymousValidator ) should failWith( "field" -> Constraints.IsNull )
+      validate( FlatTest( null ) )( implicitlyDescribedAnonymousValidator ) should failWith( "field" -> Constraints.IsNotNull )
     }
     "be generated for an anonymous value reference" in {
-      validate( null )( implicitlyDescribedValueValidator ) should failWith( "value" -> Constraints.IsNull )
+      validate( null )( implicitlyDescribedValueValidator ) should failWith( "value" -> Constraints.IsNotNull )
     }
     "be generated for a fully-qualified selector with multiple indirections" in {
       val obj = CompositeTest( FlatTest( null ) )
-      validate( obj )( namedIndirectValidator ) should failWith( "member.field" -> Constraints.IsNull )
+      validate( obj )( namedIndirectValidator ) should failWith( "member.field" -> Constraints.IsNotNull )
     }
     "be generated for an anonymously-qualified selector with multiple indirections" in {
       val obj = CompositeTest( FlatTest( null ) )
-      validate( obj )( anonymousIndirectValidator ) should failWith( "member.field" -> Constraints.IsNull )
+      validate( obj )( anonymousIndirectValidator ) should failWith( "member.field" -> Constraints.IsNotNull )
     }
     "be generated for a multiple-clause boolean expression" in {
       val obj = FlatTest( "123" )
       validate( obj )( booleanExpressionValidator ) should failWith(
         group( null, Constraints.NoMatch,
-          "field" -> Constraints.IsNotNull,
+          "field" -> Constraints.IsNull,
           "field" -> Constraints.GreaterThan( 5 )
         ) )
     }
     "be propagated for an explicitly-described expression" in {
-      validate( FlatTest( null ) )( explicitlyDescribedValidator ) should failWith( "described" -> Constraints.IsNull )
+      validate( FlatTest( null ) )( explicitlyDescribedValidator ) should failWith( "described" -> Constraints.IsNotNull )
     }
     "be propagated for a composite validator" in {
       val obj = CompositeTest( FlatTest( null ) )
       validate( obj )( compositeValidator ) should
         failWith( group( description        = "member",
                          constraint         = Constraints.Invalid,
-                         expectedViolations = "field" -> Constraints.IsNull ) )
+                         expectedViolations = "field" -> Constraints.IsNotNull ) )
     }
     "be propagated for an adapted validator" in {
-      validate( FlatTest( null ) )( adaptedValidator ) should failWith( "field" -> Constraints.IsNull )
+      validate( FlatTest( null ) )( adaptedValidator ) should failWith( "field" -> Constraints.IsNotNull )
     }
   }
+}
+
+object ValidationTransformTests {
+  import TestDomain._
 
   case class FlatTest( field: String )
   val implicitlyDescribedNamedValidator = validator[ FlatTest ] { t => t.field is notNull }

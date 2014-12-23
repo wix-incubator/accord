@@ -22,7 +22,7 @@ import org.scalatest.{Matchers, WordSpec}
 trait SimpleDomain extends Results with Constraints {
   type Constraint = String
   def isNullConstraint = ???
-  def notNullConstraint = ???
+  def isNotNullConstraint = ???
   implicit val domain = this
 }
 
