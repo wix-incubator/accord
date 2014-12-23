@@ -20,7 +20,7 @@ import com.wix.accord.Domain
 
 import scala.language.implicitConversions
 import scala.language.experimental.macros
-import com.wix.accord.transform.ValidationTransform
+import com.wix.accord.transform.{Transformations, ValidationTransform}
 
 /** Provides a DSL for defining validation rules. For example:
   *
@@ -51,10 +51,10 @@ trait DSL
   extends StringOps
      with CollectionOps
      with GenericOps
-//     with OrderingOps
-  with OrderingContext
+     with OrderingContext
      with BooleanOps
-     with Contexts {
+     with Contexts
+     with Transformations {
   
   self: Domain =>
 
@@ -65,7 +65,7 @@ trait DSL
     * @return The validation code block rewritten as a [[com.wix.accord.Validation#Validator]] for the
     *         specified type `T`.
     */
-  def validator[ T ]( v: T => Unit ): Validator[ T ] = macro ValidationTransform.apply[ T ]
+  def validator[ T ]( v: T => Unit ): TransformedValidator[ T ] = macro ValidationTransform.apply[ T ]
 
   /** Wraps expressions under validation with a specialized scope (this is later used during the macro transform).
     * Enables syntax such as `p.firstName is notEmpty`, where `p.firstName` is the actual expression under

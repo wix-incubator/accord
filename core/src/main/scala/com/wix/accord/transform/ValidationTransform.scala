@@ -17,6 +17,7 @@
 package com.wix.accord.transform
 
 import MacroHelper._
+import com.wix.accord.Domain
 
 private[ transform ] trait MacroLogging[ C <: Context ] {
   /** The macro context; inheritors must provide this */
@@ -191,42 +192,37 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     val validationRules =
       collectFromPattern( vimpl )( rewriteValidationRules orElse processBooleanExpressions )
 
-    val result = validationRules match {
-      case Nil => abort( context.enclosingPosition, "No validation rules found!" )
-      case single :: Nil => single
-      case _ :: _ => q"new And[ ${weakTypeOf[ T ]} ]( ..$validationRules )"
-    }
+    val result = q"new TransformedValidator[ ${weakTypeOf[ T ]} ]( ..$validationRules )"
 
-    debug( s"""|Result of validation transform:
-               |  Clean: ${show( result )}
-               |""".stripMargin )
-    trace(   s"|  Raw  : ${showRaw( result )}" )
+    debug( s"Result of validation transform:\nClean:\n${show( result )}" )
+    trace( s"Raw:\n${showRaw( result )}" )
     result
   }
 }
 
-object ValidationTransform {
-  // TODO ScalaDocs, and/or find a way to get rid of this!
-//  class TransformedValidator[ T ]( predicates: domain.Validator[ T ]* ) extends domain.And[ T ]( predicates:_* ) {
-//    import scala.language.experimental.macros
-//    override def compose[ U ]( g: U => T ): domain.Validator[ U ] = macro ValidationTransform.compose[ U, T ]
-//  }
+trait Transformations {
+  self: Domain =>
 
+  // TODO ScalaDocs, and/or find a way to get rid of this!
+  class TransformedValidator[ T ]( predicates: Validator[ T ]* ) extends And[ T ]( predicates:_* ) {
+    import scala.language.experimental.macros
+    override def compose[ U ]( g: U => T ): Validator[ U ] = macro ValidationTransform.compose[ U, T ]
+  }
+}
+
+object ValidationTransform {
   def apply[ T : c.WeakTypeTag ]( c: Context )( v: c.Expr[ T => Unit ] ): c.Tree =
     new ValidationTransform[ c.type, T ]( c, v ).transformed
 
-//  def compose[ U : c.WeakTypeTag, T : c.WeakTypeTag ]( c: Context )( g: c.Expr[ U => T ] )( implicit domain: c.Expr[ Domain ] ): c.Expr[ Validator[ U ] ] = {
-//    val description = ExpressionDescriber.apply( c )( g )
-//
-//    import c.universe._
-//    val rewrite =
-//     q"""
-//        new com.wix.accord.Validator[ ${weakTypeOf[ U ]} ] {
-//          override def apply( v1: ${weakTypeOf[ U ]} ): com.wix.accord.Results#Result =
-//            ${c.prefix} apply $g( v1 ) withDescription $description
-//        }
-//      """
-//
-//    c.Expr[ Validator[ U ] ]( rewrite )
-//  }
+  def compose[ U : c.WeakTypeTag, T : c.WeakTypeTag ]( c: Context )( g: c.Expr[ U => T ] ): c.Tree = {
+    val description = ExpressionDescriber.apply( c )( g )
+
+    import c.universe._
+    q"""
+      new Validator[ ${weakTypeOf[ U ]} ] {
+        override def apply( v1: ${weakTypeOf[ U ]} ): Result =
+          ${c.prefix} apply $g( v1 ) withDescription $description
+      }
+    """
+  }
 }
