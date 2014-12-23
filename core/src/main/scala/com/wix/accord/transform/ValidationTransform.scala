@@ -17,7 +17,6 @@
 package com.wix.accord.transform
 
 import MacroHelper._
-import com.wix.accord.Domain
 
 private[ transform ] trait MacroLogging[ C <: Context ] {
   /** The macro context; inheritors must provide this */
@@ -53,9 +52,7 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
     * and yields the Object Under Validation (OUV).
     */
   object ValidatorApplication {
-    private val contextualizerTerm = termName( "Contextualizer" )
     private val validatorType = context.typecheck( tq"Validator[ T ] forSome { type T }", context.TYPEmode ).tpe
-    println( s"using validator type $validatorType")
 
     private def extractObjectUnderValidation( t: Tree ): List[ Tree ] =
       collectFromPattern( t ) {
@@ -105,10 +102,6 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
             // e.g. "(f1 is notEmpty) or (f2 is notEmpty)".
             Some( BooleanExpression( expr ) )
         }
-
-      case t if t.tpe.typeSymbol.name.toString contains "Validator" =>
-        println( s"wtf on $t of type ${t.tpe.typeSymbol}, wide = ${t.tpe.widen}" )
-        None
 
       case _ => None
     }
@@ -170,16 +163,13 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     * @param tree The tree representing the boolean expression.
     * @return A lifted tree per the description above.
     */
-  def liftBooleanOps( tree: Tree ): Tree = {
-    val typeTreeT = TypeTree( weakTypeOf[ T ] )
-
+  def liftBooleanOps( tree: Tree ): Tree =
     transformByPattern( tree ) {
-      case q"$pre.ValidatorBooleanOps[ $_ ]( $e ).$name( $_ )" =>
-        val lhs = liftBooleanOps( e )
+      case q"$pre.ValidatorBooleanOps[ $_ ]( $lhs ).$name[ $_ ]( $rhs )" =>
+        val liftedLhs = liftBooleanOps( lhs )
         val tt = weakTypeOf[ T ]
-        q"$pre.ValidatorBooleanOps[ $tt ]( $lhs ).$name[ $tt ]"
+        q"$pre.ValidatorBooleanOps[ $tt ]( $liftedLhs ).$name[ $tt ]( $rhs )"
     }
-  }
 
   /** A pattern which rewrites validation rules found in the tree. */
   val rewriteValidationRules: TransformAST = {
