@@ -16,10 +16,7 @@
 
 package com.wix.accord.tests.combinators
 
-import org.scalatest.Matchers
-import com.wix.accord.combinators.OrderingCombinators
-
-class OrderingCombinatorTests extends CombinatorTestSpec with Matchers with OrderingCombinators {
+class OrderingCombinatorTests extends CombinatorTestSpec {
 
   // Some arbitrary test class with its own implementation of Ordering
   case class Test( v: Int )

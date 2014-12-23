@@ -41,10 +41,6 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
   import context.universe._
   import context.abort
 
-//  protected val domain: C#Expr[ Domain ]
-//  private val resolvedDomain = context.eval( domain.asInstanceOf[ context.Expr[ Domain ] ] )
-//  import resolvedDomain._
-
   sealed trait ValidatorApplication
   protected case class BooleanExpression( expr: Tree ) extends ValidatorApplication
   protected case class ValidationRule( description: Tree, ouv: Tree, validation: Tree ) extends ValidatorApplication
@@ -57,12 +53,13 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
     * and yields the Object Under Validation (OUV).
     */
   object ValidatorApplication {
-    private val contextualizerTerm = tq"${context.internal.enclosingOwner}.Contextualizer"
-    private val validatorType = context.typecheck( tq"${context.internal.enclosingOwner}.Validator" ).tpe
+    private val contextualizerTerm = termName( "Contextualizer" )
+    private val validatorType = context.typecheck( tq"Validator[ T ] forSome { type T }", context.TYPEmode ).tpe
+    println( s"using validator type $validatorType")
 
     private def extractObjectUnderValidation( t: Tree ): List[ Tree ] =
       collectFromPattern( t ) {
-        case Apply( TypeApply( Select( _, `contextualizerTerm` ), tpe :: Nil ), e :: Nil ) =>
+        case q"$_.Contextualizer[ $tpe ]( $e )" =>
           resetAttrs( e.duplicate )
       }
 
@@ -80,7 +77,7 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
 
     private def rewriteContextExpressionAsValidator( expr: Tree ) =
       transformByPattern( expr ) {
-        case root @ Apply( AtLeastOneSelect( Apply( TypeApply( Select( _, `contextualizerTerm` ), _ ), _ :: Nil ) ), _ :: Nil ) =>
+        case root @ Apply( AtLeastOneSelect( q"$_.Contextualizer[ $_ ]( $_ )" ), _ :: Nil ) =>
           rewriteExistentialTypes( root )
       }
 
@@ -108,6 +105,10 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
             // e.g. "(f1 is notEmpty) or (f2 is notEmpty)".
             Some( BooleanExpression( expr ) )
         }
+
+      case t if t.tpe.typeSymbol.name.toString contains "Validator" =>
+        println( s"wtf on $t of type ${t.tpe.typeSymbol}, wide = ${t.tpe.widen}" )
+        None
 
       case _ => None
     }
@@ -139,7 +140,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
   def rewriteOne( rule: ValidationRule ): Tree = {
     val rewrite =
       q"""
-          new ${context.internal.enclosingOwner}.Validator[ ${weakTypeOf[ T ] } ] {
+          new Validator[ ${weakTypeOf[ T ] } ] {
             def apply( $prototype ) = {
               val validation = ${rule.validation}
               validation( ${rule.ouv} ) withDescription ${rule.description}
@@ -170,15 +171,13 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     * @return A lifted tree per the description above.
     */
   def liftBooleanOps( tree: Tree ): Tree = {
-    val VboTerm = tq"${context.internal.enclosingOwner}.ValidatorBooleanOps"
     val typeTreeT = TypeTree( weakTypeOf[ T ] )
 
     transformByPattern( tree ) {
-      case TypeApply( Select( Apply( TypeApply( VboTerm, _ :: Nil ), e :: Nil ), name ), _ :: Nil ) =>
+      case q"$pre.ValidatorBooleanOps[ $_ ]( $e ).$name( $_ )" =>
         val lhs = liftBooleanOps( e )
         val tt = weakTypeOf[ T ]
-        val combinator = name.toTermName
-        q"com.wix.accord.dsl.ValidatorBooleanOps[ $tt ]( $lhs ).$combinator[ $tt ]"
+        q"$pre.ValidatorBooleanOps[ $tt ]( $lhs ).$name[ $tt ]"
     }
   }
 
@@ -201,9 +200,12 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
   def transformed: Tree = { //Expr[ TransformedValidator[ T ] ] = {
     val validationRules =
       collectFromPattern( vimpl )( rewriteValidationRules orElse processBooleanExpressions )
-    val result = q"new ${context.internal.enclosingOwner}.And[ ${weakTypeOf[ T ]} ]( ..$validationRules )"
-//    val result = context.Expr[ TransformedValidator[ T ] ](
-//      q"new com.wix.accord.transform.ValidationTransform.TransformedValidator( ..$validationRules )" )
+
+    val result = validationRules match {
+      case Nil => abort( context.enclosingPosition, "No validation rules found!" )
+      case single :: Nil => single
+      case _ :: _ => q"new And[ ${weakTypeOf[ T ]} ]( ..$validationRules )"
+    }
 
     debug( s"""|Result of validation transform:
                |  Clean: ${show( result )}

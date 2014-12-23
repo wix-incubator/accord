@@ -39,10 +39,6 @@ import scala.language.experimental.macros
 trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] with PatternHelper[ C ] {
   import context.universe._
 
-//  protected val domain: C#Expr[ Domain ]
-//  private val resolvedDomain = context.eval( domain.asInstanceOf[ context.Expr[ Domain ] ] )
-//  import resolvedDomain._
-
   /** The function prototype; specifically, the single function parameter's definition as a `ValDef`. Must be
     * provided by the inheritor.
     */
@@ -97,11 +93,8 @@ trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] with PatternH
 }
 
 /** A helper class which builds on [[com.wix.accord.transform.ExpressionDescriber]] to describe function literals. */
-private class FunctionDescriber[ C <: Context, T : C#WeakTypeTag, U : C#WeakTypeTag ]( val context: C, f: C#Expr[ T => U ], val domain: C#Expr[ Domain ] )
+private class FunctionDescriber[ C <: Context, T : C#WeakTypeTag, U : C#WeakTypeTag ]( val context: C, f: C#Expr[ T => U ] )
   extends ExpressionDescriber[ C ] {
-
-  protected implicit val resolvedDomain = context.eval( domain.asInstanceOf[ context.Expr[ Domain ] ] )
-  import resolvedDomain._
 
   import context.universe._
 
@@ -125,9 +118,9 @@ private class FunctionDescriber[ C <: Context, T : C#WeakTypeTag, U : C#WeakType
 }
 
 private[ accord ] object ExpressionDescriber {
-  def apply[ T : c.WeakTypeTag, U : c.WeakTypeTag ]( c: Context )( f: c.Expr[ T => U ] )( domain: c.Expr[ Domain ] ): c.Expr[ String ] =
-    new FunctionDescriber[ c.type, T, U ]( c, f, domain ).renderedDescription
+  def apply[ T : c.WeakTypeTag, U : c.WeakTypeTag ]( c: Context )( f: c.Expr[ T => U ] ): c.Expr[ String ] =
+    new FunctionDescriber[ c.type, T, U ]( c, f ).renderedDescription
 
   /** A test invoker for [[com.wix.accord.transform.ExpressionDescriber]] */
-  def describe[ T, U ]( f: T => U )( implicit domain: Domain ): String = macro ExpressionDescriber[ T, U ]
+  def describe[ T, U ]( f: T => U ): String = macro ExpressionDescriber[ T, U ]
 }

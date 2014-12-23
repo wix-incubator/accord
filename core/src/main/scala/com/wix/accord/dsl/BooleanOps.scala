@@ -16,8 +16,7 @@
 
 package com.wix.accord.dsl
 
-import com.wix.accord.combinators.BooleanCombinators
-import com.wix.accord.{Validation, Domain}
+import com.wix.accord.Domain
 
 /** Provides a DSL for booleans. */
 trait BooleanOps {

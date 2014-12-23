@@ -16,11 +16,10 @@
 
 package com.wix.accord.tests.combinators
 
-import com.wix.accord.TestDomain
-import org.scalatest.{WordSpec, Matchers}
-import com.wix.accord.scalatest.ResultMatchers
+import com.wix.accord.TestDomainMatchers
+import org.scalatest.{Matchers, WordSpec}
 
-trait CombinatorTestSpec extends WordSpec with ResultMatchers[ TestDomain ] with TestDomain with Matchers {
+trait CombinatorTestSpec extends WordSpec with TestDomainMatchers with Matchers {
   import scala.language.implicitConversions
   implicit def elevateConstraintToRuleViolationMatcher[ T <: Constraint ]( s: T ): RuleViolationMatcher =
     RuleViolationMatcher( constraint = s )

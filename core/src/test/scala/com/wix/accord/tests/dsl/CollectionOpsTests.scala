@@ -16,12 +16,10 @@
 
 package com.wix.accord.tests.dsl
 
-import com.wix.accord.scalatest.ResultMatchers
+import com.wix.accord.TestDomainMatchers
 import org.scalatest.{WordSpec, Matchers}
-import com.wix.accord._
 
-class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers {
-  import CollectionOpsTests._
+class CollectionOpsTests extends WordSpec with Matchers with TestDomainMatchers {
 
   "empty" should {
     "successfully validate a empty collection" in {
@@ -52,10 +50,6 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers {
       validate( null )( seqEachValidator ) should be( aFailure )
     }
   }
-}
-
-object CollectionOpsTests {
-  import dsl._
 
   val seqEmptyValidator = validator[ Seq[_] ] { _ is empty }
   val seqNotEmptyValidator = validator[ Seq[_] ] { _ is notEmpty }

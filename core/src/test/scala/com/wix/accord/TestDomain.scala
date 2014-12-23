@@ -2,11 +2,16 @@ package com.wix.accord
 
 import java.util.regex.Pattern
 
+import com.wix.accord.dsl.OrderingOps
+import com.wix.accord.scalatest.ResultMatchers
+
 /**
  * Created by tomer on 12/20/14.
  */
 trait TestDomain extends Domain {
   trait Constraint
+
+  protected def newOrderingOps( snippet: String ) = new OrderingOps with TestDomain
 
   object Constraints {
     import java.util.regex.Pattern
@@ -57,4 +62,9 @@ trait TestDomain extends Domain {
   protected def nonEmptyConstraint = NonEmpty
   protected def isNullConstraint = IsNull
   protected def notNullConstraint = IsNotNull
+}
+
+import org.scalatest.Suite
+trait TestDomainMatchers extends ResultMatchers[ TestDomain ] with TestDomain {
+  self: Suite =>
 }
