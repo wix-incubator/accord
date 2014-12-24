@@ -113,7 +113,7 @@ trait ResultMatchers {
                  ( description == null || gv.description == Some( description ) ) &&
                  rulesMatch,
           s"Group violation $gv matches pattern $this",
-          s"Group violation $gv did not match pattern $this",
+          s"Group violation $gv does not match pattern $this",
           left
         )
       case _ =>
@@ -137,7 +137,7 @@ trait ResultMatchers {
   case class ResultMatcher( expectedViolations: Set[ ViolationMatcher ] ) extends Matcher[ Result ] {
     def apply[ T <: Result ]( left: Expectable[ T ] ) = left.value match {
       case Success =>
-        result( test = false, "Validation was successful", "Validation was not successful", left )
+        result( test = false, "Validation was not successful", "Validation was successful", left )
 
       case Failure( violations ) =>
         val matched = violations.map { v => ( v, expectedViolations.find( _ test v ) ) }
