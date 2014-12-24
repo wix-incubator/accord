@@ -4,30 +4,14 @@ import com.wix.accord.specs2.ResultMatchers
 import org.specs2.matcher.Matchers
 import org.specs2.mutable.Specification
 
+import scala.util.Random
+
 /**
  * Created by tomer on 12/24/14.
  */
 class ScalaTest extends Specification with Matchers with ResultMatchers {
   import com.wix.accord._
-  import Domain._
-
-  case class PersonTemplate( name: String, surname: String, age: Int ) extends Person
-
-  "Person validator" should {
-    "succeed on a valid person" in {
-      val validPerson = PersonTemplate( name = "Grace", surname = "Hopper", age = 85 )
-      validate( validPerson ) should succeed
-    }
-
-    "fail on an invalid person" in {
-      val invalidPerson = PersonTemplate( "", "", -7 )
-      validate( invalidPerson ) should failWith(
-        "name" -> "must not be empty",
-        "surname" -> "must not be empty",
-        "age" -> "got -7, expected between 0 and 120"
-      )
-    }
-  }
+  import Validation._
 
   val validAdult = Adult( name = "Grace", surname = "Hopper", age = 85, contactInfo = "Arlington National Cemetery" )
 
@@ -80,10 +64,54 @@ class ScalaTest extends Specification with Matchers with ResultMatchers {
       validate( invalidMinor ) should failWith(
         GroupViolationMatcher(
           description = "guardians",
-          violations = Set( group(
-            description = "value",
-            constraint = "is invalid",
-            expectedViolations = "name" -> "must not be empty" ) ) ) )
+          violations = Set(
+            GroupViolationMatcher(
+              description = "value",
+              constraint = "is invalid" ) ) ) )
+    }
+  }
+
+  "Classroom validator" should {
+    val minorPool: Iterator[ Minor ] =
+      Iterator.continually {
+        Minor( name = Random.nextString( 10 ), surname = Random.nextString( 10 ), age = Random.nextInt( 18 ), guardians = Set( validAdult ) )
+      }
+    val validClassroom = new Classroom( grade = 3, teacher = validAdult, students = minorPool.take( 20 ).toSet )
+
+    "succeed on a valid classroom" in {
+      validate( validClassroom ) should succeed
+    }
+
+    "fail on a classroom with an invalid grade" in {
+      val invalidClassroom = validClassroom.copy( grade = -3 )
+      validate( invalidClassroom ) should failWith( "grade" -> "got -3, expected between 1 and 12" )
+    }
+
+    "fail on a classroom with an invalid teacher" in {
+      val invalidClassroom = validClassroom.copy( teacher = validAdult.copy( age = -5 ) )
+      validate( invalidClassroom ) should failWith( GroupViolationMatcher( description = "teacher", constraint = "is invalid" ) )
+    }
+
+    "fail on a classroom with an invalid student" in {
+      val invalidStudent = minorPool.next().copy( name = "" )
+      val invalidClassroom = validClassroom.copy( students = validClassroom.students + invalidStudent )
+      validate( invalidClassroom ) should failWith(
+        GroupViolationMatcher(
+          description = "students",
+          violations = Set(
+            GroupViolationMatcher(
+              description = "value",
+              constraint = "is invalid" ) ) ) )
+    }
+
+    "fail on an empty classroom" in {
+      val invalidClassroom = validClassroom.copy( students = Set.empty )
+      validate( invalidClassroom ) should failWith( "students" -> "has size 0, expected between 18 and 25" )
+    }
+
+    "fail on an overcrowded classroom" in {
+      val invalidClassroom = validClassroom.copy( students = minorPool.take( 100 ).toSet )
+      validate( invalidClassroom ) should failWith( "students" -> "has size 100, expected between 18 and 25" )
     }
   }
 }
