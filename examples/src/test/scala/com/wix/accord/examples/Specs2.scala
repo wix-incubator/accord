@@ -9,7 +9,7 @@ import scala.util.Random
 /**
  * Created by tomer on 12/24/14.
  */
-class ScalaTest extends Specification with Matchers with ResultMatchers {
+class Specs2 extends Specification with Matchers with ResultMatchers {
   import com.wix.accord._
 
   val validAdult = Adult( name = "Grace", surname = "Hopper", age = 85, contactInfo = "Arlington National Cemetery" )
