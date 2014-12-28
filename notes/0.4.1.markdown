@@ -1,0 +1,9 @@
+Version 0.4.1 is a maintenance release, featuring the following fixes and improvements:
+
+* [#27](https://github.com/wix/accord/issues/27) Enhancement: Allow boolean combinations among heterogeneous types;
+* Fixed messages in rule violation matcher;
+* Added [test coverage](https://coveralls.io/builds/1659946) metrics courtesy of [Coveralls](https://coveralls.io/);
+* Added [build jobs](https://travis-ci.org/wix/accord) for JDK8 and Scala 2.11 courtesy of [Travis CI](https://travis-ci.com);
+* Updated to sbt 0.13.7.
+
+As always, bug reports, pull requests and other ideas are welcome!
