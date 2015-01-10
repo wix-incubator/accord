@@ -101,6 +101,7 @@ object BooleanOpsTests {
   case class TrinaryTest( c1: Boolean, c2: Boolean, c3: Boolean )
 
   import TestDomain._
+  import dsl._
   val      trueValidator = validator[ SimpleTest ] { _.f is true }
   val     falseValidator = validator[ SimpleTest ] { _.f is false }
   val       andValidator = validator[ BinaryTest ] { b => ( b.left is true ) and ( b.right is true ) }

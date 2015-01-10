@@ -31,6 +31,7 @@ class Issue7 extends FlatSpec with TestDomainMatchers with Matchers {
 
 object Issue7 {
   import com.wix.accord.TestDomain._
+  import dsl._
   case class Test( s: String )
 
   val nullSafeValidator = validator[ Test ] { t =>

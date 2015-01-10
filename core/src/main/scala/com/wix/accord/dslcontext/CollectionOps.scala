@@ -14,18 +14,21 @@
   limitations under the License.
  */
 
-package com.wix.accord.dsl
+package com.wix.accord.dslcontext
 
 import com.wix.accord.Domain
 import com.wix.accord.combinators.CollectionCombinators.HasEmpty
-import com.wix.accord.dsl.CollectionOps.HasSize
+import com.wix.accord.dslcontext.CollectionOps.HasSize
 
 import scala.collection.GenTraversableOnce
 import scala.language.implicitConversions
 
-/** Provides a DSL for collection-like objects. Works in conjunction with [[com.wix.accord.dsl.DslContext]]. */
+/** Provides a DSL for collection-like objects. Works in conjunction with [[com.wix.accord.dslcontext.DSL]]. */
 trait CollectionOps {
-  self: Domain =>
+  self: OrderingContext =>
+
+  protected val domain: Domain
+  import domain._
 
   /** Specifies a validator that succeeds on empty instances; the object under validation must implement
     * `def isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
@@ -39,25 +42,25 @@ trait CollectionOps {
 
   /**
    * An implicit conversion to enable any collection-like object (e.g. strings, options) to be handled by
-   * [[com.wix.accord.dsl.SizeContext]].
+   * [[com.wix.accord.dslcontext.SizeContext]].
    *
    * [[java.lang.String]] does not directly implement `size` (in practice it is implemented in
    * [[scala.collection.IndexedSeqOptimized]] via an implicit conversion and an inheritance stack), and this is
    * a case where the Scala compiler does not always infer structural types correctly. By requiring
    * a view bound from `T` to [[scala.collection.GenTraversableOnce]] we can force any collection-like structure
-   * to conform to the structural type [[com.wix.accord.dsl.CollectionOps.HasSize]], and by requiring
-   * a view bound from `T` to [[com.wix.accord.dsl.CollectionOps.HasSize]] at the call site (via
-   * [[com.wix.accord.dsl.SizeContext]]) we additionally support any class that directly
+   * to conform to the structural type [[com.wix.accord.dslcontext.CollectionOps.HasSize]], and by requiring
+   * a view bound from `T` to [[com.wix.accord.dslcontext.CollectionOps.HasSize]] at the call site (via
+   * [[com.wix.accord.dslcontext.SizeContext]]) we additionally support any class that directly
    * conforms to the structural type as well.
    *
    * @param gto An object that is, or is implicitly convertible to, [[scala.collection.GenTraversableOnce]].
-   * @tparam T The type that conforms, directly or implicitly, to [[com.wix.accord.dsl.CollectionOps.HasSize]].
-   * @return The specified object, strictly-typed as [[com.wix.accord.dsl.CollectionOps.HasSize]].
+   * @tparam T The type that conforms, directly or implicitly, to [[com.wix.accord.dslcontext.CollectionOps.HasSize]].
+   * @return The specified object, strictly-typed as [[com.wix.accord.dslcontext.CollectionOps.HasSize]].
    */
   implicit def genericTraversableOnce2HasSize[ T ]( gto: T )( implicit ev: T => GenTraversableOnce[_] ): HasSize = gto
 
   /** Provides access to size-based validators (where the object under validation must implement
-    * `def size: Int`, see [[com.wix.accord.dsl.CollectionOps.HasSize]]). Enables syntax such as
+    * `def size: Int`, see [[com.wix.accord.dslcontext.CollectionOps.HasSize]]). Enables syntax such as
     * `c.students has size > 0`.
     */
   val size = new OrderingOps { override protected def snippet = "has size" }

@@ -201,7 +201,9 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 }
 
 trait Transformations {
-  self: Domain =>
+
+  protected val domain: Domain
+  import domain._
 
   // TODO ScalaDocs, and/or find a way to get rid of this!
   class TransformedValidator[ T ]( predicates: Validator[ T ]* ) extends And[ T ]( predicates:_* ) {

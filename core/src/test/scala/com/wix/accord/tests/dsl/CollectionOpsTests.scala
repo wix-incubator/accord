@@ -55,6 +55,7 @@ class CollectionOpsTests extends WordSpec with TestDomainMatchers with Matchers 
 }
 
 object CollectionOpsTests {
+  import dsl._
   val seqEmptyValidator = validator[ Seq[_] ] { _ is empty }
   val seqNotEmptyValidator = validator[ Seq[_] ] { _ is notEmpty }
   val seqSizeValidator = validator[ Seq[_] ] { _ has size > 0 }

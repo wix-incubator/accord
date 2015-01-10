@@ -14,7 +14,7 @@
   limitations under the License.
  */
 
-package com.wix.accord.dsl
+package com.wix.accord.dslcontext
 
 import com.wix.accord.Domain
 
@@ -47,18 +47,20 @@ import com.wix.accord.transform.{Transformations, ValidationTransform}
   * so that violation messages are automatically generated; for instance, the rule `p.firstName is notEmpty`
   * will generate the violation message "firstName must not be empty" automatically.
   */
-trait DSL
+class DSL[ D <: Domain ]( protected val domain: D )
   extends StringOps
-     with CollectionOps
-     with GenericOps
-     with OrderingContext
-     with BooleanOps
-     with Contexts
-     with Transformations {
-  
-  self: Domain =>
+  with CollectionOps
+  with GenericOps
+  with OrderingContext
+  with BooleanOps
+  with Contexts
+  with Transformations {
 
-  /** Takes a code block and rewrites it into a validation chain (see description in [[com.wix.accord.dsl]].
+  import domain._
+
+//  self: Domain =>
+
+  /** Takes a code block and rewrites it into a validation chain (see description in [[com.wix.accord.dslcontext]].
     *
     * @param v The validation code block; may contain any combination of validation statements.
     * @tparam T The type under validation.
@@ -78,7 +80,7 @@ trait DSL
 
   /** Wraps expression under validation with an explicit description; after macro transformation, the resulting
     * validator will use the specified description to render violations. See the
-    * [[com.wix.accord.dsl.Descriptor.as]] method for an example.
+    * [[com.wix.accord.dslcontext.Descriptor.as]] method for an example.
     *
     * @param value The value to wrap with an explicit description.
     * @tparam U The type of the provided expression.

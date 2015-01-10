@@ -16,7 +16,6 @@
 
 package com.wix.accord.spring
 
-import com.wix.accord.dsl
 import org.scalatest.{WordSpec, Matchers}
 import org.springframework.validation.{BeanPropertyBindingResult, Errors}
 import scala.collection.JavaConversions._

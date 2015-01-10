@@ -14,14 +14,15 @@
   limitations under the License.
  */
 
-package com.wix.accord.dsl
+package com.wix.accord.dslcontext
 
 import com.wix.accord.Domain
 
 /** Provides a DSL for booleans. */
 trait BooleanOps {
-  self: Domain =>
 
+  protected val domain: Domain
+  import domain._
   import scala.language.implicitConversions
 
   /** An implicit conversion from boolean to a respective `IsTrue`/`IsFalse` instance; this enables syntax

@@ -21,6 +21,8 @@ import org.scalatest.{WordSpec, Matchers}
 import com.wix.accord.TestDomain._
 
 object OrderingOpsTests {
+  import dsl._
+
   case class IntTest( i: Int )
   implicit val intTestValidator = validator[ IntTest ] { _.i should be > 0 }
 

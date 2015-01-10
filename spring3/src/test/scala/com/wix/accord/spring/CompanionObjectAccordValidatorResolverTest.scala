@@ -49,7 +49,7 @@ class CompanionObjectAccordValidatorResolverTest extends WordSpec with Matchers 
 }
 
 object CompanionObjectAccordValidatorResolverTest {
-  import dsl._
+  import dslcontext._
 
   case class Test1( f: Int )
   case object Test1 {

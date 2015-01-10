@@ -1,7 +1,7 @@
 package com.wix.accord.examples
 
 import com.wix.accord.Validator
-import com.wix.accord.dsl._
+import com.wix.accord.dslcontext._
 
 /**
  * Created by tomer on 12/24/14.

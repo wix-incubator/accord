@@ -67,6 +67,7 @@ class ValidationTransformTests extends WordSpec with TestDomainMatchers with Mat
 
 object ValidationTransformTests {
   import TestDomain._
+  import dsl._
 
   case class FlatTest( field: String )
   val implicitlyDescribedNamedValidator = validator[ FlatTest ] { t => t.field is notNull }

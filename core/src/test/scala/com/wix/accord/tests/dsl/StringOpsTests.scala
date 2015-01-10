@@ -92,6 +92,7 @@ class StringOpsTests extends WordSpec with TestDomainMatchers with Matchers {
 object StringOpsTests {
   case class Test( s: String )
 
+  import dsl._
   val               startsWithValidator = validator[ Test ] { _.s should startWith( "test" ) }
   val                 endsWithValidator = validator[ Test ] { _.s should endWith( "test" ) }
   val               matchRegexValidator = validator[ Test ] { _.s should matchRegex( "test(s?)" ) }

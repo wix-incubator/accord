@@ -61,6 +61,7 @@ trait SimpleDomain extends Domain with SimpleConstraints {
 //    val s = snippet   // Stable identifier etc.
 //    new OrderingOps with SimpleDomain { override def snippet = s }
 //  }
+
 }
 
 package object simple extends SimpleDomain

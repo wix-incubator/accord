@@ -21,9 +21,9 @@ import com.wix.accord.transform.ExpressionDescriber
 
 class ExpressionDescriberTests extends WordSpec with Matchers {
 
-  import com.wix.accord.TestDomain.Descriptor
-
   case class Test( field1: String, field2: String )
+
+  import com.wix.accord.TestDomain.dsl.Descriptor
 
   "ExpressionDescriber.describe over a single-parameter function literal" should {
     "render a correct description for expressions over the function parameter members" in {

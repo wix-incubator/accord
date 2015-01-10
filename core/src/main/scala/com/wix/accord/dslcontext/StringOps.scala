@@ -14,7 +14,7 @@
   limitations under the License.
  */
 
-package com.wix.accord.dsl
+package com.wix.accord.dslcontext
 
 import java.util.regex.Pattern
 import com.wix.accord.Domain
@@ -22,7 +22,9 @@ import scala.util.matching.Regex
 
 /** Provides a DSL for string validators. */
 trait StringOps {
-  self: Domain =>
+
+  protected val domain: Domain
+  import domain._
 
   /** Specifies a validator that operates on strings and succeeds only if the validation expression starts with
     * the specified prefix.

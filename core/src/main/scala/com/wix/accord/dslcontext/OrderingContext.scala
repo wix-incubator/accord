@@ -14,14 +14,16 @@
   limitations under the License.
  */
 
-package com.wix.accord.dsl
+package com.wix.accord.dslcontext
 
 import com.wix.accord.Domain
 
 import scala.collection.immutable.NumericRange
 
 trait OrderingContext {
-  self: Domain =>
+
+  protected val domain: Domain
+  import domain._
 
   /** Provides a DSL for objects implementing [[scala.math.Ordering]].
     *

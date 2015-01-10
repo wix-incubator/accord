@@ -74,6 +74,7 @@ class OptionOpsTests extends WordSpec with TestDomainMatchers with Matchers {
 object OptionOpsTests {
   case class Test( o: Option[ String ] )
 
+  import dsl._
   val eachValidator = validator[ Test ] {  _.o.each should startWith( "test" ) }
   val emptyValidator = validator[ Test ] {  _.o is empty }
   val notEmptyValidator = validator[ Test ] {  _.o is notEmpty }
