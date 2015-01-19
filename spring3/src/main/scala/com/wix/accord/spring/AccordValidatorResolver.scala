@@ -16,23 +16,28 @@
 
 package com.wix.accord.spring
 
+import java.lang.reflect.{Method, ParameterizedType}
+import com.wix.accord.Domain
 import scala.reflect.ClassTag
-import com.wix.accord.Validator
-import java.lang.reflect.{ParameterizedType, Method}
 
-/** A resolver that takes a class and returns its respective [[com.wix.accord.Validator]]. */
+/** A resolver that takes a class and returns its respective [[com.wix.accord.Validation#Validator]]. */
 trait AccordValidatorResolver {
+  val domain: Domain
 
-  /** Takes a class and returns a [[com.wix.accord.Validator]], if available.
+  /** Takes a class and returns a [[com.wix.accord.Validation#Validator]], if available.
     *
     * @tparam T The type representing the class under validation.
     * @return [[scala.Some]] validator of type `T`, or [[scala.None]] if no suitable validator could be resolved.
     */
-  def lookupValidator[ T : ClassTag ]: Option[ Validator[ T ] ]
+  def lookupValidator[ T : ClassTag ]: Option[ domain.Validator[ T ] ]
 }
 
 /** A resolver that looks up validator definitions in the companion object of the class under validation. */
-class CompanionObjectAccordValidatorResolver extends AccordValidatorResolver {
+class CompanionObjectAccordValidatorResolver[ D <: Domain ]( val domain: D )
+  extends AccordValidatorResolver {
+
+  import domain._
+
   // TODO memoize companion lookup
 
   /** Takes a class and returns its companion object, if available.

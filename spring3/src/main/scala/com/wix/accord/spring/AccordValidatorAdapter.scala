@@ -16,14 +16,15 @@
 
 package com.wix.accord.spring
 
+import com.wix.accord.Domain
 import org.springframework.validation.Errors
 import scala.reflect.ClassTag
-import com.wix.accord._
 
 /** An implementation of Spring Validation's [[org.springframework.validation.Validator]] which provides an
   * adapter to an Accord [[com.wix.accord.Validator]].
   */
-class AccordValidatorAdapter[ T : ClassTag ]( validator: Validator[ T ] )
+class AccordValidatorAdapter[ T : ClassTag, D <: Domain ]
+    ( protected val domain: D, validator: D#Validator[ T ] )
   extends org.springframework.validation.Validator with SpringAdapterBase {
 
   def supports( clazz: Class[_] ) = implicitly[ ClassTag[ T ] ].runtimeClass isAssignableFrom clazz
@@ -32,6 +33,6 @@ class AccordValidatorAdapter[ T : ClassTag ]( validator: Validator[ T ] )
     // Safety net
     if ( !supports( target.getClass ) )
       throw new IllegalArgumentException( s"Class ${target.getClass.getName} is not supported by this validator" )
-    applyAdaptedValidator( validator, target.asInstanceOf[ T ], errors )
+    applyAdaptedValidator( validator.asInstanceOf[ domain.Validator[ T ] ], target.asInstanceOf[ T ], errors )
   }
 }

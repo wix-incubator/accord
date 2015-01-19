@@ -16,15 +16,17 @@
 
 package com.wix.accord.spring
 
+import com.wix.accord.Domain
 import org.scalatest.{WordSpec, Matchers}
 import org.springframework.test.context.{TestContextManager, ContextConfiguration}
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.validation.{BeanPropertyBindingResult, Validator}
 
 import AccordEnabledLocalValidationFactoryTest._
 
 @ContextConfiguration( classes = Array( classOf[ SpringValidationConfiguration ] ) )
 class AccordEnabledLocalValidationFactoryTest extends WordSpec with Matchers {
+
+  import org.springframework.validation.{BeanPropertyBindingResult, Validator}
 
   new TestContextManager( this.getClass ).prepareTestInstance( this )
 
@@ -55,7 +57,9 @@ object AccordEnabledLocalValidationFactoryTest {
                             @( Max @field )( value = 10 ) f2: Int )
   case class AccordEnabled( f1: String, f2: Int )
   case object AccordEnabled {
-    import com.wix.accord.dsl._
+    import com.wix.accord.TestDomain._
+    import dsl._
+
     implicit val accordEnabledValidator = validator[ AccordEnabled ] { ae =>
       ae.f1 has size <= 10
       ae.f2 should be <= 10
@@ -66,7 +70,9 @@ object AccordEnabledLocalValidationFactoryTest {
 
   @Configuration
   class SpringValidationConfiguration {
-    @Bean def resolver: AccordValidatorResolver = new CompanionObjectAccordValidatorResolver
+    @Bean def domain: Domain = com.wix.accord.TestDomain
+    @Bean def resolver( domain: Domain ): AccordValidatorResolver =
+      new CompanionObjectAccordValidatorResolver( domain )
     @Bean def validator = new AccordEnabledLocalValidationFactory
   }
 }

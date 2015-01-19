@@ -18,18 +18,31 @@ package com.wix.accord.spring
 
 import com.wix.accord._
 import org.scalatest.{WordSpec, Matchers}
-import com.wix.accord.scalatest.ResultMatchers
 
-class CompanionObjectAccordValidatorResolverTest extends WordSpec with Matchers with ResultMatchers {
+object CompanionObjectAccordValidatorResolverTest {
+  import TestDomain.dsl._
+
+  case class Test1( f: Int )
+  case object Test1 {
+    implicit val validatorOfTest1 = validator[ Test1 ] { t => t.f should be > 5 }
+  }
+
+  case class Test2( x: String )
+  case object Test2
+}
+
+class CompanionObjectAccordValidatorResolverTest extends WordSpec with Matchers with TestDomainMatchers {
 
   import CompanionObjectAccordValidatorResolverTest._
 
   "CompanionObjectAccordResolver" should {
 
-    def resolver = new CompanionObjectAccordValidatorResolver
+    val domain = TestDomain
+    import domain._
+    def resolver = new CompanionObjectAccordValidatorResolver( domain )
 
     "successfully resolve a validator when available on a test class companion" in {
-      val resolved = resolver.lookupValidator[ Test1 ]
+      val resolved: Option[ Validator[ Test1 ] ] = resolver.lookupValidator[ Test1 ]
       resolved should not be empty
 
       // Quick sanity tests to make sure the resolved validator is functional
@@ -41,22 +54,10 @@ class CompanionObjectAccordValidatorResolverTest extends WordSpec with Matchers 
     }
 
     "return None when no validator is available on the test class companion" in {
-      val resolved = resolver.lookupValidator[ Test2 ]
+      val resolved: Option[ Validator[ Test2 ] ] = resolver.lookupValidator[ Test2 ]
       resolved shouldBe empty
     }
   }
 
-}
-
-object CompanionObjectAccordValidatorResolverTest {
-  import dslcontext._
-
-  case class Test1( f: Int )
-  case object Test1 {
-    implicit val validatorOfTest1 = validator[ Test1 ] { t => t.f should be > 5 }
-  }
-
-  case class Test2( x: String )
-  case object Test2
 }
 

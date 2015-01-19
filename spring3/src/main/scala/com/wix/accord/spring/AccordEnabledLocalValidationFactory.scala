@@ -23,7 +23,9 @@ import javax.annotation.Resource
 
 class AccordEnabledLocalValidationFactory extends LocalValidatorFactoryBean with SpringAdapterBase {
 
-  @Resource private val resolver: AccordValidatorResolver = null
+  @Resource protected val resolver: AccordValidatorResolver = null
+
+  lazy protected val domain: resolver.domain.type = resolver.domain
 
   // Need an indirection through a separate method to get a type T in a way that's consistently usable
   // across multiple expressions. There might be a better way to do this.

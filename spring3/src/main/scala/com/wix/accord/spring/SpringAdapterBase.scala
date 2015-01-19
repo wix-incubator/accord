@@ -16,10 +16,12 @@
 
 package com.wix.accord.spring
 
-import com.wix.accord.{Validator, Success, Failure, Violation}
+import com.wix.accord._
 import org.springframework.validation.Errors
 
 trait SpringAdapterBase {
+  protected val domain: Validation with Results
+  import domain._
 
   /** Formats Spring Validation rejection messages. */
   protected def formatMessage( failure: Violation ) =

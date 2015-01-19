@@ -25,7 +25,7 @@ import AccordValidatorAdapterTest._
 class AccordValidatorAdapterTest extends WordSpec with Matchers {
 
   "The validation adapter" should {
-    def adapter = new AccordValidatorAdapter( testClassValidator )
+    def adapter = new AccordValidatorAdapter( com.wix.accord.TestDomain, testClassValidator )
 
     "find and apply an Accord validator in a companion object" in {
       val test = TestClass( "ok", 5 )
@@ -65,6 +65,7 @@ class AccordValidatorAdapterTest extends WordSpec with Matchers {
 private object AccordValidatorAdapterTest {
   case class TestClass( f1: String, f2: Int )
 
+  import com.wix.accord.TestDomain._
   import dsl._
   implicit val testClassValidator = validator[ TestClass ] { ae =>
     ae.f1 has size <= 10
