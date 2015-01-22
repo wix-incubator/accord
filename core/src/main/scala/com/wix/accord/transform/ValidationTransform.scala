@@ -46,14 +46,14 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
   protected case class ValidationRule( description: Tree, ouv: Tree, validation: Tree ) extends ValidatorApplication
 
   /** An extractor for validation rules. The object under validation is, by design, wrapped in the implicit
-    * DSL construct [[com.wix.accord.dsl.Contextualizer]], so that a validation rule can be defined with
+    * DSL construct [[com.wix.accord.dslcontext.DSL.Contextualizer]], so that a validation rule can be defined with
     * syntax like `p.firstName is notEmpty`.
     *
-    * In the example above, `p.firstName` is the expression wrapped by [[com.wix.accord.dsl.Contextualizer]]
+    * In the example above, `p.firstName` is the expression wrapped by [[com.wix.accord.dslcontext.DSL.Contextualizer]]
     * and yields the Object Under Validation (OUV).
     */
   object ValidatorApplication {
-    private val validatorType = context.typecheck( tq"Validator[ T ] forSome { type T }", context.TYPEmode ).tpe
+    private val validatorType = context.typecheck( tq"_DomainValidator[ T ] forSome { type T }", context.TYPEmode ).tpe
 
     private def extractObjectUnderValidation( t: Tree ): List[ Tree ] =
       collectFromPattern( t ) {
@@ -129,11 +129,11 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
    * its extractor; constraint violations are prefixed with the extracted description.
    *
    * @param rule The validation rule to rewrite
-   * @return A valid expression representing a [[com.wix.accord.Validator]] of `T`.
+   * @return A valid expression representing a [[com.wix.accord.Validation#Validator]] of `T`.
    */
   def rewriteOne( rule: ValidationRule ): Tree = {
     val validatorType =
-      context.typecheck( tq"Validator[ ${weakTypeOf[ T ]} ]", context.TYPEmode ).tpe
+      context.typecheck( tq"_DomainValidator[ ${weakTypeOf[ T ]} ]", context.TYPEmode ).tpe
     val rewrite =
       q"""
           new $validatorType {
@@ -153,12 +153,13 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     rewrite
   }
 
-  /** Lifts a multiple-clause boolean expression to a [[com.wix.accord.Validator]] of `T`.
+  /** Lifts a multiple-clause boolean expression to a [[com.wix.accord.Validation#Validator]] of `T`.
     *
-    * Such an expression occurs via [[com.wix.accord.dsl.ValidatorBooleanOps]] of some type `U`, where `U` is the
-    * inferred LUB of both clauses; this method lifts the expression to `T` by rewriting the type parameter.
-    * Additionally, the boolean combinator itself (e.g. [[com.wix.accord.dsl.ValidatorBooleanOps#or]]) takes a
-    * type parameter for the right-hand clause, which needs to be lifted to `T`.
+    * Such an expression occurs via [[com.wix.accord.dslcontext.DSL.ValidatorBooleanOps]] of some type `U`,
+    * where `U` is the inferred LUB of both clauses; this method lifts the expression to `T` by rewriting the
+    * type parameter. Additionally, the boolean combinator itself (e.g.
+    * [[com.wix.accord.dslcontext.DSL.ValidatorBooleanOps.or]]) takes a type parameter for the right-hand clause,
+    * which needs to be lifted to `T`.
     *
     * This assumes both clauses were previously rewritten (via
     * [[com.wix.accord.transform.ValidationTransform.rewriteOne]]).
@@ -188,9 +189,9 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
   /** Returns the specified validation block, transformed into a single monolithic validator.
     *
-    * @return The transformed [[com.wix.accord.Validator]] of `T`.
+    * @return The transformed [[com.wix.accord.Validation.Validator]] of `T`.
     */
-  def transformed: Tree = { //Expr[ TransformedValidator[ T ] ] = {
+  def transformed: Tree = {
     val validationRules =
       collectFromPattern( vimpl )( rewriteValidationRules orElse processBooleanExpressions )
 
@@ -207,7 +208,18 @@ trait Transformations {
   protected val domain: Domain
   import domain._
 
-  // TODO ScalaDocs, and/or find a way to get rid of this!
+  /** This is a very hackish solution to make the domain-specific validator type visible in the macro. The problem is
+    * that the macro needs a consistent way to access the path-dependant [[com.wix.accord.Validation#Validator]] used
+    * by the DSL. Since the macro implementation must be contained in a top-level (i.e. not path-dependant) type,
+    * it cannot directly access the domain object. Because the DSL is normally imported wholesale (e.g.
+    * `import com.wix.accord.simple.dsl._`), which in turn composes this trait, this type is imported into context
+    * and can be assumed available to the macro.
+    *
+    * Note that the name is intentionally prefixed with an underscore, so as to place it last in autocompletion lists.
+    */
+  type _DomainValidator[ -T ] = Validator[ T ]
+
+  // TODO ScalaDocs
   class TransformedValidator[ T ]( predicates: Validator[ T ]* ) extends And[ T ]( predicates:_* ) {
     import scala.language.experimental.macros
     override def compose[ U ]( g: U => T ): Validator[ U ] = macro ValidationTransform.compose[ U, T ]
