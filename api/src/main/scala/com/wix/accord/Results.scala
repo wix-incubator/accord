@@ -20,7 +20,7 @@ trait Results {
   self: Constraints =>
 
   /** The default failure for null validations. */
-  val nullFailure: Failure = Failure( Set( RuleViolation( null, isNullConstraint, None ) ) )
+  lazy val nullFailure: Failure = Failure( Set( RuleViolation( null, isNullConstraint, None ) ) )
 
   /** A base trait for all violation types. */
   trait Violation {

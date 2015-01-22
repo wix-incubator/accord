@@ -19,13 +19,14 @@ package com.wix.accord.spring
 import org.scalatest.{WordSpec, Matchers}
 import org.springframework.validation.{BeanPropertyBindingResult, Errors}
 import scala.collection.JavaConversions._
+import com.wix.accord.TestDomain
 
 import AccordValidatorAdapterTest._
 
 class AccordValidatorAdapterTest extends WordSpec with Matchers {
 
   "The validation adapter" should {
-    def adapter = new AccordValidatorAdapter( com.wix.accord.TestDomain, testClassValidator )
+    def adapter = new AccordValidatorAdapter( TestDomain, testClassValidator )
 
     "find and apply an Accord validator in a companion object" in {
       val test = TestClass( "ok", 5 )
@@ -42,14 +43,14 @@ class AccordValidatorAdapterTest extends WordSpec with Matchers {
 
       errors.getAllErrors should have size 1
       errors.getAllErrors.head.getCode shouldEqual SpringAdapterBase.defaultErrorCode
-      errors.getAllErrors.head.getDefaultMessage shouldEqual "f2 got 15, expected 10 or less"
+      errors.getAllErrors.head.getDefaultMessage shouldEqual s"f2 $sizeConstraint"
     }
 
     "correctly render multiple validation errors" in {
       val test = TestClass( "not ok at all", 15 )
       val expectedErrorMessages = Seq(
-        "f1 has size 13, expected 10 or less",
-        "f2 got 15, expected 10 or less"
+        s"f1 $sizeConstraint",
+        s"f2 $valueConstraint"
       )
 
       val errors: Errors = new BeanPropertyBindingResult( test, "test" )
@@ -65,10 +66,11 @@ class AccordValidatorAdapterTest extends WordSpec with Matchers {
 private object AccordValidatorAdapterTest {
   case class TestClass( f1: String, f2: Int )
 
-  import com.wix.accord.TestDomain._
-  import dsl._
+  import TestDomain.dsl._
   implicit val testClassValidator = validator[ TestClass ] { ae =>
     ae.f1 has size <= 10
     ae.f2 should be <= 10
   }
+  val sizeConstraint = TestDomain.Constraints.LesserThanEqual( 10 )
+  val valueConstraint = TestDomain.Constraints.LesserThanEqual( 10 )
 }

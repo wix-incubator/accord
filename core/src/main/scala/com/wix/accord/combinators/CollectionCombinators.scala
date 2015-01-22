@@ -23,7 +23,7 @@ trait CollectionCombinatorConstraints {
   self: Constraints =>
 
   protected def emptyConstraint: Constraint
-  protected def nonEmptyConstraint: Constraint
+  protected def notEmptyConstraint: Constraint
 }
 
 /** Combinators that operate on collections and collection-like structures. */
@@ -67,7 +67,7 @@ trait CollectionCombinators {
     *           [[com.wix.accord.combinators.CollectionCombinators#HasEmpty]]).
     * @see [[com.wix.accord.combinators.CollectionCombinators#Empty]]
     */
-  class NotEmpty[ T <: AnyRef <% HasEmpty ] extends NullSafeValidator[ T ]( !_.isEmpty, nonEmptyConstraint )
+  class NotEmpty[ T <: AnyRef <% HasEmpty ] extends NullSafeValidator[ T ]( !_.isEmpty, notEmptyConstraint )
 }
 
 object CollectionCombinators {

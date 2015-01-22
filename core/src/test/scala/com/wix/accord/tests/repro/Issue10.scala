@@ -17,7 +17,7 @@
 package com.wix.accord.tests.repro
 
 import org.scalatest.{Matchers, FlatSpec}
-import com.wix.accord._
+import com.wix.accord.TestDomain._
 
 object Issue10 {
   case class Foo( bar: Option[ String ] )

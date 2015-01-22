@@ -17,12 +17,13 @@
 package com.wix.accord.spring
 
 import java.lang.reflect.{Method, ParameterizedType}
-import com.wix.accord.Domain
+import com.wix.accord.{Validation, Results}
+
 import scala.reflect.ClassTag
 
 /** A resolver that takes a class and returns its respective [[com.wix.accord.Validation#Validator]]. */
 trait AccordValidatorResolver {
-  val domain: Domain
+  val domain: Validation with Results
 
   /** Takes a class and returns a [[com.wix.accord.Validation#Validator]], if available.
     *
@@ -33,7 +34,7 @@ trait AccordValidatorResolver {
 }
 
 /** A resolver that looks up validator definitions in the companion object of the class under validation. */
-class CompanionObjectAccordValidatorResolver[ D <: Domain ]( val domain: D )
+class CompanionObjectAccordValidatorResolver[ D <: Validation with Results ]( val domain: D )
   extends AccordValidatorResolver {
 
   import domain._

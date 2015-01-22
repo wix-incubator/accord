@@ -1,16 +1,14 @@
-package com.wix.accord.simple
+package com.wix.accord
 
 import java.util.regex.Pattern
 
-//import com.wix.accord.dsl.OrderingOps
-import com.wix.accord.{Constraints, Domain}
 import com.wix.accord.combinators._
 
 /**
  * Created by tomer on 12/16/14.
  */
 
-sealed trait SimpleConstraints
+private[ accord ] trait SimpleConstraints
   extends Constraints
   with BooleanCombinatorConstraints
   with GeneralPurposeCombinatorConstraints
@@ -31,8 +29,8 @@ sealed trait SimpleConstraints
   protected def equalToConstraint[ T ]( to: T ) = s"does not equal $to"
   protected def notEqualToConstraint[ T ]( to: T ) = s"equals $to"
 
-  protected def emptyConstraint = "must not be empty"
-  protected def nonEmptyConstraint = "must be empty"
+  protected def emptyConstraint = "must be empty"
+  protected def notEmptyConstraint = "must not be empty"
 
   protected def betweenConstraint[ T ]( prefix: String, value: T, lower: T, upper: T ) =
     s"$prefix $value, expected between $lower and $upper"
@@ -55,13 +53,3 @@ sealed trait SimpleConstraints
   protected def endsWithConstraint( suffix: String ) = s"must end with '$suffix'"
   protected def fullyMatchRegexConstraint( pattern: Pattern ) = s"must fully match regular expression '$pattern'"
 }
-
-trait SimpleDomain extends Domain with SimpleConstraints {
-//  protected def newOrderingOps( snippet: String ) = {
-//    val s = snippet   // Stable identifier etc.
-//    new OrderingOps with SimpleDomain { override def snippet = s }
-//  }
-
-}
-
-package object simple extends SimpleDomain

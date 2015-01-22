@@ -56,10 +56,6 @@ class DSL[ D <: Domain ]( protected val domain: D )
   with Contexts
   with Transformations {
 
-  import domain._
-
-//  self: Domain =>
-
   /** Takes a code block and rewrites it into a validation chain (see description in [[com.wix.accord.dslcontext]].
     *
     * @param v The validation code block; may contain any combination of validation statements.

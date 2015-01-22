@@ -1,7 +1,6 @@
 package com.wix.accord.examples
 
-import com.wix.accord._
-import dsl._
+import com.wix.accord.simple._
 
 /**
  * Created by tomer on 12/24/14.
@@ -14,6 +13,7 @@ trait Person {
 }
 
 object Person {
+  import dsl._
   val personValidator: Validator[ Person ] =
     validator[ Person ] { person =>
       person.name is notEmpty
@@ -25,6 +25,7 @@ object Person {
 case class Adult( name: String, surname: String, age: Int, contactInfo: String ) extends Person
 
 case object Adult {
+  import dsl._
   implicit val adultValidator: Validator[ Adult ] =
     validator[ Adult ] { adult =>
       adult is valid( Person.personValidator )
@@ -37,6 +38,7 @@ case object Adult {
 case class Minor( name: String, surname: String, age: Int, guardians: Set[ Adult ] ) extends Person
 
 case object Minor {
+  import dsl._
   implicit val minorValidator: Validator[ Minor ] =
     validator[ Minor ] { minor =>
       minor is valid( Person.personValidator )
@@ -49,6 +51,7 @@ case object Minor {
 case class Classroom( grade: Int, teacher: Adult, students: Set[ Minor ] )
 
 case object Classroom {
+  import dsl._
   implicit val classroomValidator: Validator[ Classroom ] =
     validator[ Classroom ] { classroom =>
       classroom.grade is between( 1, 12 )

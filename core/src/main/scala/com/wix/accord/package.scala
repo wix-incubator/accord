@@ -16,13 +16,11 @@
 
 package com.wix
 
-import com.wix.accord.simple.SimpleDomain
-
+// TODO update docs!
 /** The entry-point to the Accord library. To execute a validator, simply import it into the local scope,
   * import this package and execute `validate( objectUnderValidation )`.
-  *
-  * @deprecated Starting with Accord 0.5, you should explicitly import the desired constraint model, e.g.
-  *             `import com.wix.accord.simple._` (which has the same behavior as pre-0.5 versions). This is provided
-  *             for backwards compatibility only, and will be removed by 0.6.
   */
-package object accord extends SimpleDomain
+
+package object accord {
+  object simple extends Domain with SimpleConstraints
+}

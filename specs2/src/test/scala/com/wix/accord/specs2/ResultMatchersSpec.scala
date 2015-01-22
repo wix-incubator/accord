@@ -19,14 +19,14 @@ package com.wix.accord.specs2
 import com.wix.accord.{Results, Constraints}
 import org.specs2.mutable.Specification
 
-class ResultMatchersSpec extends Specification with ResultMatchers {
-  implicit val domain =
-    new Constraints with Results {
-      type Constraint = String
-      def isNullConstraint = ???
-      def isNotNullConstraint = ???
-    }
-  import domain._
+object SimpleDomain extends Constraints with Results {
+  type Constraint = String
+  def isNullConstraint = "null"
+  def isNotNullConstraint = "not null"
+}
+
+class ResultMatchersSpec extends Specification with ResultMatchers[ SimpleDomain.type ] {
+  import SimpleDomain._
 
   "RuleViolationMatcher" should {
 

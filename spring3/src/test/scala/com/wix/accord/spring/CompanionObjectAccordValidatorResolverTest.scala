@@ -16,11 +16,12 @@
 
 package com.wix.accord.spring
 
-import com.wix.accord._
+import com.wix.accord.TestDomain._
+import com.wix.accord.{TestDomain, TestDomainMatchers}
 import org.scalatest.{WordSpec, Matchers}
 
 object CompanionObjectAccordValidatorResolverTest {
-  import TestDomain.dsl._
+  import dsl._
 
   case class Test1( f: Int )
   case object Test1 {

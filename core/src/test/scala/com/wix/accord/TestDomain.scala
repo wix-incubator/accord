@@ -56,7 +56,7 @@ trait TestDomain extends Domain {
   protected def isFalseConstraint = IsFalse
   protected def isTrueConstraint = IsTrue
   protected def emptyConstraint = Empty
-  protected def nonEmptyConstraint = NonEmpty
+  protected def notEmptyConstraint = NonEmpty
   protected def isNullConstraint = IsNull
   protected def isNotNullConstraint = IsNotNull
 }

@@ -5,12 +5,13 @@ import org.specs2.matcher.Matchers
 import org.specs2.mutable.Specification
 
 import scala.util.Random
+import com.wix.accord.simple
 
 /**
  * Created by tomer on 12/24/14.
  */
-class Specs2 extends Specification with Matchers with ResultMatchers {
-  import com.wix.accord._
+class Specs2 extends Specification with Matchers with ResultMatchers[ simple.type ] {
+  import simple._
 
   val validAdult = Adult( name = "Grace", surname = "Hopper", age = 85, contactInfo = "Arlington National Cemetery" )
 

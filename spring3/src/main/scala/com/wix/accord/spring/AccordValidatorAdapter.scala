@@ -16,14 +16,15 @@
 
 package com.wix.accord.spring
 
-import com.wix.accord.Domain
+import com.wix.accord.{Results, Validation}
 import org.springframework.validation.Errors
+
 import scala.reflect.ClassTag
 
 /** An implementation of Spring Validation's [[org.springframework.validation.Validator]] which provides an
-  * adapter to an Accord [[com.wix.accord.Validator]].
+  * adapter to an Accord [[com.wix.accord.Validation#Validator]].
   */
-class AccordValidatorAdapter[ T : ClassTag, D <: Domain ]
+class AccordValidatorAdapter[ T : ClassTag, D <: Validation with Results ]
     ( protected val domain: D, validator: D#Validator[ T ] )
   extends org.springframework.validation.Validator with SpringAdapterBase {
 

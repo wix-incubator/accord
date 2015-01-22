@@ -132,9 +132,11 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
    * @return A valid expression representing a [[com.wix.accord.Validator]] of `T`.
    */
   def rewriteOne( rule: ValidationRule ): Tree = {
+    val validatorType =
+      context.typecheck( tq"Validator[ ${weakTypeOf[ T ]} ]", context.TYPEmode ).tpe
     val rewrite =
       q"""
-          new Validator[ ${weakTypeOf[ T ] } ] {
+          new $validatorType {
             def apply( $prototype ) = {
               val validation = ${rule.validation}
               validation( ${rule.ouv} ) withDescription ${rule.description}
