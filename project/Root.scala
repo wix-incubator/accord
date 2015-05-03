@@ -54,7 +54,7 @@ object Root extends Build {
   )
 
   val specs2_3xSettings = Seq(
-    name := "accord-specs3-3.x",
+    name := "accord-specs2-3.x",
     libraryDependencies += "org.specs2" %% "specs2-core" % "3.6",
     resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases",
     target <<= target { _ / "specs2-3.x" }
