@@ -41,7 +41,7 @@ object Root extends Build {
     Seq(
       organization := "com.wix",
       homepage := Some( url( "https://github.com/wix/accord" ) ),
-      licenses := Seq( "Apache 2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) )
+      licenses := Seq( "Apache-2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) )
     )
 
   lazy val noPublish = Seq( publish := {}, publishLocal := {}, publishArtifact := false )
