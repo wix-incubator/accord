@@ -9,7 +9,7 @@ object Root extends Build {
       if ( version.value.trim.endsWith( "SNAPSHOT" ) )
         Some( "snapshots" at nexus + "content/repositories/snapshots" )
       else
-        Some( "releases"  at nexus + "service/local/staging/deploy/maven2" )
+        Some( "releases" at nexus + "service/local/staging/deploy/maven2" )
     },
     publishMavenStyle := true,
     pomExtra in ThisBuild :=
@@ -85,14 +85,40 @@ object Root extends Build {
 
   // Projects --
 
-  lazy val api = Project( id = "accord-api", base = file( "api" ), settings = baseSettings )
-  lazy val scalatest = Project( id = "accord-scalatest", base = file( "scalatest" ), settings = baseSettings ).dependsOn( api )
-  lazy val specs2 = Project( id = "accord-specs2", base = file( "specs2" ), settings = baseSettings ).dependsOn( api )
-  lazy val core = Project( id = "accord-core", base = file( "core" ), settings = baseSettings ).dependsOn( api, scalatest % "test->compile" )
-  lazy val spring3 = Project( id = "accord-spring3", base = file ( "spring3" ), settings = baseSettings )
-    .dependsOn( api, scalatest % "test->compile", core % "test->compile" )
-  lazy val examples = Project( id = "accord-examples", base = file( "examples" ), settings = baseSettings ++ noPublish )
-    .dependsOn( api, core, scalatest % "test->compile", specs2 % "test->compile", spring3 )
-  lazy val root = Project( id = "root", base = file( "." ), settings = baseSettings ++ noPublish )
-    .aggregate( api, core, scalatest, specs2, spring3, examples )
+  val specs2_2xSettings = Seq(
+    name := "accord-specs2",
+    libraryDependencies += "org.specs2" %% "specs2" % "2.3.13",
+    target <<= target { _ / "specs2-2.x" }
+  )
+
+  val specs2_3xSettings = Seq(
+    name := "accord-specs3-3.x",
+    libraryDependencies += "org.specs2" %% "specs2-core" % "3.6",
+    resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases",
+    target <<= target { _ / "specs2-3.x" }
+  )
+
+  lazy val api =
+    Project( id = "accord-api", base = file( "api" ), settings = baseSettings )
+  lazy val scalatest =
+    Project( id = "accord-scalatest", base = file( "scalatest" ), settings = baseSettings )
+      .dependsOn( api )
+  lazy val specs2_2x =
+    Project( id = "accord-specs2-2x", base = file( "specs2" ), settings = baseSettings ++ specs2_2xSettings )
+      .dependsOn( api )
+  lazy val specs2_3x =
+    Project( id = "accord-specs2-3x", base = file( "specs2" ), settings = baseSettings ++ specs2_3xSettings )
+      .dependsOn( api )
+  lazy val core =
+    Project( id = "accord-core", base = file( "core" ), settings = baseSettings )
+      .dependsOn( api, scalatest % "test->compile" )
+  lazy val spring3 =
+    Project( id = "accord-spring3", base = file ( "spring3" ), settings = baseSettings )
+      .dependsOn( api, scalatest % "test->compile", core % "test->compile" )
+  lazy val examples =
+    Project( id = "accord-examples", base = file( "examples" ), settings = baseSettings ++ noPublish )
+      .dependsOn( api, core, scalatest % "test->compile", specs2_2x % "test->compile", spring3 )
+  lazy val root =
+    Project( id = "root", base = file( "." ), settings = baseSettings ++ noPublish )
+      .aggregate( api, core, scalatest, specs2_2x, specs2_3x, spring3, examples )
 }
