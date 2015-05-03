@@ -18,35 +18,6 @@ object Root extends Build {
       </developers>
   )
 
-  lazy val releaseSettings = {
-    import sbtrelease.ReleaseStep
-    import sbtrelease.ReleasePlugin.ReleaseKeys._
-    import sbtrelease.ReleaseStateTransformations._
-    import com.typesafe.sbt.pgp.PgpKeys._
-
-    // Hook up release and GPG plugins
-    lazy val publishSignedAction = { st: State =>
-      val extracted = Project.extract( st )
-      val ref = extracted.get( thisProjectRef )
-      extracted.runAggregated( publishSigned in Global in ref, st )
-    }
-
-    sbtrelease.ReleasePlugin.releaseSettings ++ Seq(
-      releaseProcess := Seq[ ReleaseStep ] (
-        checkSnapshotDependencies,
-        runTest,
-        inquireVersions,
-        setReleaseVersion,
-        commitReleaseVersion,
-        tagRelease,
-        publishArtifacts.copy( action = publishSignedAction ),
-        setNextVersion,
-        commitNextVersion,
-        pushChanges
-      )
-    )
-  }
-
   lazy val compileOptions = Seq(
     scalaVersion := "2.11.1",
     crossScalaVersions := Seq( "2.10.3", "2.11.1" ),
@@ -65,7 +36,6 @@ object Root extends Build {
 
   lazy val baseSettings = 
     publishSettings ++
-    releaseSettings ++
     compileOptions ++
     Seq(
       organization := "com.wix",
