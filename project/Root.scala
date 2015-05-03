@@ -34,7 +34,8 @@ object Root extends Build {
       ( scalacOptions in ( Compile, compile ) ).value filterNot { _ == "-Xfatal-warnings" }
   )
 
-  lazy val baseSettings = 
+  lazy val baseSettings =
+    sbtrelease.ReleasePlugin.releaseSettings ++
     publishSettings ++
     compileOptions ++
     Seq(
