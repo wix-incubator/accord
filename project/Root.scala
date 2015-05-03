@@ -3,7 +3,7 @@ import Keys._
 
 object Root extends Build {
 
-  lazy val publishSettings = Seq(
+  lazy val publishSettings = bintray.Plugin.bintrayPublishSettings ++ Seq(
     pomExtra in ThisBuild :=
       <scm>
         <url>git@github.com:wix/accord.git</url>
