@@ -3,7 +3,15 @@ import Keys._
 
 object Root extends Build {
 
-  lazy val publishSettings = bintray.Plugin.bintrayPublishSettings ++ Seq(
+  lazy val publishSettings = Seq(
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if ( version.value.trim.endsWith( "SNAPSHOT" ) )
+        Some( "snapshots" at nexus + "content/repositories/snapshots" )
+      else
+        Some( "releases" at nexus + "service/local/staging/deploy/maven2" )
+    },
+    publishMavenStyle := true,
     pomExtra in ThisBuild :=
       <scm>
         <url>git@github.com:wix/accord.git</url>
