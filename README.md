@@ -9,7 +9,7 @@ Accord is a validation library written in and for Scala. Compared to [JSR 303](h
 * __Composable__: Because JSR 303 is annotation based, validation rules cannot be composed (annotations cannot receive other annotations as parameters). This is a real problem with some Scala features, for example `Option`s or collections. Accord's validation rules are trivially composable.
 * __Simple__: Accord provides a dead-simple story for validation rule definition by leveraging macros, as well as the validation call site (see example below).
 * __Self-contained__: Accord is macro-based but completely self-contained, and consequently only relies on the Scala runtime and reflection libraries.
-* __Integrated__: Other than providing its own DSL and matcher library, Accord is designed to easily integrate with other libraries, and provides out-of-the-box integration with [Spring Validation](https://github.com/wix/accord/wiki/Spring-Integration), [Specs<sup>2</sup>](https://github.com/wix/accord/wiki/Specs%C2%B2-Integration) and [ScalaTest](https://github.com/wix/accord/wiki/ScalaTest-Integration).
+* __Integrated__: Other than providing its own DSL and matcher library, Accord is designed to easily integrate with other libraries, and provides out-of-the-box integration with [Spring Validation](spring3/README.md), [Specs<sup>2</sup>](specs2/README.md) and [ScalaTest](scalatest/README.md).
 
 Accord is developed and used at [![Wix.com Logo](wix_logo.png)](http://www.wix.com) and distributed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0), which basically means you can use and modify it freely. Feedback, bug reports and improvements are welcome!
 
