@@ -4,20 +4,37 @@ Accord provides [Specs²](http://www.scalatest.org/) matchers on validation resu
 
 ## Using sbt
 
+> :warning: The artifact names are likely change with the next minor release.
+
 Add the following to your build.sbt or to the settings in your Scala build configuration:
 
 ```scala
+// When using Specs² 2.x:
 libraryDependencies += "com.wix" %% "accord-specs2" % "0.4.2" % "test"
+
+// When using Specs² 3.x:
+libraryDependencies += "com.wix" %% "accord-specs2-3-x" % "0.4.2" % "test"
 ```
 
 ## Using Maven
 
+> :warning: The artifact names are likely change with the next minor release.
+
 Add the following to your POM:
 
 ```xml
+<!-- When using Specs² 2.x: -->
 <dependency>
     <groupId>com.wix</groupId>
     <artifactId>accord-specs2_${scala.tools.version}</artifactId>
+    <version>0.4.2</version>
+    <scope>test</scope>
+</dependency>
+
+<!-- When using Specs² 3.x: -->
+<dependency>
+    <groupId>com.wix</groupId>
+    <artifactId>accord-specs2-3-x_${scala.tools.version}</artifactId>
     <version>0.4.2</version>
     <scope>test</scope>
 </dependency>
