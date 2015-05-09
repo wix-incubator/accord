@@ -1,8 +1,10 @@
-[![Build Status](https://travis-ci.org/wix/accord.png?branch=master)](https://travis-ci.org/wix/accord) [![Coverage Status](https://coveralls.io/repos/wix/accord/badge.png?branch=master)](https://coveralls.io/r/wix/accord?branch=master) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/wix/accord?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
+[![Build Status](https://travis-ci.org/wix/accord.png?branch=master)](https://travis-ci.org/wix/accord) [![Coverage Status](https://coveralls.io/repos/wix/accord/badge.png?branch=master)](https://coveralls.io/r/wix/accord?branch=master) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/wix/accord?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 Overview
 ========
+
+![Accord](assets/accord-logo-light.png)
 
 Accord is a validation library written in and for Scala. Compared to [JSR 303](http://jcp.org/en/jsr/detail?id=303) and [Scalaz validation](https://github.com/scalaz/scalaz/blob/scalaz-seven/core/src/main/scala/scalaz/Validation.scala) it aims to provide the following:
 
