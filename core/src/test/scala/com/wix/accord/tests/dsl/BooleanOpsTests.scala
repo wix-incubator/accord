@@ -110,6 +110,6 @@ object BooleanOpsTests {
 
   // While the following does not feature in any of the spec examples, it's intended to prove that
   // heterogeneous types can be used with boolean combinators.
-  case class HeterogenousTypeTest( f1: Boolean, f2: String )
-  val hgTypeValidator = validator[ HeterogenousTypeTest ] { hg => ( hg.f1 is false ) or ( hg.f2 is notEmpty ) }
+  case class HeterogeneousTypeTest( f1: Boolean, f2: String )
+  val hgTypeValidator = validator[ HeterogeneousTypeTest ] { hg => ( hg.f1 is false ) or ( hg.f2 is notEmpty ) }
 }
