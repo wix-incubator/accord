@@ -1,7 +1,6 @@
 Version 0.4.2 is a minor maintenance release, featuring the following fixes and improvements:
 
 * [#35](https://github.com/wix/accord/issues/35) Enhancement: Qualify Specs2 version in integration module;
-* Switched from Sonatype to Bintray for publishing;
 * Updated to sbt 0.13.8.
 
 As always, bug reports, pull requests and other ideas are welcome!
