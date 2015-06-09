@@ -102,28 +102,28 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers with Orde
     }
   }
   
-  "Between combinator" should {
+  "InRangeInclusive combinator" should {
     "successfully validate an object within the specified range" in {
       val left = Test( 10 )
-      val validator = new Between( Test( 5 ), Test( 10 ), "got" )
+      val validator = new InRangeInclusive( Test( 5 ), Test( 10 ), "got" )
       validator( left ) should be( aSuccess )
     }
     "render a correct rule violation" in {
       val left = Test( 1 )
-      val validator = new Between( Test( 5 ), Test( 10 ), "got" )
+      val validator = new InRangeInclusive( Test( 5 ), Test( 10 ), "got" )
       validator( left ) should failWith( "got Test(1), expected between Test(5) and Test(10)" )
     }
   }
   
-  "Between combinator with exclusive modifier" should {
+  "InRangeExclusive combinator" should {
     "successfully validate an object within the specified range" in {
       val left = Test( 5 )
-      val validator = new Between( Test( 5 ), Test( 10 ), "got" ).exclusive
+      val validator = new InRangeExclusive( Test( 5 ), Test( 10 ), "got" ).exclusive
       validator( left ) should be( aSuccess )
     }
     "render a correct rule violation" in {
       val left = Test( 10 )
-      val validator = new Between( Test( 5 ), Test( 10 ), "got" ).exclusive
+      val validator = new InRangeExclusive( Test( 5 ), Test( 10 ), "got" ).exclusive
       validator( left ) should failWith( "got Test(10), expected between Test(5) and Test(10) (exclusively)" )
     }
   }

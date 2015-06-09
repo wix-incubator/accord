@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2014 Wix.com
+  Copyright 2013-2015 Wix.com
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -16,97 +16,131 @@
 
 package com.wix.accord.tests.dsl
 
-import org.scalatest.{WordSpec, Matchers}
-import com.wix.accord._
-import com.wix.accord.scalatest.ResultMatchers
+import org.scalatest.{FlatSpec, Inside, Matchers}
+import scala.collection.immutable.NumericRange
+
 
 object OrderingOpsTests {
-  import dsl._
+  sealed trait ArbitraryType
+  object ArbitraryType {
+    implicit val integral = new Integral[ ArbitraryType ] {
+      override def plus( x: ArbitraryType, y: ArbitraryType ): ArbitraryType = ???
+      override def minus( x: ArbitraryType, y: ArbitraryType ): ArbitraryType = ???
+      override def times( x: ArbitraryType, y: ArbitraryType ): ArbitraryType = ???
+      override def negate( x: ArbitraryType ): ArbitraryType = ???
+      override def fromInt( x: Int ): ArbitraryType = ???
+      override def toInt( x: ArbitraryType ): Int = ???
+      override def toLong( x: ArbitraryType ): Long = ???
+      override def toFloat( x: ArbitraryType ): Float = ???
+      override def toDouble( x: ArbitraryType ): Double = ???
+      override def compare( x: ArbitraryType, y: ArbitraryType ): Int = ???
+      override def quot(x: ArbitraryType, y: ArbitraryType): ArbitraryType = ???
+      override def rem(x: ArbitraryType, y: ArbitraryType): ArbitraryType = ???
+    }
 
-  case class IntTest( i: Int )
-  implicit val intTestValidator = validator[ IntTest ] { _.i should be > 0 }
-
-  case class FloatTest( f: Float )
-  implicit val floatTestValidator = validator[ FloatTest ] { _.f should be > 0.0f }
-
-  case class DoubleTest( d: Double )
-  implicit val doubleTestValidator = validator[ DoubleTest ] { _.d should be > 0.0d }
-
-  case class BigDecimalTest( b: BigDecimal )
-  implicit val bigDecimalTestValidator = validator[ BigDecimalTest ] { _.b should be > BigDecimal( 0 ) }
-
-  case class StringTest( s: String )
-  implicit val stringTestValidator = validator[ StringTest ] { _.s should be > "a" }
-
-  case class OrderedThing( v: Int )
-  implicit val orderingOfAThing = new Ordering[ OrderedThing ] {
-    def compare( x: OrderedThing, y: OrderedThing ): Int = x.v - y.v
+    def apply() = new ArbitraryType {}
   }
-  case class OrderedTest( o: OrderedThing )
-  implicit val orderedTestValidator = validator[ OrderedTest ] { _.o should be > OrderedThing( 0 ) }
 
-  val betweenInclusiveRule = validator[ Int ] { _ is between( 5, 10 ) }
-  val betweenExclusiveRule = validator[ Int ] { _ is between( 5, 10 ).exclusive }
-  val withinInclusiveRangeRule = validator[ Int ] { _ is within( 5 to 10 ) }
-  val withinExclusiveRangeRule = validator[ Int ] { _ is within( 5 until 10 ) }
+  val lhs = ArbitraryType()
+  val rhs = ArbitraryType()
+  val lowerBound = ArbitraryType()
+  val upperBound = ArbitraryType()
+  val intLowerBound = 1
+  val intUpperBound = 5
+  val intRangeInclusive = intLowerBound to intUpperBound
+  val intRangeExclusive = intLowerBound until intUpperBound
+  val rangeInclusive = NumericRange.inclusive( lowerBound, upperBound, ArbitraryType() )
+  val rangeExclusive = NumericRange( lowerBound, upperBound, ArbitraryType() )
+
+
+  // Validator rule definitions. These cannot be defined inline in the test spec because of conflicts
+  // in the `should` extension method (it's defined both by the Accord DSL and the ScalaTest `Matchers`
+  // trait).
+  import com.wix.accord.dsl._
+
+  val greaterThan             = lhs should be > rhs
+  val greaterThanEqual        = lhs should be >= rhs
+  val lesserThan              = lhs should be < rhs
+  val lesserThanEqual         = lhs should be <= rhs
+  val equivalentTo            = lhs should be == rhs
+  val betweenBounds           = lhs is between( lowerBound, upperBound )
+  val withinIntRangeInclusive = intLowerBound is within( intRangeInclusive )
+  val withinIntRangeExclusive = intLowerBound is within( intRangeExclusive )
+  val withinRangeInclusive    = lhs is within( rangeInclusive )
+  val withinRangeExclusive    = lhs is within( rangeExclusive )
 }
 
-import OrderingOpsTests._
-class OrderingOpsTests extends WordSpec with Matchers with ResultMatchers {
+class OrderingOpsTests extends FlatSpec with Matchers with Inside {
+  import com.wix.accord.combinators._
+  import OrderingOpsTests._
 
-  "OrderingOps as exposed by dsl" should {
-    // The following are all just sanity checks (the real tests are in tests.combinators.OrderingOpsSpec);
-    // the primary purpose of this spec is to ensure that a call site with ordering-oriented DSL calls compiles
-    // and executes correctly.
-
-    "correctly evaluate an int-based rule" in {
-      validate( IntTest( 5 ) ) should be( aSuccess )
-      validate( IntTest( 0 ) ) should be( aFailure )
-    }
-
-    "correctly evaluate a float-based rule" in {
-      validate( FloatTest( 5.0f ) ) should be( aSuccess )
-      validate( FloatTest( 0.0f ) ) should be( aFailure )
-    }
-
-    "correctly evaluate a double-based rule" in {
-      validate( DoubleTest( 5.0d ) ) should be( aSuccess )
-      validate( DoubleTest( 0.0d ) ) should be( aFailure )
-    }
-
-    "correctly evaluate a BigDecimal-based rule" in {
-      validate( BigDecimalTest( BigDecimal( 5 ) ) ) should be( aSuccess )
-      validate( BigDecimalTest( BigDecimal( 0 ) ) ) should be( aFailure )
-    }
-
-    "correctly evaluate a string-based rule" in {
-      validate( StringTest( "b" ) ) should be( aSuccess )
-      validate( StringTest( "a" ) ) should be( aFailure )
-    }
-
-    "correctly evaluate a rule on an arbitrary class with Ordering" in {
-      validate( OrderedTest( OrderedThing( 5 ) ) ) should be( aSuccess )
-      validate( OrderedTest( OrderedThing( 0 ) ) ) should be( aFailure )
+  "The expression \"should be >\"" should "return a GreaterThan combinator" in {
+    inside( greaterThan ) {
+      case GreaterThan( bound, _ ) => bound shouldEqual rhs
     }
   }
 
-  "OrderingOps between combinator extensions" should {
-    "correctly evaluate an inclusive rule" in {
-      validate( 10 )( betweenInclusiveRule ) should be( aSuccess )
-      validate( 0 )( betweenInclusiveRule ) should be( aFailure )
+  "The expression \"should be >=\"" should "return a GreaterThanOrEqual combinator" in {
+    inside( greaterThanEqual ) {
+      case GreaterThanOrEqual( bound, _ ) => bound shouldEqual rhs
     }
-    "correctly evaluate an exclusive rule" in {
-      validate( 5 )( betweenExclusiveRule ) should be( aSuccess )
-      validate( 10 )( betweenExclusiveRule ) should be( aFailure )
+  }
+
+  "The expression \"should be <\"" should "return a LesserThan combinator" in {
+    inside( lesserThan ) {
+      case LesserThan( bound, _ ) => bound shouldEqual rhs
     }
-    "correctly evaluate an inclusive range rule" in {
-      validate( 10 )( withinInclusiveRangeRule ) should be( aSuccess )
-      validate( 0 )( withinInclusiveRangeRule ) should be( aFailure )
+  }
+
+  "The expression \"should be <=\"" should "return a LesserThanOrEqual combinator" in {
+    inside( lesserThanEqual ) {
+      case LesserThanOrEqual( bound, _ ) => bound shouldEqual rhs
     }
-    "correctly evaluate an exculsive range rule" in {
-      validate( 5 )( withinExclusiveRangeRule ) should be( aSuccess )
-      validate( 10 )( withinExclusiveRangeRule ) should be( aFailure )
+  }
+
+  "The expression \"should be ==\"" should "return an EquivalentTo combinator" in {
+    inside( equivalentTo ) {
+      case EquivalentTo( bound, _ ) => bound shouldEqual rhs
+    }
+  }
+
+  "The expression \"is between\"" should "return an InRangeInclusive combinator" in {
+    inside( betweenBounds ) {
+      case InRangeInclusive( lBound, uBound, _ ) =>
+        lBound shouldEqual lowerBound
+        uBound shouldEqual upperBound
+    }
+  }
+
+  "The expression \"is within\" over a native integer range" should "return an InRangeInclusive combinator" in {
+    inside( withinIntRangeInclusive ) {
+      case InRangeInclusive( lBound, uBound, _ ) =>
+        lBound shouldEqual intLowerBound
+        uBound shouldEqual intUpperBound
+    }
+  }
+
+  "The expression \"is within\" over a numeric range" should "return an InRangeInclusive combinator" in {
+    inside( withinRangeInclusive ) {
+      case InRangeInclusive( lBound, uBound, _ ) =>
+        lBound shouldEqual lowerBound
+        uBound shouldEqual upperBound
+    }
+  }
+
+  "The expression \"is within\" over an exclusive native integer range" should "return an InRangeExclusive combinator" in {
+    inside( withinIntRangeExclusive ) {
+      case InRangeExclusive( lBound, uBound, _ ) =>
+        lBound shouldEqual intLowerBound
+        uBound shouldEqual intUpperBound
+    }
+  }
+
+  "The expression \"is within\" over an exclusive numeric range" should "return an InRangeExclusive combinator" in {
+    inside( withinRangeExclusive ) {
+      case InRangeExclusive( lBound, uBound, _ ) =>
+        lBound shouldEqual lowerBound
+        uBound shouldEqual upperBound
     }
   }
 }
-
