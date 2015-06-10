@@ -16,9 +16,11 @@
 
 package com.wix.accord.tests.dsl
 
-import com.wix.accord.scalatest.ResultMatchers
-import org.scalatest.{WordSpec, Matchers}
 import com.wix.accord._
+import com.wix.accord.scalatest.ResultMatchers
+import org.scalatest.{Matchers, WordSpec}
+
+import scala.collection.mutable
 
 class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers {
   import CollectionOpsTests._
@@ -47,11 +49,6 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers {
         failWith( RuleViolationMatcher( constraint = "has size 0, expected more than 0" ) )
     }
   }
-  "each extension" should {
-    "be null safe" in {
-      validate( null )( seqEachValidator ) should be( aFailure )
-    }
-  }
 }
 
 object CollectionOpsTests {
@@ -61,4 +58,74 @@ object CollectionOpsTests {
   val seqNotEmptyValidator = validator[ Seq[_] ] { _ is notEmpty }
   val seqSizeValidator = validator[ Seq[_] ] { _ has size > 0 }
   val seqEachValidator = validator[ Seq[ String ] ] { _.each is empty }
+}
+
+object NewCollectionOpsTests {
+  import dsl._
+
+  trait ArbitraryType
+  object ArbitraryType { def apply() = new ArbitraryType {} }
+
+  def visit[ T ]( coll: Traversable[ T ] )( visitor: T => Result ): Result = {
+    val visited = new Validator[ T ] {
+      def apply( v: T ) = visitor( v )
+    }
+    ( coll.each is visited )( coll )
+  }
+}
+
+class NewCollectionOpsTests extends WordSpec with Matchers with ResultMatchers {
+  import NewCollectionOpsTests._
+
+  "Calling \".each\" on a Traversable" should {
+    "apply subsequent validation rules to all elements" in {
+      val coll = Seq.fill( 5 )( ArbitraryType.apply )
+      val visited = mutable.ListBuffer.empty[ ArbitraryType ]
+      visit( coll ) { elem => visited append elem; Success }
+      visited should contain theSameElementsAs coll
+    }
+
+    "evaluate to Success if no elements are present" in {
+      val coll = Seq.empty[ Nothing ]
+      val result = visit( coll ) { _ => Success }
+      result shouldBe aSuccess
+    }
+
+    "evaluate to Failure if the collection is null" in {
+      val result = visit( null ) { _ => Success }
+      result shouldBe aFailure
+    }
+
+    "evaluate to Success if validation succeeds on all elements" in {
+      val coll = Seq.fill( 5 )( ArbitraryType )
+      val result = visit( coll ) { _ => Success }
+      result shouldBe aSuccess
+    }
+
+    def violationFor( elem: ArbitraryType ) = RuleViolation( elem, "element", None )
+    def failureFor( elem: ArbitraryType ) = Failure( Set( violationFor( elem ) ) )
+    def matcherFor( elem: ArbitraryType ) = RuleViolationMatcher( value = elem, constraint = "element" )
+
+    "evaluate to a Failure if any element failed" in {
+      val coll = Seq.fill( 5 )( ArbitraryType.apply )
+      val result =
+        visit( coll ) {
+          case elem if elem == coll.last => failureFor( elem )
+          case _ => Success
+        }
+      result shouldBe aFailure
+    }
+
+    "include all failed elements in the aggregated result" in {
+      val coll = Seq.fill( 5 )( ArbitraryType.apply )
+      val failing = coll.take( 2 )
+      val result =
+        visit( coll ) {
+          case elem if failing contains elem => failureFor( elem )
+          case _ => Success
+        }
+
+      result should failWith( failing map matcherFor :_* )
+    }
+  }
 }
