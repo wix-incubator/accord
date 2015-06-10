@@ -19,8 +19,26 @@ package com.wix.accord.tests.dsl
 import com.wix.accord._
 import com.wix.accord.scalatest.ResultMatchers
 import org.scalatest.{Matchers, WordSpec}
-
 import scala.collection.mutable
+
+object CollectionOpsTests {
+  import dsl._
+
+  val seqEmptyValidator = validator[ Seq[_] ] { _ is empty }
+  val seqNotEmptyValidator = validator[ Seq[_] ] { _ is notEmpty }
+  val seqSizeValidator = validator[ Seq[_] ] { _ has size > 0 }
+  val seqEachValidator = validator[ Seq[ String ] ] { _.each is empty }
+
+  trait ArbitraryType
+  object ArbitraryType { def apply() = new ArbitraryType {} }
+
+  def visit[ T ]( coll: Traversable[ T ] )( visitor: T => Result ): Result = {
+    val visited = new Validator[ T ] {
+      def apply( v: T ) = visitor( v )
+    }
+    ( coll.each is visited )( coll )
+  }
+}
 
 class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers {
   import CollectionOpsTests._
@@ -49,33 +67,6 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers {
         failWith( RuleViolationMatcher( constraint = "has size 0, expected more than 0" ) )
     }
   }
-}
-
-object CollectionOpsTests {
-  import dsl._
-
-  val seqEmptyValidator = validator[ Seq[_] ] { _ is empty }
-  val seqNotEmptyValidator = validator[ Seq[_] ] { _ is notEmpty }
-  val seqSizeValidator = validator[ Seq[_] ] { _ has size > 0 }
-  val seqEachValidator = validator[ Seq[ String ] ] { _.each is empty }
-}
-
-object NewCollectionOpsTests {
-  import dsl._
-
-  trait ArbitraryType
-  object ArbitraryType { def apply() = new ArbitraryType {} }
-
-  def visit[ T ]( coll: Traversable[ T ] )( visitor: T => Result ): Result = {
-    val visited = new Validator[ T ] {
-      def apply( v: T ) = visitor( v )
-    }
-    ( coll.each is visited )( coll )
-  }
-}
-
-class NewCollectionOpsTests extends WordSpec with Matchers with ResultMatchers {
-  import NewCollectionOpsTests._
 
   "Calling \".each\" on a Traversable" should {
     "apply subsequent validation rules to all elements" in {
