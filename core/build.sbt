@@ -18,7 +18,7 @@ libraryDependencies <++= scalaVersion {
   case _ => Seq.empty
 }
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.3" % "test"
+libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" % "test"
 
 unmanagedSourceDirectories in Compile <+= ( scalaVersion, baseDirectory ) { case ( sv, base ) => sv match {
   case v if v startsWith "2.10" => base / "src/main/scala-2.10"

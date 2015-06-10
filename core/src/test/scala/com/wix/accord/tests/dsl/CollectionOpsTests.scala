@@ -18,19 +18,19 @@ package com.wix.accord.tests.dsl
 
 import com.wix.accord._
 import com.wix.accord.scalatest.ResultMatchers
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{Inside, Matchers, WordSpec}
 import scala.collection.mutable
 
 object CollectionOpsTests {
   import dsl._
 
-  val seqEmptyValidator = validator[ Seq[_] ] { _ is empty }
-  val seqNotEmptyValidator = validator[ Seq[_] ] { _ is notEmpty }
-  val seqSizeValidator = validator[ Seq[_] ] { _ has size > 0 }
-  val seqEachValidator = validator[ Seq[ String ] ] { _.each is empty }
-
   trait ArbitraryType
   object ArbitraryType { def apply() = new ArbitraryType {} }
+
+  val seq = Seq.empty[ ArbitraryType ]
+  val emptyValidator = seq is empty
+  val notEmptyValidator = seq is notEmpty
+  val seqSizeValidator = validator[ Seq[_] ] { _ has size > 0 }
 
   def visit[ T ]( coll: Traversable[ T ] )( visitor: T => Result ): Result = {
     val visited = new Validator[ T ] {
@@ -40,31 +40,37 @@ object CollectionOpsTests {
   }
 }
 
-class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers {
+class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with Inside {
   import CollectionOpsTests._
+  import combinators.{Empty, NotEmpty}
 
-  "empty" should {
-    "successfully validate a empty collection" in {
-      validate( Seq.empty )( seqEmptyValidator ) should be( aSuccess )
+
+  "Calling \"has size\"" should {
+    "fail to compile on a type with no \"size\" property" in {
+      """
+        import com.wix.accord.dsl._
+        val lhs: Int = 0
+        lhs has com.wix.accord.dsl.size > 5
+      """ shouldNot compile
     }
-    "successfully validate a non-empty collection" in {
-      validate( Seq( 1, 2, 3 ) )( seqEmptyValidator ) should be( aFailure )
-    }
-  }
-  "notEmpty" should {
-    "successfully validate a non-empty collection" in {
-      validate( Seq( 1, 2, 3 ) )( seqNotEmptyValidator ) should be( aSuccess )
-    }
-    "successfully validate a empty collection" in {
-      validate( Seq.empty )( seqNotEmptyValidator ) should be( aFailure )
-    }
-  }
-  "size extensions" should {
+
     // No need to test all extensions -- these should be covered in OrderingOpsTest. We only need to test
     // one to ensure correct constraint generation.
     "generate a correctly prefixed constraint" in {
       validate( Seq.empty )( seqSizeValidator ) should
         failWith( RuleViolationMatcher( constraint = "has size 0, expected more than 0" ) )
+    }
+  }
+
+  "The expression \"is empty\"" should {
+    "return an Empty combinator" in {
+      emptyValidator shouldBe an[ Empty[ Seq[ ArbitraryType ] ] ]
+    }
+  }
+
+  "The expression \"is notEmpty\"" should {
+    "return an Empty combinator" in {
+      notEmptyValidator shouldBe a[ NotEmpty[ Seq[ ArbitraryType ] ] ]
     }
   }
 
