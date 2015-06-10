@@ -64,13 +64,13 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
 
   "The expression \"is empty\"" should {
     "return an Empty combinator" in {
-      emptyValidator shouldBe an[ Empty[ Seq[ ArbitraryType ] ] ]
+      emptyValidator shouldBe an[ Empty[_] ]
     }
   }
 
   "The expression \"is notEmpty\"" should {
     "return an Empty combinator" in {
-      notEmptyValidator shouldBe a[ NotEmpty[ Seq[ ArbitraryType ] ] ]
+      notEmptyValidator shouldBe a[ NotEmpty[_] ]
     }
   }
 
