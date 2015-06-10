@@ -16,6 +16,7 @@
 
 package com.wix.accord.tests.dsl
 
+import com.wix.accord.dsl.OrderingOps
 import org.scalatest.{FlatSpec, Inside, Matchers}
 import scala.collection.immutable.NumericRange
 
@@ -52,95 +53,51 @@ object OrderingOpsTests {
   val rangeInclusive = NumericRange.inclusive( lowerBound, upperBound, ArbitraryType() )
   val rangeExclusive = NumericRange( lowerBound, upperBound, ArbitraryType() )
 
-
-  // Validator rule definitions. These cannot be defined inline in the test spec because of conflicts
-  // in the `should` extension method (it's defined both by the Accord DSL and the ScalaTest `Matchers`
-  // trait).
-  import com.wix.accord.dsl._
-
-  val greaterThan             = lhs should be > rhs
-  val greaterThanEqual        = lhs should be >= rhs
-  val lesserThan              = lhs should be < rhs
-  val lesserThanEqual         = lhs should be <= rhs
-  val equivalentTo            = lhs should be == rhs
-  val betweenBounds           = lhs is between( lowerBound, upperBound )
-  val withinIntRangeInclusive = intLowerBound is within( intRangeInclusive )
-  val withinIntRangeExclusive = intLowerBound is within( intRangeExclusive )
-  val withinRangeInclusive    = lhs is within( rangeInclusive )
-  val withinRangeExclusive    = lhs is within( rangeExclusive )
+  val snippet = "snippet"
+  val ops = new OrderingOps { override def snippet = OrderingOpsTests.this.snippet }
 }
 
 class OrderingOpsTests extends FlatSpec with Matchers with Inside {
   import com.wix.accord.combinators._
   import OrderingOpsTests._
 
-  "The expression \"should be >\"" should "return a GreaterThan combinator" in {
-    inside( greaterThan ) {
-      case GreaterThan( bound, _ ) => bound shouldEqual rhs
-    }
+  "Operator \">\"" should "return a GreaterThan combinator" in {
+    ( ops > rhs ) shouldEqual GreaterThan( rhs, snippet )
   }
 
-  "The expression \"should be >=\"" should "return a GreaterThanOrEqual combinator" in {
-    inside( greaterThanEqual ) {
-      case GreaterThanOrEqual( bound, _ ) => bound shouldEqual rhs
-    }
+  "Operator \">=\"" should "return a GreaterThanOrEqual combinator" in {
+    ( ops >= rhs ) shouldEqual GreaterThanOrEqual( rhs, snippet )
   }
 
-  "The expression \"should be <\"" should "return a LesserThan combinator" in {
-    inside( lesserThan ) {
-      case LesserThan( bound, _ ) => bound shouldEqual rhs
-    }
+  "Operator \"<\"" should "return a LesserThan combinator" in {
+    ( ops < rhs ) shouldEqual LesserThan( rhs, snippet )
   }
 
-  "The expression \"should be <=\"" should "return a LesserThanOrEqual combinator" in {
-    inside( lesserThanEqual ) {
-      case LesserThanOrEqual( bound, _ ) => bound shouldEqual rhs
-    }
+  "Operator \"<=\"" should "return a LesserThanOrEqual combinator" in {
+    ( ops <= rhs ) shouldEqual LesserThanOrEqual( rhs, snippet )
   }
 
-  "The expression \"should be ==\"" should "return an EquivalentTo combinator" in {
-    inside( equivalentTo ) {
-      case EquivalentTo( bound, _ ) => bound shouldEqual rhs
-    }
+  "Operator \"==\"" should "return an EquivalentTo combinator" in {
+    ( ops == rhs ) shouldEqual EquivalentTo( rhs, snippet )
   }
 
-  "The expression \"is between\"" should "return an InRangeInclusive combinator" in {
-    inside( betweenBounds ) {
-      case InRangeInclusive( lBound, uBound, _ ) =>
-        lBound shouldEqual lowerBound
-        uBound shouldEqual upperBound
-    }
+  "Operator \"between\"" should "return an InRangeInclusive combinator" in {
+    ( ops between( lowerBound, upperBound ) ) shouldEqual InRangeInclusive( lowerBound, upperBound, snippet )
   }
 
-  "The expression \"is within\" over a native integer range" should "return an InRangeInclusive combinator" in {
-    inside( withinIntRangeInclusive ) {
-      case InRangeInclusive( lBound, uBound, _ ) =>
-        lBound shouldEqual intLowerBound
-        uBound shouldEqual intUpperBound
-    }
+  "Operator \"within\" over a native integer range" should "return an InRangeInclusive combinator" in {
+    ( ops within intRangeInclusive ) shouldEqual InRangeInclusive( intLowerBound, intUpperBound, snippet )
   }
 
-  "The expression \"is within\" over a numeric range" should "return an InRangeInclusive combinator" in {
-    inside( withinRangeInclusive ) {
-      case InRangeInclusive( lBound, uBound, _ ) =>
-        lBound shouldEqual lowerBound
-        uBound shouldEqual upperBound
-    }
+  "Operator \"within\" over a numeric range" should "return an InRangeInclusive combinator" in {
+    ( ops within rangeInclusive ) shouldEqual InRangeInclusive( lowerBound, upperBound, snippet )
   }
 
-  "The expression \"is within\" over an exclusive native integer range" should "return an InRangeExclusive combinator" in {
-    inside( withinIntRangeExclusive ) {
-      case InRangeExclusive( lBound, uBound, _ ) =>
-        lBound shouldEqual intLowerBound
-        uBound shouldEqual intUpperBound
-    }
+  "Operator \"within\" over an exclusive native integer range" should "return an InRangeExclusive combinator" in {
+    ( ops within intRangeExclusive ) shouldEqual InRangeExclusive( intLowerBound, intUpperBound, snippet )
   }
 
-  "The expression \"is within\" over an exclusive numeric range" should "return an InRangeExclusive combinator" in {
-    inside( withinRangeExclusive ) {
-      case InRangeExclusive( lBound, uBound, _ ) =>
-        lBound shouldEqual lowerBound
-        uBound shouldEqual upperBound
-    }
+  "Operator \"within\" over an exclusive numeric range" should "return an InRangeExclusive combinator" in {
+    ( ops within rangeExclusive ) shouldEqual InRangeExclusive( lowerBound, upperBound, snippet )
   }
 }
