@@ -64,6 +64,14 @@ case class GroupViolation( value: Any, constraint: String, description: Option[ 
   * @see [[com.wix.accord.Success]], [[com.wix.accord.Failure]]
   */
 sealed trait Result {
+
+  /** Returns `true` if the `Result` is a `Success`, `false` otherwise.  */
+  def isSuccess: Boolean
+
+  /** Returns `true` if the `Result` is a `Failure`, `false` otherwise.  */
+  def isFailure: Boolean
+
+
   def and( other: Result ): Result
   def or( other: Result ): Result
 
@@ -80,6 +88,10 @@ case object Success extends Result {
   def and( other: Result ) = other
   def or( other: Result ) = this
   def withDescription( rewrite: String ) = this
+
+  def isSuccess: Boolean = true
+
+  def isFailure: Boolean = false
 }
 
 /** An object representing a failed validation result.
@@ -95,4 +107,8 @@ case class Failure( violations: Set[ Violation ] ) extends Result {
     case Failure(_) => this
   }
   def withDescription( rewrite: String ) = Failure( violations map { _ withDescription rewrite } )
+
+  def isSuccess: Boolean = false
+
+  def isFailure: Boolean = true
 }
