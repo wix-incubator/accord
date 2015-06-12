@@ -50,8 +50,6 @@
           <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
         </div>
 
-        <p><a href="https://travis-ci.org/wix/accord"><img src="https://travis-ci.org/wix/accord.png?branch=master" alt="Build Status"></a> <a href="https://coveralls.io/r/wix/accord?branch=master"><img src="https://coveralls.io/repos/wix/accord/badge.png?branch=master" alt="Coverage Status"></a> <a href="https://gitter.im/wix/accord?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Gitter"></a></p>
-
 <h1>
 <a id="overview" class="anchor" href="#overview" aria-hidden="true"><span class="octicon octicon-link"></span></a>Overview</h1>
 
@@ -65,7 +63,7 @@
 <li>
 <strong>Self-contained</strong>: Accord is macro-based but completely self-contained, and consequently only relies on the Scala runtime and reflection libraries.</li>
 <li>
-<strong>Integrated</strong>: Other than providing its own DSL and matcher library, Accord is designed to easily integrate with other libraries, and provides out-of-the-box integration with <a href="spring3/README.md">Spring Validation</a>, <a href="specs2/README.md">Specs<sup>2</sup></a> and <a href="scalatest/README.md">ScalaTest</a>.</li>
+<strong>Integrated</strong>: Other than providing its own DSL and matcher library, Accord is designed to easily integrate with other libraries, and provides out-of-the-box integration with <a href="http://github.com/wix/accord/blob/master/spring3/README.md">Spring Validation</a>, <a href="http://github.com/wix/accord/blob/master/specs2/README.md">Specs<sup>2</sup></a> and <a href="https://github.com/wix/accord/tree/master/scalatest">ScalaTest</a>.</li>
 </ul>
 
 <p>Accord is developed and used at <img src="images/wix_logo.png" width="43" height="11" title="Wix" alt="Wix"></img> and distributed under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a>, which basically means you can use and modify it freely. Feedback, bug reports and improvements are welcome!</p>
@@ -172,39 +170,6 @@ libraryDependencies <span class="pl-k">+</span><span class="pl-k">=</span> <span
     &lt;<span class="pl-ent">version</span>&gt;0.5-SNAPSHOT&lt;/<span class="pl-ent">version</span>&gt;
   &lt;/<span class="pl-ent">dependency</span>&gt;
 &lt;/<span class="pl-ent">dependencies</span>&gt;</pre></div>
-
-<h1>
-<a id="roadmap" class="anchor" href="#roadmap" aria-hidden="true"><span class="octicon octicon-link"></span></a>Roadmap</h1>
-
-<p>Accord is still fairly rudimentary, and there's plenty of improvements to be made:</p>
-
-<ul>
-<li>Major issues and improvements planned or under consideration for the <a href="https://github.com/wix/accord/issues?milestone=5&amp;state=open">0.5 milestone</a> release:
-
-<ul>
-<li>
-<a href="https://github.com/wix/accord/issues/6">#6</a> Support inline expressions in validators</li>
-<li>
-<a href="https://github.com/wix/accord/issues/19">#19</a> Scala.js support</li>
-<li>
-<a href="https://github.com/wix/accord/issues/21">#21</a> i18n support</li>
-<li>Rethink binary expression API so that arbitrary types can be used</li>
-</ul>
-</li>
-<li>Future plans:
-
-<ul>
-<li>Elide DSL implicit invocations from resulting tree for better performance and smaller code</li>
-<li>Add syntax for custom violation message overrides (e.g. <code>p.firstName is notEmpty as "no first name!"</code>)</li>
-<li>Support custom violation types (e.g. <code>p.firstName is notEmpty as MyServerError( code = -3 )</code>)</li>
-<li>Add a validation result rendering framework</li>
-<li>Implement accord-hamcrest integration in a separate artifact</li>
-<li>Add adapter for Specs² matcher module</li>
-</ul>
-</li>
-</ul>
-
-<p>Ideas and feature requests welcome!</p>
       </section>
 
     </div>
