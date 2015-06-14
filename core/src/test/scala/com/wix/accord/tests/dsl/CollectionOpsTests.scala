@@ -30,7 +30,13 @@ object CollectionOpsTests {
   val seq = Seq.empty[ ArbitraryType ]
   val emptyValidator = seq is empty
   val notEmptyValidator = seq is notEmpty
-  val seqSizeValidator = validator[ Seq[_] ] { _ has size > 0 }
+  
+  class Sized( _size: Int ) {
+    private var _visited = false
+    def size: Int = { _visited = true; _size }
+    def visited = _visited
+  }
+  val sizeValidator = new Sized( 0 ) has size > 5
 
   def visit[ T ]( coll: Traversable[ T ] )( visitor: T => Result ): Result = {
     val visited = new Validator[ T ] {
@@ -54,11 +60,10 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
       """ shouldNot compile
     }
 
-    // No need to test all extensions -- these should be covered in OrderingOpsTest. We only need to test
-    // one to ensure correct constraint generation.
-    "generate a correctly prefixed constraint" in {
-      validate( Seq.empty )( seqSizeValidator ) should
-        failWith( RuleViolationMatcher( constraint = "has size 0, expected more than 0" ) )
+    "apply subsequent validation rules to the \"size\" property of an object" in {
+      val ouv = new Sized( 10 )
+      sizeValidator( ouv )
+      ouv.visited shouldBe true
     }
   }
 
