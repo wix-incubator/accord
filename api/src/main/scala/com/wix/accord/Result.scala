@@ -52,9 +52,6 @@ trait Violation {
 case class RuleViolation( value: Any, constraint: String, description: Option[ String ], fatal: Boolean = true ) extends Violation {
   def withDescription( rewrite: String ) = this.copy( description = Some( rewrite ) )
 
-  /** Allows defining whether a violation should be considered fatal or not. Doing so enables external components to
-    * determine whether a given violation should stop further processing of not.
-    */
   override def isFatal: Boolean = fatal
 }
 
@@ -69,6 +66,10 @@ case class RuleViolation( value: Any, constraint: String, description: Option[ S
 case class GroupViolation( value: Any, constraint: String, description: Option[ String ], children: Set[ Violation ] )
   extends Violation {
   def withDescription( rewrite: String ) = this.copy( description = Some( rewrite ) )
+
+  /** Evaluates if any of the validations included in this group is fatal. */
+  override def isFatal: Boolean = children.exists(violation => violation.isFatal)
+
 }
 
 /** A base trait for validation results.
