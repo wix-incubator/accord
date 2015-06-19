@@ -67,7 +67,9 @@ case class GroupViolation( value: Any, constraint: String, description: Option[ 
   extends Violation {
   def withDescription( rewrite: String ) = this.copy( description = Some( rewrite ) )
 
-  /** Evaluates if any of the validations included in this group is fatal. */
+  /** Evaluates if any of the validations included in this group is fatal.
+    * TODO Check if it makes more sense to have different cases, depending on the combinator.
+    */
   override def isFatal: Boolean = children.exists(violation => violation.isFatal)
 
 }
