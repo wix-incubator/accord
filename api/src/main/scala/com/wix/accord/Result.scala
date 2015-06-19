@@ -35,6 +35,11 @@ trait Violation {
     * @return A modified copy of this violation with the new description in place.
     */
   def withDescription( rewrite: String ): Violation
+
+  /** Allows defining whether a violation should be considered fatal or not. Doing so enables external components to
+    * determine whether a given violation should stop further processing of not.
+    */
+  def isFatal: Boolean
 }
 
 /** Describes the violation of a validation rule or constraint.
@@ -42,9 +47,15 @@ trait Violation {
   * @param value The value of the object which failed the validation rule.
   * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
   * @param description The textual description of the object under validation.
+  * @param fatal Whether this rule violation should be considered fatal. By default, all rule violations are fatal.
   */
-case class RuleViolation( value: Any, constraint: String, description: Option[ String ] ) extends Violation {
+case class RuleViolation( value: Any, constraint: String, description: Option[ String ], fatal: Boolean = true ) extends Violation {
   def withDescription( rewrite: String ) = this.copy( description = Some( rewrite ) )
+
+  /** Allows defining whether a violation should be considered fatal or not. Doing so enables external components to
+    * determine whether a given violation should stop further processing of not.
+    */
+  override def isFatal: Boolean = fatal
 }
 
 /** Describes the violation of a group of constraints. For example, the [[com.wix.accord.combinators.Or]]
