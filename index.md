@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "Accord: A sane validation library for Scala"
+title: "A sane validation library for Scala"
 ---
 
 Overview
@@ -13,7 +13,7 @@ Accord is a validation library written in and for Scala. Compared to [JSR 303](h
 * __Self-contained__: Accord is macro-based but completely self-contained, and consequently only relies on the Scala runtime and reflection libraries.
 * __Integrated__: Other than providing its own DSL and matcher library, Accord is designed to easily integrate with other libraries, and provides out-of-the-box integration with [Spring Validation](spring3/README.md), [Specs<sup>2</sup>](specs2/README.md) and [ScalaTest](scalatest/README.md).
 
-Accord is developed and used at [![Wix.com Logo](images/wix_logo.png)](http://www.wix.com) and distributed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0), which basically means you can use and modify it freely. Feedback, bug reports and improvements are welcome!
+Accord is developed and used at <a href="http://www.wix.com"><img src="images/wix_logo.png" width="42" height="11" alt="Wix.com"></img></a> and distributed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0), which basically means you can use and modify it freely. Feedback, bug reports and improvements are welcome!
 
 Example
 =======
@@ -73,6 +73,7 @@ scala> validate( invalidClassroom )
 res3: com.wix.accord.Result = Failure(List(RuleViolation(List(),has size 0, expected more than 0,students)))
 ```
 
+<a name="getting-started"></a>
 Getting Started
 ===============
 

@@ -3,10 +3,10 @@
     <meta name="viewport" content="width=device-width">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <title>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
+    <title>{% if page.title %}Accord: {{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
 
     <link rel="stylesheet" href="{{ "/stylesheets/styles.css" | prepend: site.baseurl }}">
-    <link rel="stylesheet" href="{{ "/stylesheets/pygment_trac.css" | prepend: site.baseurl }}">
+    <link rel="stylesheet" href="{{ "/stylesheets/code.css" | prepend: site.baseurl }}">
     <link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
