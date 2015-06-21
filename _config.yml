@@ -1,5 +1,5 @@
 title: "Accord: A sane validation library for Scala"
 email: tomer@tomergabel.com
-url: "http://wix.github.io/accord" # the base hostname & protocol for your site
+url: "http://wix.github.io/accord"
 
 markdown: redcarpet
