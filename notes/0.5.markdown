@@ -1,0 +1,9 @@
+Version 0.5 focuses on documentation, which is now available on our [dedicated project site](http://wix.github.io/accord)!
+
+* [#33](https://github.com/wix/accord/issues/33) Document available validations;
+* [#39](https://github.com/wix/accord/issues/39) For string, `have size == 7` does not compile;
+* [#43](https://github.com/wix/accord/pull/43) Added `isSuccess`/`isFailure` to `Result` (contributed by Panos Athanasiou);
+* Significant refactoring to test code.
+
+As always, bug reports, pull requests and other ideas are welcome!
+
