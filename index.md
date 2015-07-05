@@ -24,7 +24,7 @@ Importing the library for use:
 import com.wix.accord._
 ```
 
-Defining a [validator](dsl.html):
+[Defining](dsl.html) a validator:
 
 ```scala
 import dsl._    // Import the validator DSL
@@ -45,7 +45,7 @@ implicit val classValidator = validator[ Classroom ] { c =>
 ```
 
 
-Running a validator:
+[Running](api.html) a validator:
 
 ```
 scala> val validPerson = Person( "Wernher", "von Braun" )
