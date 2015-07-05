@@ -8,9 +8,11 @@ title: "Defining Validators"
 Accord provides a convenient DSL for defining validation rules. To define a validator over some type `T`, import the `com.wix.accord.dsl` package, and invoke the `validator[T]` function (where `T` is your specific type under validation). You can then use the provided sample object to define various rules:
 
 ```scala
-import com.wix.accord.dsl._    // Import the validator DSL
 
 class MyClass { /* ... */ }
+
+import com.wix.accord.dsl._    // Import the validator DSL
+
 
 val myClassValidator = validator[ MyClass ] { s =>
 	// Rules
@@ -19,12 +21,12 @@ val myClassValidator = validator[ MyClass ] { s =>
 
 Accord adds an implicit logical `and` relation between the rules, so all rules must apply in order for the validation to be successful. You can specify as many rules as you like.
 
-
 # Combinators
+<a name="combinator-library"></a>
 
 Accord offers a built-in library of building blocks (called "combinators") that can be composed into more complex validation rules.
 
-## General-purpose
+* General-purpose
 
 ```scala
 // Equality
@@ -40,7 +42,7 @@ sample.field is valid    					// Implicitly, or
 sample.field is valid( myOwnValidator )		// Explicitly
 ```
 
-## Primitives
+* Primitives
 
 ```scala
 
@@ -74,21 +76,42 @@ sample.intField is within( 0 to 10 )              // Inclusive
 sample.intField is within( 0 until 10 )           // Exclusive
 ```
 
-## Collections
+* Collections
 
 ```scala
 
-// Emptiness (applies to any type that has a boolean "isEmpty" property, such as string)
-sample.seqField is empty
-sample.seqField is notEmpty
+// Emptiness
+sample.seq is empty
+sample.seq is notEmpty
+// This applies to any type that has a boolean "isEmpty" property, such as string)
 
-// Size (applies to any type with an integer "size" property, such as string). All numeric operations apply:
-sample.seqField.size should be >= 8
+// The "each" modifier applies the validation to all members of a collection:
+sample.seq.each should be >= 10
+sample.option.each should be >= 10                // Allows None or Some(15)
+
+// Size (applies to any type with an integer "size" property)
+// See "Numerics" above for additional operations
+sample.seq has size >= 8
+sample.entities have size >= 8		// You can use "have" in place of "has"
 ```
 
-## Boolean Expressions
+* Boolean Expressions
 
+```scala
 
-And
-Or
+// Logical AND (not strictly required, since you can just split into separate rules)
+( person.name is notEmpty ) and ( person.age should be >= 18 )
 
+// Logical OR
+( person.email is notEmpty ) or ( person.phoneNumber is notEmpty )
+
+// You can also nest rules:
+( fromJava.tags is aNull ) or (
+  ( fromJava.tags is notEmpty ) and 
+  ( fromJava.tags.each should matchRegexFully( "\\S+" ) )
+)
+```
+
+# Extending Accord
+
+Before creating your own combinators, you should be well-acquainted with the [Accord API](api.html). You can define your own validation rules by simply extending `Validator[T]` and implementing `apply`; before you do, however, you should give some consideration as to the resulting violation. 

@@ -24,7 +24,7 @@ Importing the library for use:
 import com.wix.accord._
 ```
 
-Defining a validator:
+Defining a [validator](dsl.html):
 
 ```scala
 import dsl._    // Import the validator DSL
