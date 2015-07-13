@@ -60,6 +60,26 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       validate( FlatTest( null ) )( adaptedValidator ) should failWith( "field" -> "is a null" )
     }
   }
+
+  "Validation block transformation" should {
+
+    "safely ignore statements of type Nothing" in {
+      """
+      import com.wix.accord.dsl._
+
+      val v = validator[ String ] { s => throw new Exception() }
+      """ should compile
+    }
+
+    "safely ignore statements of type Null" in {
+      """
+      import com.wix.accord.dsl._
+
+      def _null: Null = null
+      val v = validator[ String ] { s => null }
+      """ should compile
+    }
+  }
 }
 
 object ValidationTransformTests {

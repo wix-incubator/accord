@@ -27,6 +27,15 @@ trait PatternHelper[ C <: Context ] {
 
   import context.universe._
 
+  implicit class ExtendType( tpe: Type ) {
+    def =!=( that: Type ): Boolean =
+      if ( that == typeOf[ Null ] )
+        // Workaround for scala.reflect weirdness, see https://groups.google.com/forum/#!topic/scala-user/hGrGmGk4b88
+        !( tpe <:< that )
+      else
+        !( tpe =:= that )
+  }
+
   /** Matches an AST pattern against a tree recursively. Patterns are encoded as a partial function from
     * [[scala.reflect.api.Universe.Tree]] to a result object; this method returns the result of applying the partial
     * function to the first AST subtree matching it.

@@ -55,7 +55,6 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
     */
   object ValidatorApplication {
     private val contextualizerTerm = typeOf[ dsl.Contextualizer[_] ].typeSymbol.name.toTermName
-    private val validatorType = typeOf[ Validator[_] ]
 
     private def extractObjectUnderValidation( t: Tree ): List[ Tree ] =
       collectFromPattern( t ) {
@@ -81,11 +80,18 @@ private[ transform ] trait ExpressionFinder[ C <: Context ] extends PatternHelpe
           rewriteExistentialTypes( root )
       }
 
+    object TypedRule {
+      def unapply( t: Tree ): Boolean =
+        t.tpe =!= typeOf[ Nothing ] &&
+        t.tpe =!= typeOf[ Null ] &&
+        t.tpe <:< typeOf[ Validator[_] ]
+    }
+
     def unapply( expr: Tree ): Option[ ValidatorApplication ] = expr match {
-      case t if t.tpe <:< validatorType =>
+      case TypedRule() =>
         extractObjectUnderValidation( expr ) match {
           case Nil =>
-            abort( t.pos, s"Failed to extract object under validation from tree $t (raw=${showRaw(t)})" )
+            abort( expr.pos, s"Failed to extract object under validation from tree $expr (type=${expr.tpe}, raw=${showRaw(expr)})" )
 
           case ouv :: Nil =>
             val sv = rewriteContextExpressionAsValidator( expr )
