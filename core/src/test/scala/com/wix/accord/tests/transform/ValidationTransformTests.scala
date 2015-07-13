@@ -76,7 +76,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       import com.wix.accord.dsl._
 
       def _null: Null = null
-      val v = validator[ String ] { s => null }
+      val v = validator[ String ] { s => _null }
       """ should compile
     }
   }
