@@ -1,5 +1,6 @@
+import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
+import sbt.Keys._
 import sbt._
-import Keys._
 
 object Root extends Build {
 
@@ -27,10 +28,10 @@ object Root extends Build {
   )
 
   lazy val releaseSettings = {
-    import sbtrelease.ReleaseStep
+    import com.typesafe.sbt.pgp.PgpKeys._
     import sbtrelease.ReleasePlugin.ReleaseKeys._
     import sbtrelease.ReleaseStateTransformations._
-    import com.typesafe.sbt.pgp.PgpKeys._
+    import sbtrelease.ReleaseStep
 
     // Hook up release and GPG plugins
     lazy val publishSignedAction = { st: State =>
@@ -85,67 +86,122 @@ object Root extends Build {
 
   // Projects --
 
-  val specs2_2xSettings = Seq(
-    name := "accord-specs2",
-    libraryDependencies += "org.specs2" %% "specs2" % "2.3.13",
-    target <<= target { _ / "specs2-2.x" }
-  )
-
-  val specs2_3xSettings = Seq(
-    name := "accord-specs2-3.x",
-    libraryDependencies += "org.specs2" %% "specs2-core" % "3.6",
-    resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases",
-    target <<= target { _ / "specs2-3.x" }
-  )
-
-  import org.scalajs.sbtplugin.cross._
-  import CrossProject._
-
-
   lazy val api =
-    crossProject.crossType( CrossType.Pure ).in( file( "api" ) ).settings( baseSettings :_* )
+    crossProject
+      .crossType( CrossType.Pure )
+      .in( file( "api" ) )
+      .settings( Seq(
+        name := "accord-api",
+        description :=
+          "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
+          "dead-simple and self-contained story for defining validation rules and executing them on object " +
+          "instances. Feedback, bug reports and improvements are welcome!"
+      ) ++ baseSettings :_* )
+
   lazy val apiJVM = api.jvm
   lazy val apiJS = api.js
 
   lazy val scalatest =
-    crossProject.crossType( CrossType.Pure ).in( file( "scalatest" ) ).settings( baseSettings :_* )
+    crossProject
+      .crossType( CrossType.Pure )
+      .in( file( "scalatest" ) )
       .dependsOn( api )
+      .settings( Seq(
+        name := "accord-scalatest",
+        description := "ScalaTest matchers for the Accord validation library",
+        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M7"
+      ) ++ baseSettings :_* )
   lazy val scalatestJVM = scalatest.jvm
   lazy val scalatestJS = scalatest.js
 
   lazy val specs2_2x =
-    crossProject.crossType( CrossType.Pure ).in( file( "api" ) ).settings( baseSettings ++ specs2_2xSettings :_* )
-      .dependsOn( api )
-  lazy val specs2_2xJVM = specs2_2x.jvm
-  lazy val specs2_2xJS = specs2_2x.js
+    Project(
+      id = "specs2_2x",
+      base = file( "specs2" ),
+      settings = baseSettings ++ Seq(
+        name := "accord-specs2",
+        libraryDependencies += "org.specs2" %% "specs2" % "2.3.13",
+        target <<= target { _ / "specs2-2.x" }
+      )
+    ).dependsOn( apiJVM )
 
   lazy val specs2_3x =
-    crossProject.crossType( CrossType.Pure ).in( file( "specs2" ) ).settings( baseSettings ++ specs2_3xSettings :_* )
-      .dependsOn( api )
-  lazy val specs2_3xJVM = specs2_3x.jvm
-  lazy val specs2_3xJS = specs2_3x.js
+    Project(
+      id = "specs2_3x",
+      base = file( "specs2" ),
+      settings = baseSettings ++ Seq(
+        name := "accord-specs2-3.x",
+        libraryDependencies += "org.specs2" %% "specs2-core" % "3.6",
+        resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases",
+        target <<= target { _ / "specs2-3.x" }
+      )
+    ).dependsOn( apiJVM )
+
+  lazy val macroDependencies =
+    scalaVersion {
+      case v if v startsWith "2.10" =>
+        Seq(
+          compilerPlugin( "org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full ),
+          "org.scalamacros" %% "quasiquotes" % "2.0.1" intransitive()
+        )
+
+      case v if v startsWith "2.11" =>
+        Seq( "org.scalamacros" %% "resetallattrs" % "1.0.0-M1" )
+
+      case _ => Seq.empty
+    }
 
   lazy val core =
-    crossProject.crossType( CrossType.Pure ).in( file( "core" ) ).settings( baseSettings :_* )
+    crossProject
+      .crossType( CrossType.Pure )
+      .in( file( "core" ) )
       .dependsOn( api, scalatest % "test->compile" )
+      .settings( Seq(
+        name := "accord-core",
+
+        libraryDependencies <++= macroDependencies,
+        libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-reflect" % _ % "provided" ),
+        libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "provided" ),
+        libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" % "test",
+
+        unmanagedSourceDirectories in Compile <+= ( scalaVersion, baseDirectory ) {
+          case ( v, base ) if v startsWith "2.10" => base.getParentFile / "src/main/scala-2.10"
+          case ( v, base ) if v startsWith "2.11" => base.getParentFile / "src/main/scala-2.11"
+          case ( v, _ ) => throw new IllegalStateException( s"Unsupported Scala version $v" )
+        },
+
+        description :=
+          "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
+          "dead-simple and self-contained story for defining validation rules and executing them on object " +
+          "instances. Feedback, bug reports and improvements are welcome!"
+      ) ++ baseSettings :_* )
   lazy val coreJVM = core.jvm
   lazy val coreJS = core.js
 
   lazy val spring3 =
-    Project( id = "accord-spring3", base = file ( "spring3" ), settings = baseSettings )
+    Project( id = "spring3", base = file ( "spring3" ), settings = baseSettings )
       .dependsOn( apiJVM, scalatestJVM % "test->compile", coreJVM % "test->compile" )
 
   lazy val examples =
-    Project( id = "accord-examples", base = file( "examples" ), settings = baseSettings ++ noPublish )
-      .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2_2xJVM % "test->compile", spring3 )
+    Project(
+      id = "examples",
+      base = file( "examples" ),
+      settings = baseSettings ++ noPublish ++ Seq(
+        name := "accord-examples",
+        libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "provided" ),
+        libraryDependencies ++= Seq( "org.scalatest" %% "scalatest" % "2.1.3" % "test" ),
+        description := "Sample projects for the Accord validation library."
+      ) )
+      .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2_2x % "test->compile", spring3 )
 
-  lazy val allProjectsJS: Seq[ ProjectReference ] = Seq( apiJS, coreJS, scalatestJS )
-  lazy val allProjectsJVM: Seq[ ProjectReference ] = Seq( apiJVM, coreJVM, scalatestJVM, specs2_2xJVM, specs2_3xJVM, spring3, examples )
-  lazy val allProjects = allProjectsJS ++ allProjectsJVM
+
+  // Root --
 
   lazy val root =
-    Project( id = "root", base = file( "." ), settings = baseSettings ++ noPublish )
-      .aggregate( allProjects :_* )
-
-  override def projects = super.projects map { _.enablePlugins( org.scalajs.sbtplugin.ScalaJSPlugin ) }   // Ugh.
+    Project(
+      id = "root",
+      base = file( "." ),
+      settings = baseSettings ++ noPublish
+    )
+    .aggregate( apiJVM, apiJS, coreJVM, coreJS, scalatestJVM, scalatestJS, specs2_2x, specs2_3x, spring3, examples )
 }
