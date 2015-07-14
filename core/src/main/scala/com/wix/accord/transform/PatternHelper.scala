@@ -28,12 +28,20 @@ trait PatternHelper[ C <: Context ] {
   import context.universe._
 
   implicit class ExtendType( tpe: Type ) {
-    def =!=( that: Type ): Boolean =
+    def isNull =
+      // Workaround to correctly deal with constant types (e.g. null literals), for more details see:
+      // https://groups.google.com/forum/#!topic/scala-user/hGrGmGk4b88
+      tpe.widen =:= typeOf[ Null ]
+
+    def isBottom =
+      tpe =:= typeOf[ Nothing ] || isNull
+
+    def =!=( that: Type ): Boolean = {
       if ( that == typeOf[ Null ] )
-        // Workaround for scala.reflect weirdness, see https://groups.google.com/forum/#!topic/scala-user/hGrGmGk4b88
-        !( tpe <:< that )
+        !isNull
       else
         !( tpe =:= that )
+    }
   }
 
   /** Matches an AST pattern against a tree recursively. Patterns are encoded as a partial function from

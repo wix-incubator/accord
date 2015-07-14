@@ -65,9 +65,7 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
 
     object TypedRule {
       def unapply( t: Tree ): Option[ Tree ] =
-        if ( t.tpe =!= typeOf[ Nothing ] &&
-             t.tpe =!= typeOf[ Null ] &&
-             t.tpe <:< typeOf[ Validator[_] ] )
+        if ( !t.tpe.isBottom && t.tpe <:< typeOf[ Validator[_] ] )
           Some( t )
         else
           None
