@@ -71,7 +71,7 @@ object Root extends Build {
       ( scalacOptions in ( Compile, compile ) ).value filterNot { _ == "-Xfatal-warnings" }
   )
 
-  lazy val baseSettings = 
+  lazy val baseSettings =
     publishSettings ++
     releaseSettings ++
     compileOptions ++
@@ -98,27 +98,54 @@ object Root extends Build {
     target <<= target { _ / "specs2-3.x" }
   )
 
+  import org.scalajs.sbtplugin.cross._
+  import CrossProject._
+
+
   lazy val api =
-    Project( id = "accord-api", base = file( "api" ), settings = baseSettings )
+    crossProject.crossType( CrossType.Pure ).in( file( "api" ) ).settings( baseSettings :_* )
+  lazy val apiJVM = api.jvm
+  lazy val apiJS = api.js
+
   lazy val scalatest =
-    Project( id = "accord-scalatest", base = file( "scalatest" ), settings = baseSettings )
+    crossProject.crossType( CrossType.Pure ).in( file( "scalatest" ) ).settings( baseSettings :_* )
       .dependsOn( api )
+  lazy val scalatestJVM = scalatest.jvm
+  lazy val scalatestJS = scalatest.js
+
   lazy val specs2_2x =
-    Project( id = "accord-specs2-2x", base = file( "specs2" ), settings = baseSettings ++ specs2_2xSettings )
+    crossProject.crossType( CrossType.Pure ).in( file( "api" ) ).settings( baseSettings ++ specs2_2xSettings :_* )
       .dependsOn( api )
+  lazy val specs2_2xJVM = specs2_2x.jvm
+  lazy val specs2_2xJS = specs2_2x.js
+
   lazy val specs2_3x =
-    Project( id = "accord-specs2-3x", base = file( "specs2" ), settings = baseSettings ++ specs2_3xSettings )
+    crossProject.crossType( CrossType.Pure ).in( file( "specs2" ) ).settings( baseSettings ++ specs2_3xSettings :_* )
       .dependsOn( api )
+  lazy val specs2_3xJVM = specs2_3x.jvm
+  lazy val specs2_3xJS = specs2_3x.js
+
   lazy val core =
-    Project( id = "accord-core", base = file( "core" ), settings = baseSettings )
+    crossProject.crossType( CrossType.Pure ).in( file( "core" ) ).settings( baseSettings :_* )
       .dependsOn( api, scalatest % "test->compile" )
+  lazy val coreJVM = core.jvm
+  lazy val coreJS = core.js
+
   lazy val spring3 =
     Project( id = "accord-spring3", base = file ( "spring3" ), settings = baseSettings )
-      .dependsOn( api, scalatest % "test->compile", core % "test->compile" )
+      .dependsOn( apiJVM, scalatestJVM % "test->compile", coreJVM % "test->compile" )
+
   lazy val examples =
     Project( id = "accord-examples", base = file( "examples" ), settings = baseSettings ++ noPublish )
-      .dependsOn( api, core, scalatest % "test->compile", specs2_2x % "test->compile", spring3 )
+      .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2_2xJVM % "test->compile", spring3 )
+
+  lazy val allProjectsJS: Seq[ ProjectReference ] = Seq( apiJS, coreJS, scalatestJS )
+  lazy val allProjectsJVM: Seq[ ProjectReference ] = Seq( apiJVM, coreJVM, scalatestJVM, specs2_2xJVM, specs2_3xJVM, spring3, examples )
+  lazy val allProjects = allProjectsJS ++ allProjectsJVM
+
   lazy val root =
     Project( id = "root", base = file( "." ), settings = baseSettings ++ noPublish )
-      .aggregate( api, core, scalatest, specs2_2x, specs2_3x, spring3, examples )
+      .aggregate( allProjects :_* )
+
+  override def projects = super.projects map { _.enablePlugins( org.scalajs.sbtplugin.ScalaJSPlugin ) }   // Ugh.
 }
