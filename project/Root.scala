@@ -162,7 +162,6 @@ object Root extends Build {
         libraryDependencies <++= macroDependencies,
         libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-reflect" % _ % "provided" ),
         libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "provided" ),
-        libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" % "test",
 
         unmanagedSourceDirectories in Compile <+= ( scalaVersion, baseDirectory ) {
           case ( v, base ) if v startsWith "2.10" => base.getParentFile / "src/main/scala-2.10"
