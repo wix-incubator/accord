@@ -23,6 +23,8 @@ import scala.collection.immutable.NumericRange
 
 object OrderingOpsTests {
   sealed trait ArbitraryType
+
+  //noinspection NotImplementedCode
   object ArbitraryType {
     implicit val integral = new Integral[ ArbitraryType ] {
       override def plus( x: ArbitraryType, y: ArbitraryType ): ArbitraryType = ???
@@ -35,8 +37,8 @@ object OrderingOpsTests {
       override def toFloat( x: ArbitraryType ): Float = ???
       override def toDouble( x: ArbitraryType ): Double = ???
       override def compare( x: ArbitraryType, y: ArbitraryType ): Int = ???
-      override def quot(x: ArbitraryType, y: ArbitraryType): ArbitraryType = ???
-      override def rem(x: ArbitraryType, y: ArbitraryType): ArbitraryType = ???
+      override def quot( x: ArbitraryType, y: ArbitraryType ): ArbitraryType = ???
+      override def rem( x: ArbitraryType, y: ArbitraryType ): ArbitraryType = ???
     }
 
     def apply() = new ArbitraryType {}
