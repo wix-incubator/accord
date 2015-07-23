@@ -23,6 +23,7 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" % "test"
 unmanagedSourceDirectories in Compile <+= ( scalaVersion, baseDirectory ) { case ( sv, base ) => sv match {
   case v if v startsWith "2.10" => base / "src/main/scala-2.10"
   case v if v startsWith "2.11" => base / "src/main/scala-2.11"
+  case v if v startsWith "2.12" => base / "src/main/scala-2.11"
   case v                        => throw new IllegalStateException( s"Unsupported Scala version $v" )
 } }
 
