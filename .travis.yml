@@ -2,8 +2,10 @@ language: scala
 scala:
   - "2.10.4"
   - "2.11.2"
-script: "sbt clean coverage test"
-after_success: "sbt coveralls"
+script: "sbt clean test"
+# Coverage disabled pending fix for https://github.com/scoverage/sbt-scoverage/issues/101
+#script: "sbt clean coverage test"
+#after_success: "sbt coveralls"
 jdk:
   - oraclejdk7
   - openjdk7
