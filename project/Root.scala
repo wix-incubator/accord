@@ -56,7 +56,7 @@ object Root extends Build {
   }
 
   lazy val compileOptions = Seq(
-    scalaVersion := "2.11.1",
+    scalaVersion := "2.12.0-M2",
     crossScalaVersions := Seq( "2.10.3", "2.11.1", "2.12.0-M2" ),
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",
@@ -118,7 +118,34 @@ object Root extends Build {
   lazy val examples =
     Project( id = "accord-examples", base = file( "examples" ), settings = baseSettings ++ noPublish )
       .dependsOn( api, core, scalatest % "test->compile", specs2_2x % "test->compile", spring3 )
+
+
+  // Workaround to conditionally compile for 2.12 without unsupported dependencies, e.g. Specs2.
+  // This is the only workaround I've found so far (based on
+  // http://www.scala-sbt.org/release/docs/Build-Loaders.html#The+BuildDependencies+type).
+  lazy val unsupportedDeps = Seq( specs2_2x, specs2_3x, examples )
+  lazy val allDeps = unsupportedDeps ++ Seq( api, core, scalatest, spring3 )
+
   lazy val root =
     Project( id = "root", base = file( "." ), settings = baseSettings ++ noPublish )
-      .aggregate( api, core, scalatest, specs2_2x, specs2_3x, spring3, examples )
+      .aggregate( allDeps.map { p => p: ProjectReference }:_* )
+      .settings(
+
+      // OK, this pile of shit doesn't work no matter how I twist it. I've had enough of sbt.
+  buildDependencies <<= ( scalaVersion, buildDependencies ) {
+    case ( v, deps ) if v startsWith "2.12" =>
+      val unsupportedProjects = unsupportedDeps.map { _.id }.toSet
+      def isSupported( ref: ProjectRef ) = !( unsupportedProjects contains ref.project )
+      val filteredCP = deps.classpath collect {
+        case ( ref, on ) if isSupported( ref ) => ref -> ( on filter { dep => isSupported( dep.project ) } )
+      }
+      val filteredAggregates = deps.aggregate collect {
+        case ( ref, on ) if isSupported( ref ) => ref -> ( on filter isSupported )
+      }
+      println(s"Filtering:\n\tcp: ${filteredCP}\n\tagg: ${filteredAggregates}")
+      BuildDependencies( filteredCP, filteredAggregates )
+
+    case ( _, deps ) => deps
+  }
+      )
 }
