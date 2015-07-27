@@ -40,21 +40,11 @@ class ExpressionDescriberTests extends WordSpec with Matchers {
   }
 
   "ExpressionDescriber.describe" should {
-    "generate a compile-time error for function parameters" ignore {
-      // Ignored pending fix of https://issues.scala-lang.org/browse/SI-6636
-      import scala.tools.reflect.{ToolBox, ToolBoxError}
-
-      val toolbox = scala.reflect.runtime.currentMirror.mkToolBox()
-
-      val thrown = the [ ToolBoxError ] thrownBy {
-        toolbox.compile( toolbox.parse(
-          """
-            |val f: Int => String = { _ => "" }
-            |com.wix.accord.transform.ExpressionDescriber describe f
-          """.stripMargin ) )
-      }
-
-      thrown.message should contain( "Only function literals are supported" )
+    "fail to compile a non-literal function parameter" in {
+      """
+      val f: Int => String = { _ => "" }
+      com.wix.accord.transform.ExpressionDescriber describe f
+      """ shouldNot compile
     }
   }
 }
