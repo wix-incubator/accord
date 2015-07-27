@@ -1,6 +1,10 @@
-import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 import sbt.Keys._
 import sbt._
+
+// Plugin imports
+import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
+import sbtrelease.ReleasePlugin.autoImport._
+import com.typesafe.sbt.SbtPgp.autoImport.PgpKeys._
 
 object Root extends Build {
 
@@ -27,34 +31,10 @@ object Root extends Build {
       </developers>
   )
 
-  lazy val releaseSettings = {
-    import com.typesafe.sbt.pgp.PgpKeys._
-    import sbtrelease.ReleasePlugin.ReleaseKeys._
-    import sbtrelease.ReleaseStateTransformations._
-    import sbtrelease.ReleaseStep
-
-    // Hook up release and GPG plugins
-    lazy val publishSignedAction = { st: State =>
-      val extracted = Project.extract( st )
-      val ref = extracted.get( thisProjectRef )
-      extracted.runAggregated( publishSigned in Global in ref, st )
-    }
-
-    sbtrelease.ReleasePlugin.releaseSettings ++ Seq(
-      releaseProcess := Seq[ ReleaseStep ] (
-        checkSnapshotDependencies,
-        runTest,
-        inquireVersions,
-        setReleaseVersion,
-        commitReleaseVersion,
-        tagRelease,
-        publishArtifacts.copy( action = publishSignedAction ),
-        setNextVersion,
-        commitNextVersion,
-        pushChanges
-      )
-    )
-  }
+  lazy val releaseSettings = Seq(
+    releaseCrossBuild := true,
+    releasePublishArtifactsAction := publishSigned.value
+  )
 
   lazy val compileOptions = Seq(
     scalaVersion := "2.11.1",
