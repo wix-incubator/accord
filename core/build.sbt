@@ -16,7 +16,7 @@ libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % 
 libraryDependencies <++= scalaVersion {
   case v if v startsWith "2.10" => Seq.empty
   case v if v startsWith "2.11" => Seq( "org.scalamacros" %% "resetallattrs" % "1.0.0-M1" )
-  case v if v startsWith "2.12" => Seq( "org.scalamacros" %% "resetallattrs" % "1.0.0-SNAPSHOT" )
+  case v if v startsWith "2.12" => Seq( "org.scalamacros" %% "resetallattrs" % "1.0.0" )
   case _ => Seq.empty
 }
 
