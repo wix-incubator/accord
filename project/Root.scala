@@ -56,6 +56,7 @@ object Root extends Build {
     publishSettings ++
     releaseSettings ++
     compileOptions ++
+    sbtdoge.CrossPerProjectPlugin.projectSettings ++
     Seq(
       organization := "com.wix",
       homepage := Some( url( "https://github.com/wix/accord" ) ),
@@ -66,6 +67,7 @@ object Root extends Build {
 
   // Projects --
 
+<<<<<<< HEAD
   lazy val api =
     crossProject
       .crossType( CrossType.Pure )
@@ -77,6 +79,14 @@ object Root extends Build {
           "dead-simple and self-contained story for defining validation rules and executing them on object " +
           "instances. Feedback, bug reports and improvements are welcome!"
       ) ++ baseSettings :_* )
+=======
+  val specs2_2xSettings = Seq(
+    name := "accord-specs2",
+    libraryDependencies += "org.specs2" %% "specs2" % "2.3.13",
+    target <<= target { _ / "specs2-2.x" },
+    crossScalaVersions ~= { _ filterNot { _ startsWith "2.12" } }
+  )
+>>>>>>> Enabled selective subproject compilation via sbt-doge, thanks @eed3si9n!
 
   lazy val apiJVM = api.jvm
   lazy val apiJS = api.js
@@ -129,6 +139,9 @@ object Root extends Build {
       case v if v startsWith "2.11" =>
         Seq( "org.scalamacros" %% "resetallattrs" % "1.0.0-M1" )
 
+      case v if v startsWith "2.12" =>
+        Seq( "org.scalamacros" %% "resetallattrs" % "1.0.0" )
+
       case _ => Seq.empty
     }
 
@@ -147,6 +160,7 @@ object Root extends Build {
         unmanagedSourceDirectories in Compile <+= ( scalaVersion, baseDirectory ) {
           case ( v, base ) if v startsWith "2.10" => base.getParentFile / "src/main/scala-2.10"
           case ( v, base ) if v startsWith "2.11" => base.getParentFile / "src/main/scala-2.11"
+          case ( v, base ) if v startsWith "2.12" => base.getParentFile / "src/main/scala-2.11"
           case ( v, _ ) => throw new IllegalStateException( s"Unsupported Scala version $v" )
         },
 
@@ -169,10 +183,9 @@ object Root extends Build {
       settings = baseSettings ++ noPublish ++ Seq(
         name := "accord-examples",
         libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "provided" ),
-        libraryDependencies ++= Seq( "org.scalatest" %% "scalatest" % "2.1.3" % "test" ),
         description := "Sample projects for the Accord validation library."
       ) )
-      .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2_2x % "test->compile", spring3 )
+      .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2_3x % "test->compile", spring3 )
 
 
   // Root --
