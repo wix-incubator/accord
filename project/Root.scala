@@ -75,6 +75,7 @@ object Root extends Build {
     publishSettings ++
     releaseSettings ++
     compileOptions ++
+    sbtdoge.CrossPerProjectPlugin.projectSettings ++
     Seq(
       organization := "com.wix",
       homepage := Some( url( "https://github.com/wix/accord" ) ),
@@ -88,7 +89,8 @@ object Root extends Build {
   val specs2_2xSettings = Seq(
     name := "accord-specs2",
     libraryDependencies += "org.specs2" %% "specs2" % "2.3.13",
-    target <<= target { _ / "specs2-2.x" }
+    target <<= target { _ / "specs2-2.x" },
+    crossScalaVersions ~= { _ filterNot { _ startsWith "2.12" } }
   )
 
   val specs2_3xSettings = Seq(
@@ -119,8 +121,7 @@ object Root extends Build {
     Project( id = "accord-examples", base = file( "examples" ), settings = baseSettings ++ noPublish )
       .dependsOn( api, core, scalatest % "test->compile", specs2_3x % "test->compile", spring3 )
 
-
   lazy val root =
     Project( id = "root", base = file( "." ), settings = baseSettings ++ noPublish )
-      .aggregate( api, core, scalatest, spring3/*, specs2_2x */, specs2_3x, examples )
+      .aggregate( api, core, scalatest, spring3, specs2_2x, specs2_3x, examples )
 }
