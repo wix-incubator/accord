@@ -67,7 +67,6 @@ object Root extends Build {
 
   // Projects --
 
-<<<<<<< HEAD
   lazy val api =
     crossProject
       .crossType( CrossType.Pure )
@@ -79,14 +78,6 @@ object Root extends Build {
           "dead-simple and self-contained story for defining validation rules and executing them on object " +
           "instances. Feedback, bug reports and improvements are welcome!"
       ) ++ baseSettings :_* )
-=======
-  val specs2_2xSettings = Seq(
-    name := "accord-specs2",
-    libraryDependencies += "org.specs2" %% "specs2" % "2.3.13",
-    target <<= target { _ / "specs2-2.x" },
-    crossScalaVersions ~= { _ filterNot { _ startsWith "2.12" } }
-  )
->>>>>>> Enabled selective subproject compilation via sbt-doge, thanks @eed3si9n!
 
   lazy val apiJVM = api.jvm
   lazy val apiJS = api.js
@@ -100,8 +91,15 @@ object Root extends Build {
         name := "accord-scalatest",
         description := "ScalaTest matchers for the Accord validation library"
       ) ++ baseSettings :_* )
-      .jvmSettings( libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" )
-      .jsSettings( libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M7" )
+      .jvmSettings(
+        libraryDependencies <+= scalaVersion {
+          case v if v startsWith "2.12" => "org.scalatest" %% "scalatest" % "2.2.5-M2"
+          case _                        => "org.scalatest" %% "scalatest" % "2.2.4"
+        }
+      )
+      .jsSettings(
+        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M7"
+      )
   lazy val scalatestJVM = scalatest.jvm
   lazy val scalatestJS = scalatest.js
 
@@ -112,7 +110,8 @@ object Root extends Build {
       settings = baseSettings ++ Seq(
         name := "accord-specs2",
         libraryDependencies += "org.specs2" %% "specs2" % "2.3.13",
-        target <<= target { _ / "specs2-2.x" }
+        target <<= target { _ / "specs2-2.x" },
+        crossScalaVersions ~= { _ filterNot { _ startsWith "2.12" } }
       )
     ).dependsOn( apiJVM )
 
@@ -122,7 +121,7 @@ object Root extends Build {
       base = file( "specs2" ),
       settings = baseSettings ++ Seq(
         name := "accord-specs2-3.x",
-        libraryDependencies += "org.specs2" %% "specs2-core" % "3.6",
+        libraryDependencies += "org.specs2" %% "specs2-core" % "3.6.3",
         resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases",
         target <<= target { _ / "specs2-3.x" }
       )
