@@ -103,7 +103,7 @@ object Root extends Build {
   lazy val scalatestJVM = scalatest.jvm
   lazy val scalatestJS = scalatest.js
 
-  lazy val specs2_2x =
+  lazy val specs2_2xJVM =
     Project(
       id = "specs2_2x",
       base = file( "specs2" ),
@@ -116,16 +116,17 @@ object Root extends Build {
     ).dependsOn( apiJVM )
 
   lazy val specs2_3x =
-    Project(
-      id = "specs2_3x",
-      base = file( "specs2" ),
-      settings = baseSettings ++ Seq(
+    crossProject
+      .crossType( CrossType.Pure )
+      .in( file( "specs2" ) )
+      .dependsOn( api )
+      .settings( Seq(
         name := "accord-specs2-3.x",
-        libraryDependencies += "org.specs2" %% "specs2-core" % "3.6.3",
-        resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases",
+        libraryDependencies += "org.specs2" %% "specs2-core" % "3.6.4",
         target <<= target { _ / "specs2-3.x" }
-      )
-    ).dependsOn( apiJVM )
+      ) ++ baseSettings :_* )
+  lazy val specs2_3xJVM = scalatest.jvm
+  lazy val specs2_3xJS = scalatest.js
 
   lazy val macroDependencies =
     scalaVersion {
@@ -184,7 +185,7 @@ object Root extends Build {
         libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "provided" ),
         description := "Sample projects for the Accord validation library."
       ) )
-      .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2_3x % "test->compile", spring3 )
+      .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2_3xJVM % "test->compile", spring3 )
 
 
   // Root --
@@ -195,5 +196,7 @@ object Root extends Build {
       base = file( "." ),
       settings = baseSettings ++ noPublish
     )
-    .aggregate( apiJVM, apiJS, coreJVM, coreJS, scalatestJVM, scalatestJS, specs2_2x, specs2_3x, spring3, examples )
+    .aggregate(
+      apiJVM, apiJS, coreJVM, coreJS, scalatestJVM, scalatestJS, specs2_3xJS, specs2_3xJVM,
+      specs2_2xJVM, spring3, examples )
 }
