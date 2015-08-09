@@ -65,6 +65,9 @@ object Root extends Build {
 
   lazy val noPublish = Seq( publish := {}, publishLocal := {}, publishArtifact := false )
 
+  def noSupportFor( scalaVersionPrefix: String* ) =
+    crossScalaVersions ~= { _ filterNot { version => scalaVersionPrefix exists { version.startsWith } } }
+
   // Projects --
 
   lazy val api =
@@ -98,7 +101,13 @@ object Root extends Build {
         }
       )
       .jsSettings(
-        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M7"
+        libraryDependencies <++= scalaVersion {
+          // Hacky workaround; for some reason this gets resolved even though 2.12 is removed from the
+          // crossScalaVersions set. This happens even when run via sbt-doge.
+          case v if v startsWith "2.12" => Seq.empty
+          case _                        => Seq( "org.scalatest" %%%! "scalatest" % "3.0.0-M7" )
+        },
+        noSupportFor( "2.12" )
       )
   lazy val scalatestJVM = scalatest.jvm
   lazy val scalatestJS = scalatest.js
@@ -111,7 +120,7 @@ object Root extends Build {
         name := "accord-specs2",
         libraryDependencies += "org.specs2" %% "specs2" % "2.3.13",
         target <<= target { _ / "specs2-2.x" },
-        crossScalaVersions ~= { _ filterNot { _ startsWith "2.12" } }
+        noSupportFor( "2.12" )
       )
     ).dependsOn( apiJVM )
 
@@ -125,8 +134,8 @@ object Root extends Build {
         libraryDependencies += "org.specs2" %% "specs2-core" % "3.6.4",
         target <<= target { _ / "specs2-3.x" }
       ) ++ baseSettings :_* )
-  lazy val specs2_3xJVM = scalatest.jvm
-  lazy val specs2_3xJS = scalatest.js
+  lazy val specs2_3xJVM = specs2_3x.jvm
+  lazy val specs2_3xJS = specs2_3x.js
 
   lazy val macroDependencies =
     scalaVersion {
