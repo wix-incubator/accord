@@ -1,26 +1,24 @@
 package com.wix.accord.examples
 
-import com.wix.accord.specs2.ResultMatchers
-import org.specs2.matcher.Matchers
-import org.specs2.mutable.Specification
-
+import com.wix.accord.scalatest.ResultMatchers
+import org.scalatest.{Matchers, WordSpec}
 import scala.util.Random
 
 /**
  * Created by tomer on 12/24/14.
  */
-class ScalaTest extends Specification with Matchers with ResultMatchers {
+class ScalaTest extends WordSpec with Matchers with ResultMatchers {
   import com.wix.accord._
 
   val validAdult = Adult( name = "Grace", surname = "Hopper", age = 85, contactInfo = "Arlington National Cemetery" )
 
   "Adult validator" should {
     "succeed on a valid adult" in {
-      validate( validAdult ) should succeed
+      validate( validAdult ) shouldBe aSuccess
     }
     "fail on an invalid person" in {
       val invalidAdult = validAdult.copy( name = "" )
-      validate( invalidAdult ) should fail
+      validate( invalidAdult ) shouldBe aFailure
     }
     "fail on a minor" in {
       val invalidAdult = validAdult.copy( age = 15 )
@@ -40,12 +38,12 @@ class ScalaTest extends Specification with Matchers with ResultMatchers {
       guardians = Set( Adult( name = "Étienne", surname = "Pascal", age = 63, contactInfo = "Paris, France" ) ) )
 
     "succeed on a valid minor" in {
-      validate( validMinor ) should succeed
+      validate( validMinor ) shouldBe aSuccess
     }
 
     "fail on an invalid person" in {
       val invalidMinor = validMinor.copy( name = "" )
-      validate( invalidMinor ) should fail
+      validate( invalidMinor ) shouldBe aFailure
     }
 
     "fail on an adult" in {
@@ -78,7 +76,7 @@ class ScalaTest extends Specification with Matchers with ResultMatchers {
     val validClassroom = new Classroom( grade = 3, teacher = validAdult, students = minorPool.take( 20 ).toSet )
 
     "succeed on a valid classroom" in {
-      validate( validClassroom ) should succeed
+      validate( validClassroom ) shouldBe aSuccess
     }
 
     "fail on a classroom with an invalid grade" in {
