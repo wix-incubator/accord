@@ -8,6 +8,8 @@ import com.typesafe.sbt.SbtPgp.autoImport.PgpKeys._
 
 object Root extends Build {
 
+  val javaRuntimeVersion = System.getProperty( "java.vm.specification.version" ).toDouble
+
   lazy val publishSettings = Seq(
     publishTo := {
       val nexus = "https://oss.sonatype.org/"
@@ -37,8 +39,10 @@ object Root extends Build {
   )
 
   lazy val compileOptions = Seq(
-    scalaVersion := "2.12.0-M2",
-    crossScalaVersions := Seq( "2.10.3", "2.11.1", "2.12.0-M2" ),
+    scalaVersion := "2.11.1",
+    crossScalaVersions :=
+      Seq( "2.10.3", "2.11.1" ) ++
+      ( if ( javaRuntimeVersion >= 1.8 ) Seq( "2.12.0-M2" ) else Seq.empty ),
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",
       "-feature",
