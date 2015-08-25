@@ -1,14 +1,27 @@
 language: scala
+
 scala:
-  - "2.10.4"
-  - "2.11.2"
+  - "2.10.3"
+  - "2.11.1"
+  - "2.12.0-M2"
+
 sudo: false
-script: "sbt clean test"
+
+script: "sbt ++$TRAVIS_SCALA_VERSION clean test"
+
 # Coverage disabled pending fix for https://github.com/scoverage/sbt-scoverage/issues/101
-#script: "sbt clean coverage test"
+#script: "sbt ++$TRAVIS_SCALA_VERSION clean coverage test"
 #after_success: "sbt coveralls"
+
 jdk:
   - oraclejdk7
   - openjdk7
   - oraclejdk8
 
+# Exclude builds for Scala 2.12 on JDK <8
+matrix:
+  exclude:
+    - scala: "2.12.0-M2"
+      jdk: oraclejdk7
+    - scala: "2.12.0-M2"
+      jdk: openjdk7
