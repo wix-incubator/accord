@@ -1,9 +1,9 @@
 language: scala
 scala:
-  - "2.10.4"
-  - "2.11.2"
+  - "2.10.3"
+  - "2.11.1"
 sudo: false
-script: "sbt clean test"
+script: "sbt ++$TRAVIS_SCALA_VERSION clean test"
 # Coverage disabled pending fix for https://github.com/scoverage/sbt-scoverage/issues/101
 #script: "sbt clean coverage test"
 #after_success: "sbt coveralls"
