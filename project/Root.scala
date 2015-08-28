@@ -106,14 +106,22 @@ object Root extends Build {
     def sharedSrcDir( projectBase: File, conf: String ) = None
   }
 
+  val specs2Base = file( "specs2" ).getAbsoluteFile
+
   lazy val specs2_2x =
     crossProject
       .crossType( OnlyJVM )
-      .in( file( "specs2/specs2-2.x" ) )
+      .in( specs2Base / "specs2-2.x" )
       .dependsOn( api )
-      .settings( ( name := "accord-specs2" ) +: baseSettings :_* )
+      .settings( Seq(
+        name := "accord-specs2",
+        description := "Specs² 2.x matchers for the Accord validation library"
+      ) ++ baseSettings :_* )
       .jsSettings( noPublish :_* )
-      .jvmSettings( libraryDependencies += "org.specs2" %% "specs2" % "2.3.13" )
+      .jvmSettings(
+        libraryDependencies += "org.specs2" %% "specs2" % "2.3.13",
+        sourceDirectory := specs2Base / "src"
+      )
 
   lazy val specs2_2xJVM = specs2_2x.jvm
   lazy val specs2_2xJS = specs2_2x.js
@@ -121,13 +129,17 @@ object Root extends Build {
   lazy val specs2_3x =
     crossProject
       .crossType( OnlyJVM )
-      .in( file( "specs2/specs2-3.x" ) )
+      .in( specs2Base / "specs2-3.x" )
       .dependsOn( api )
-      .settings( ( name := "accord-specs2-3.x" ) +: baseSettings :_* )
+      .settings( Seq(
+        name := "accord-specs2-3.x",
+        description := "Specs² 3.x matchers for the Accord validation library"
+      ) ++ baseSettings :_* )
       .jsSettings( noPublish :_* )
       .jvmSettings(
         libraryDependencies += "org.specs2" %% "specs2-core" % "3.6",
-        resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
+        resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases",
+        sourceDirectory := specs2Base / "src"
       )
 
   lazy val specs2_3xJVM = specs2_3x.jvm
@@ -179,7 +191,7 @@ object Root extends Build {
     crossProject
       .crossType( CrossType.Full )
       .in( file( "examples" ) )
-      .dependsOn( api, core, scalatest % "test->compile", specs2_2x )
+      .dependsOn( api, core, scalatest % "test->compile", specs2_2x % "test->compile" )
       .settings( Seq(
         name := "accord-examples",
         libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "provided" ),
