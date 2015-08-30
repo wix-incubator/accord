@@ -4,8 +4,8 @@ url: "http://wix.github.io/accord"
 baseurl: "/accord"
 
 version:
-  release: 0.4.2
-  snapshot: 0.5-SNAPSHOT
+  release: 0.5
+  snapshot: 0.6-SNAPSHOT
 
 markdown: redcarpet
 

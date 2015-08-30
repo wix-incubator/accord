@@ -12,7 +12,11 @@ Accord provides [ScalaTest](http://www.scalatest.org/) matchers on validation re
 Add the following to your build.sbt or to the settings in your Scala build configuration:
 
 ```scala
+// Regular (JVM) Scala projects:
 libraryDependencies += "com.wix" %% "accord-scalatest" % "{{ site.version.release }}" % "test"
+
+// Scala.js projects:
+libraryDependencies += "com.wix" %%% "accord-scalatest" % "{{ site.version.release }}" % "test"
 ```
 
 ## Using Maven
