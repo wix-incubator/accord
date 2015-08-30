@@ -12,3 +12,13 @@ jdk:
   - openjdk7
   - oraclejdk8
 
+# Snapshot publishing via Travis courtesy of Jan Machacek, thanks!
+# http://www.cakesolutions.net/teamblogs/publishing-artefacts-to-oss-sonatype-nexus-using-sbt-and-travis-ci
+
+after_success:
+  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt publish; };"
+env:
+  global:
+  - secure: UgSKlj9yPLnOZGcXZvCdNQXMPttTdGrDi3x6H46J+iwxP0HQGH4+663F9jpU4QCh3t0NVGEhDA8ktKv7OhMqJEMUaRkQhXUys/Ksp1+XJUlF+CqkEts2ON20M/4J3Db0NmoGCnrgah7OKtZY8ukYZBgISO2TxXZ2Qge2ejL5+sM=
+  - secure: q9L/2hEnqgtYx8wPPUHcZzz+RQYN2ujR4tNQy81gr4vMuluzWQ8SEcGM+P6UaviAlkFFdxIF5GFKxffDU+TEf7qeDzxMktlmZULbURx7vbskyPOBD4HrsUUyksC76zr/zUC0v0OIJndYazB9tUX8v5b1IRrXk6kmeK0WiR5giok=
+
