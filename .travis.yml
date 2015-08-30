@@ -16,7 +16,7 @@ jdk:
 # http://www.cakesolutions.net/teamblogs/publishing-artefacts-to-oss-sonatype-nexus-using-sbt-and-travis-ci
 
 after_success:
-  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt publish; };"
+  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt ++$TRAVIS_SCALA_VERSION publish; };"
 env:
   global:
     - secure: "TRDTLUiwGoI1O0dcP6F96Djb7xlRlaowrEWMrL+lUZizlCiSJ3/RdqDDGspzS8NQkBRXrqHhyTf2RIwfxu3J0nstlzfTwEpNhF698EhpHVVR9srBsgr8+iinS5WCUcotrMKDWIOpLPERbw9tap3HJQPJiXAUDqzPixjThb/BpXg="
