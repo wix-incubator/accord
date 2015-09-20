@@ -16,8 +16,33 @@
 
 package com.wix
 
-/** The entry-point to the Accord library. To execute a validator, simply import it into the local scope,
-  * import this package and execute `validate( objectUnderValidation )`.
+/** The entry-point to the Accord library.
+  *
+  * ==Overview==
+  *
+  * An Accord [[com.wix.accord.Validator validator]] is a typeclass, which adds data validation rules over an existing
+  * domain model. The `api` module deals with the usage site; details on how to define validators can be found
+  * in the `core` module.
+  *
+  * To use a validator, simply import this package, make sure the validator is in scope and use the
+  * [[com.wix.accord.validate validate]] function:
+  *
+  * {{{
+  * scala> import com.wix.accord._
+  * import com.wix.accord._
+  *
+  * scala> import MyDomain._
+  * import MyDomain._
+  *
+  * scala> val person = Person( name = "Niklaus", surname = "Wirth", age = 81 )
+  * person: MyDomain.Person = Person(Niklaus,Wirth,81)
+  *
+  * scala> validate( person )
+  * res0: com.wix.accord.Result = Success
+  * }}}
+  *
+  * See [[com.wix.accord.Result Result]], [[com.wix.accord.Success Success]] and
+  * [[com.wix.accord.Failure Failure]] for details of the result model.
   */
 package object accord {
   /** Validates the specified object and returns a validation [[com.wix.accord.Result]]. An implicit
