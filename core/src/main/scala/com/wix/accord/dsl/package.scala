@@ -188,39 +188,53 @@ package object dsl
     */
   def validator[ T ]( v: T => Unit ): TransformedValidator[ T ] = macro ValidationTransform.apply[ T ]
 
-  /** Wraps expressions under validation with a specialized scope (this is later used during the macro transform).
-    * Enables syntax such as `p.firstName is notEmpty`, where `p.firstName` is the actual expression under
-    * validation.
+  /** Wraps expressions under validation with the Accord DSL.
+    *
+    * This class provides the entry point into the DSL, by wrapping an expression with a specialized scope
+    * (this is later used during the macro transform). This enables syntax such as `p.firstName is notEmpty`,
+    * where `p.firstName` is the actual expression under validation.
+    *
+    * See the [[com.wix.accord.dsl package documentation]] for a full description of the DSL.
     *
     * @param value The value to wrap with a validation context.
     * @tparam U The type of the provided expression.
+    * @see com.wix.accord.dsl
     */
   implicit class Contextualizer[ U ]( value: U ) extends SimpleDslContext[ U ]
 
-  /** Wraps expression under validation with an explicit description; after macro transformation, the resulting
-    * validator will use the specified description to render violations. See the
-    * [[com.wix.accord.dsl.Descriptor.as]] method for an example.
+  /** Enables explicitly describing expression under validation.
+    *
+    * After the macro transform, the resulting validator will use the specified description to
+    * render violations. See the [[com.wix.accord.dsl.Descriptor.as as]] method for full example.
     *
     * @param value The value to wrap with an explicit description.
     * @tparam U The type of the provided expression.
+    * @see com.wix.accord.dsl
     */
   implicit class Descriptor[ U ]( value: U ) {
     /** Tags the specified validation expression with an explicit description. Enables syntax such as:
       * `p.firstName as "first name" is notEmpty`; violations for this validation rule will be rendered with the
       * specified expression (instead of the implicit rule), for example:
       *
-      * ```
-      * scala> case class Person( firstName: String, lastName: String )
-      * defined class Person
       *
-      * scala> implicit val personValidator = validator[ Person ] { p => p.firstName as "first name" is notEmpty }
-      * personValidator: com.wix.accord.combinators.And[Person] = <function1>
       *
-      * scala> validate( Person( "", "last" ) )
-      * res0: com.wix.accord.Result = Failure(List(Violation(first name must not be empty,)))
-      * ```
       *
-      * With the explicit description, the violation would read "firstName must not be empty".
+      * --- TODO --- update example!
+      *
+      *
+      *
+      * {{{
+      *   scala> case class Person( firstName: String, lastName: String )
+      *   defined class Person
+      *
+      *   scala> implicit val personValidator = validator[ Person ] { p => p.firstName as "first name" is notEmpty }
+      *   personValidator: com.wix.accord.combinators.And[Person] = <function1>
+      *
+      *   scala> validate( Person( "", "last" ) )
+      *   res0: com.wix.accord.Result = Failure(List(Violation(first name must not be empty,)))
+      * }}}
+      *
+      * Without the explicit description, the violation would read "firstName must not be empty".
       *
       * @param description The description to use for the expression in case of violations.
       * @return The validation expression tagged with the explicit description.
@@ -228,6 +242,15 @@ package object dsl
     def as( description: String ) = value
   }
 
-  /** A proxy for ordering ops. Enables syntax such as `p.age should be > 5`. */
+  /** Provides the "be" keyword.
+    *
+    * Makes all members of [[com.wix.accord.dsl.OrderingOps OrderingOps]] accessible via the following syntax:
+    *
+    * {{{
+    *   p.age should be > 5`
+    * }}}
+    *
+    * @see com.wix.accord.dsl.OrderingOps
+    */
   val be: OrderingOps = this
 }
