@@ -28,17 +28,17 @@ package com.wix
   * [[com.wix.accord.validate validate]] function:
   *
   * {{{
-  * scala> import com.wix.accord._
-  * import com.wix.accord._
+  *   scala> import com.wix.accord._
+  *   import com.wix.accord._
   *
-  * scala> import MyDomain._
-  * import MyDomain._
+  *   scala> import MyDomain._
+  *   import MyDomain._
   *
-  * scala> val person = Person( name = "Niklaus", surname = "Wirth", age = 81 )
-  * person: MyDomain.Person = Person(Niklaus,Wirth,81)
+  *   scala> val person = Person( name = "Niklaus", surname = "Wirth", age = 81 )
+  *   person: MyDomain.Person = Person(Niklaus,Wirth,81)
   *
-  * scala> validate( person )
-  * res0: com.wix.accord.Result = Success
+  *   scala> validate( person )
+  *   res0: com.wix.accord.Result = Success
   * }}}
   *
   * See [[com.wix.accord.Result Result]], [[com.wix.accord.Success Success]] and
