@@ -20,8 +20,10 @@ package com.wix.accord
 sealed trait Violation {
   /** The actual runtime value of the object under validation. */
   def value: Any
+
   /** A textual description of the constraint being violated (for example, "must not be empty"). */
   def constraint: String
+
   /** The textual description of the object under validation (this is the expression that, when evaluated at
     * runtime, produces the value in [[com.wix.accord.Violation.value]]). This is normally filled in
     * by the validation transform macro, but can also be explicitly provided via the DSL.
@@ -37,7 +39,8 @@ sealed trait Violation {
   def withDescription( rewrite: String ): Violation
 }
 
-/** Describes the violation of a validation rule or constraint.
+/** Describes a simple validation rule violation (i.e. one without hierarchy). Most built-in combinators
+  * emit this type of violation.
   * 
   * @param value The value of the object which failed the validation rule.
   * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
@@ -47,16 +50,18 @@ case class RuleViolation( value: Any, constraint: String, description: Option[ S
   def withDescription( rewrite: String ) = this.copy( description = Some( rewrite ) )
 }
 
-/** Describes the violation of a group of constraints. For example, the [[com.wix.accord.combinators.Or]]
-  * combinator produces a group violation when all predicates fail.
+/** Describes the violation of a group of constraints. For example, the `Or` combinator found in the built-in
+  * combinator library produces a group violation when all of its predicates fail.
   *
-  * @param value The value of the object which failed the validation rule.
-  * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
+  * @param value The value of the object which failed validation.
+  * @param constraint A textual description of the constraint being violated (for example, "doesn't meet any
+  *                   of the requirements").
   * @param description The textual description of the object under validation.
   * @param children The set of violations contained within the group.
   */
 case class GroupViolation( value: Any, constraint: String, description: Option[ String ], children: Set[ Violation ] )
   extends Violation {
+
   def withDescription( rewrite: String ) = this.copy( description = Some( rewrite ) )
 }
 
@@ -65,20 +70,30 @@ case class GroupViolation( value: Any, constraint: String, description: Option[ 
   */
 sealed trait Result {
 
-  /** Returns `true` if the `Result` is a `Success`, `false` otherwise.  */
+  /** Returns `true` if this result represents a successful validation `false` otherwise.  */
   def isSuccess: Boolean
 
-  /** Returns `true` if the `Result` is a `Failure`, `false` otherwise.  */
+  /** Returns `true` if this result represents a failed validation, `false` otherwise.  */
   def isFailure: Boolean
 
-
+  /**
+   * Returns a new result representing successful validation of both rules, or failure or either.
+   * @param other Another result to be composed with this one.
+   * @return The resulting instance of [[com.wix.accord.Result]].
+   */
   def and( other: Result ): Result
+
+  /**
+   * Returns a new result representing successful validation of either rule, or failure or both.
+   * @param other Another result to be composed with this one.
+   * @return The resulting instance of [[com.wix.accord.Result]].
+   */
   def or( other: Result ): Result
 
-  /** Rewrites the description for all violations, if applicable.
+  /** Rewrites the description for all violations within this result.
     *
     * @param rewrite The rewritten description.
-    * @return A modified copy of this result with the new description in place.
+    * @return A modified copy of this result with the new violation description in place.
     */
   def withDescription( rewrite: String ): Result
 }
@@ -88,13 +103,12 @@ case object Success extends Result {
   def and( other: Result ) = other
   def or( other: Result ) = this
   def withDescription( rewrite: String ) = this
-
   def isSuccess: Boolean = true
-
   def isFailure: Boolean = false
 }
 
 /** An object representing a failed validation result.
+  *
   * @param violations The violations that caused the validation to fail.
   */
 case class Failure( violations: Set[ Violation ] ) extends Result {
@@ -102,13 +116,13 @@ case class Failure( violations: Set[ Violation ] ) extends Result {
     case Success => this
     case Failure( vother ) => Failure( violations ++ vother )
   }
+
   def or( other: Result ) = other match {
     case Success => other
     case Failure(_) => this
   }
+
   def withDescription( rewrite: String ) = Failure( violations map { _ withDescription rewrite } )
-
   def isSuccess: Boolean = false
-
   def isFailure: Boolean = true
 }

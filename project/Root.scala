@@ -149,13 +149,8 @@ object Root extends Build {
           "org.scalamacros" %% "quasiquotes" % "2.0.1" intransitive()
         )
 
-      case v if v startsWith "2.11" =>
-        Seq( "org.scalamacros" %% "resetallattrs" % "1.0.0-M1" )
-
-      case v if v startsWith "2.12" =>
+      case _ =>
         Seq( "org.scalamacros" %% "resetallattrs" % "1.0.0" )
-
-      case _ => Seq.empty
     }
 
   lazy val core =

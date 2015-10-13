@@ -2,12 +2,13 @@
 
 Version 0.5 features a brand new [project site](http://wix.github.io/accord/), complete documentation overhaul and Scala.js support! If that's not enough, we have the usual assortment of improvements and bugfixes:
 
-* [#19](https://github.com/wix/accord/issues/19) Scala.js support;
-* [#33](https://github.com/wix/accord/issues/33) Document available validations;
-* [#39](https://github.com/wix/accord/issues/39) For string, `have size == 7` does not compile;
-* [#43](https://github.com/wix/accord/pull/43) Added `isSuccess`/`isFailure` to `Result` (contributed by Panos Athanasiou);
 * [#45](https://github.com/wix/accord/issues/45) Make Violation trait sealed for compiler exhaustiveness checks; 
-* Significant refactoring to test code;
+* [#43](https://github.com/wix/accord/pull/43) Added `isSuccess`/`isFailure` to `Result` (contributed by Panos Athanasiou);
+* [#39](https://github.com/wix/accord/issues/39) For string, `have size == 7` does not compile;
+* [#33](https://github.com/wix/accord/issues/33) Document available validations;
+* [#19](https://github.com/wix/accord/issues/19) Scala.js support;
+* [Fix](https://github.com/wix/accord/commit/2f00de293e93421c9672aa45f51ba284638175c0) Correct handling of bottom types in validation rule block transformation;
+* Significant refactoring to test code and build setup, dependency updates and Travis CI configuration improvements;
 
 As always, bug reports, pull requests and other ideas are welcome -- [join the discussion](https://gitter.im/wix/accord?utm_source=share-link&utm_medium=link&utm_campaign=share-link) on Gitter!
 

@@ -11,12 +11,30 @@ script: "sbt ++$TRAVIS_SCALA_VERSION clean test"
 
 # Coverage disabled pending fix for https://github.com/scoverage/sbt-scoverage/issues/101
 #script: "sbt ++$TRAVIS_SCALA_VERSION clean coverage test"
-#after_success: "sbt coveralls"
+#after_success: "sbt ++$TRAVIS_SCALA_VERSION coveralls"
 
 jdk:
   - oraclejdk7
   - openjdk7
   - oraclejdk8
+
+# Snapshot publishing via Travis courtesy of Jan Machacek, thanks!
+# http://www.cakesolutions.net/teamblogs/publishing-artefacts-to-oss-sonatype-nexus-using-sbt-and-travis-ci
+after_success:
+  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt ++$TRAVIS_SCALA_VERSION publish; };"
+
+env:
+  global:
+    - secure: "TRDTLUiwGoI1O0dcP6F96Djb7xlRlaowrEWMrL+lUZizlCiSJ3/RdqDDGspzS8NQkBRXrqHhyTf2RIwfxu3J0nstlzfTwEpNhF698EhpHVVR9srBsgr8+iinS5WCUcotrMKDWIOpLPERbw9tap3HJQPJiXAUDqzPixjThb/BpXg="
+    - secure: "U22HGF01uu6rruU+M2y6dokf2EHM5d9r/VxwSPRrxW6m34KlVhIfPtuobo+mAfwDRC25+nedPe/YWcPRm50kbX7pYzGVHAkP1A2SIJXVkvqmQb1qezu1D3qu3mSHoZbvLvWVUJX0ige7QHOfAW2lypIFFDJcbiwXqZN3q4IB+bs="
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/d3c83757dec6f0aa0382
+    on_success: change
+    on_failure: always
+    on_start: never
 
 # Exclude builds for Scala 2.12 on JDK <8
 matrix:
