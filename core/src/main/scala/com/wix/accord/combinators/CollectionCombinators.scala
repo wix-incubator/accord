@@ -63,7 +63,7 @@ trait CollectionCombinators {
   class NotEmpty[ T <: AnyRef <% HasEmpty ] extends NullSafeValidator[ T ]( !_.isEmpty, _ -> "must not be empty" )
 
   /** A validator that succeeds only if the provided collection has no duplicate elements. */
-  class Distinct extends Validator[ Traversable[_] ] {
+  object Distinct extends Validator[ Traversable[_] ] {
     def apply( coll: Traversable[_] ) =
       if ( coll == null )
         Validator.nullFailure

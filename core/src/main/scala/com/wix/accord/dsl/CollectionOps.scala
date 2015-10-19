@@ -17,11 +17,9 @@
 package com.wix.accord.dsl
 
 import com.wix.accord.Validator
-import com.wix.accord.combinators.HasEmpty
-import com.wix.accord.combinators.Empty
-import com.wix.accord.combinators.NotEmpty
-import scala.language.implicitConversions
+import com.wix.accord.combinators.{Distinct, Empty, HasEmpty, NotEmpty}
 import scala.collection.GenTraversableOnce
+import scala.language.implicitConversions
 
 /** Provides a DSL for collection-like objects. Works in conjunction with [[com.wix.accord.dsl.DslContext]]. */
 trait CollectionOps {
@@ -34,6 +32,9 @@ trait CollectionOps {
     * `def isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
     */
   def notEmpty[ T <: AnyRef <% HasEmpty ]: Validator[ T ] = new NotEmpty[ T ]
+
+  /** Specifies a validator that fails on collections with duplicate elements. */
+  def distinct = Distinct
 
   /** A structural type representing any object that has a size. */
   type HasSize = Any { def size: Int }

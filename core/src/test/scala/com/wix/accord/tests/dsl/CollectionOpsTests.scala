@@ -30,6 +30,7 @@ object CollectionOpsTests {
   val seq = Seq.empty[ ArbitraryType ]
   val emptyValidator = seq is empty
   val notEmptyValidator = seq is notEmpty
+  val distinctValidator = seq is distinct
   
   class Sized( _size: Int ) {
     private var _visited = false
@@ -48,7 +49,7 @@ object CollectionOpsTests {
 
 class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with Inside {
   import CollectionOpsTests._
-  import combinators.{Empty, NotEmpty}
+  import combinators.{Empty, NotEmpty, Distinct}
 
 
   "Calling \"has size\"" should {
@@ -76,6 +77,12 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
   "The expression \"is notEmpty\"" should {
     "return an Empty combinator" in {
       notEmptyValidator shouldBe a[ NotEmpty[_] ]
+    }
+  }
+
+  "The expression \"is distinct\"" should {
+    "return the Distinct combinator" in {
+      distinctValidator shouldBe a[ Distinct.type ]
     }
   }
 
