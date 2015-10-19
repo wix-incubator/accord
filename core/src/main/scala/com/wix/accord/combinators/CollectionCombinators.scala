@@ -16,8 +16,10 @@
 
 package com.wix.accord.combinators
 
-import com.wix.accord.NullSafeValidator
+import com.wix.accord.{Validator, NullSafeValidator}
 import com.wix.accord.ViolationBuilder._
+
+import scala.collection.TraversableLike
 
 /** Combinators that operate on collections and collection-like structures. */
 trait CollectionCombinators {
@@ -59,4 +61,18 @@ trait CollectionCombinators {
     * @see [[com.wix.accord.combinators.Empty]]
     */
   class NotEmpty[ T <: AnyRef <% HasEmpty ] extends NullSafeValidator[ T ]( !_.isEmpty, _ -> "must not be empty" )
+
+  /** A validator that succeeds only if the provided collection has no duplicate elements. */
+  class Distinct extends Validator[ Traversable[_] ] {
+    def apply( coll: Traversable[_] ) =
+      if ( coll == null )
+        Validator.nullFailure
+      else {
+        val duplicates = coll.groupBy( identity ).filter( _._2.size > 1 ).keys
+        result(
+          duplicates.isEmpty,
+          coll -> duplicates.mkString( "is not a distinct set; duplicates: [", ", ", "]" )
+        )
+      }
+  }
 }

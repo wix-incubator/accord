@@ -16,7 +16,7 @@
 
 package com.wix.accord.tests.combinators
 
-import com.wix.accord.combinators.{Empty, NotEmpty}
+import com.wix.accord.combinators.{Empty, NotEmpty, Distinct}
 
 class CollectionCombinatorTests extends CombinatorTestSpec {
 
@@ -63,6 +63,32 @@ class CollectionCombinatorTests extends CombinatorTestSpec {
       val left = None
       val validator = new NotEmpty[ Option[ String ] ]
       validator( left ) should failWith( "must not be empty" )
+    }
+  }
+
+  "Distinct combinator" should {
+    "be null-safe" in {
+      val left: Seq[ String ] = null
+      val validator = new Distinct
+      validator( left ) should failWith( "is a null" )
+    }
+
+    "successfully validate an empty collection" in {
+      val left = Seq.empty[ String ]
+      val validator = new Distinct
+      validator( left ) should be( aSuccess )
+    }
+
+    "successfully validate a distinct set" in {
+      val left = Seq( 1, 2, 3, 4, 5 )
+      val validator = new Distinct
+      validator( left ) should be( aSuccess )
+    }
+
+    "render a correct rule violation" in {
+      val left = Seq( 1, 2, 3, 3, 4, 4, 5 )
+      val validator = new Distinct
+      validator( left ) should failWith( "is not a distinct set; duplicates: [3, 4]" )
     }
   }
 }
