@@ -42,7 +42,7 @@ object Root extends Build {
     scalaVersion := "2.11.1",
     crossScalaVersions :=
       Seq( "2.10.3", "2.11.1" ) ++
-      ( if ( javaRuntimeVersion >= 1.8 ) Seq( "2.12.0-M2" ) else Seq.empty ),
+      ( if ( javaRuntimeVersion >= 1.8 ) Seq( "2.12.0-M3" ) else Seq.empty ),
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",
       "-feature",
@@ -96,23 +96,9 @@ object Root extends Build {
       .dependsOn( api )
       .settings( Seq(
         name := "accord-scalatest",
-        description := "ScalaTest matchers for the Accord validation library"
+        description := "ScalaTest matchers for the Accord validation library",
+        libraryDependencies += "org.scalatest" %%% "scalatest" % "2.2.5"
       ) ++ baseSettings :_* )
-      .jvmSettings(
-        libraryDependencies <+= scalaVersion {
-          case v if v startsWith "2.12" => "org.scalatest" %% "scalatest" % "2.2.5-M2"
-          case _                        => "org.scalatest" %% "scalatest" % "2.2.4"
-        }
-      )
-      .jsSettings(
-        libraryDependencies <++= scalaVersion {
-          // Hacky workaround; for some reason this gets resolved even though 2.12 is removed from the
-          // crossScalaVersions set. This happens even when run via sbt-doge.
-          case v if v startsWith "2.12" => Seq.empty
-          case _                        => Seq( "org.scalatest" %%%! "scalatest" % "3.0.0-M7" )
-        },
-        noSupportFor( "2.12" )
-      )
   lazy val scalatestJVM = scalatest.jvm
   lazy val scalatestJS = scalatest.js
 
@@ -135,9 +121,14 @@ object Root extends Build {
       .dependsOn( api )
       .settings( Seq(
         name := "accord-specs2-3.x",
-        libraryDependencies += "org.specs2" %% "specs2-core" % "3.6.4",
         target <<= target { _ / "specs2-3.x" }
       ) ++ baseSettings :_* )
+      .jvmSettings(
+        libraryDependencies += "org.specs2" %% "specs2-core" % "3.6.5"
+      )
+      .jsSettings(
+        libraryDependencies += "org.specs2" %%% "specs2-core" % "3.6.5-20151025224741-adea3e0"
+      )
   lazy val specs2_3xJVM = specs2_3x.jvm
   lazy val specs2_3xJS = specs2_3x.js
 
