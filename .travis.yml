@@ -3,7 +3,7 @@ language: scala
 scala:
   - "2.10.3"
   - "2.11.1"
-  - "2.12.0-M2"
+  - "2.12.0-M3"
 
 sudo: false
 
@@ -39,7 +39,7 @@ notifications:
 # Exclude builds for Scala 2.12 on JDK <8
 matrix:
   exclude:
-    - scala: "2.12.0-M2"
+    - scala: "2.12.0-M3"
       jdk: oraclejdk7
-    - scala: "2.12.0-M2"
+    - scala: "2.12.0-M3"
       jdk: openjdk7
