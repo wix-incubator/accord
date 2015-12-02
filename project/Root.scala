@@ -98,8 +98,16 @@ object Root extends Build {
         name := "accord-scalatest",
         description := "ScalaTest matchers for the Accord validation library"
       ) ++ baseSettings :_* )
-      .jvmSettings( libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.5" )
-      .jsSettings( libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M12" )
+      .jvmSettings(
+        libraryDependencies <+= scalaVersion {
+          // TODO figure out if a 2.x/3.x split (a la Specs2) is necessary
+          case v if v startsWith "2.12" => "org.scalatest" %% "scalatest" % "3.0.0-M12"
+          case _ => "org.scalatest" %% "scalatest" % "2.2.5"
+        }
+      )
+      .jsSettings(
+        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M12"
+      )
   lazy val scalatestJVM = scalatest.jvm
   lazy val scalatestJS = scalatest.js
 
@@ -109,7 +117,11 @@ object Root extends Build {
       base = file( "specs2" ),
       settings = baseSettings ++ Seq(
         name := "accord-specs2",
-        libraryDependencies += "org.specs2" %% "specs2" % "2.3.13",
+        libraryDependencies <++= scalaVersion {
+          // HACK for some reason this gets resolved even with sbt-doge and crossScalaVersion excluding 2.12
+          case v if v startsWith "2.12" => Seq.empty
+          case _ => Seq( "org.specs2" %% "specs2" % "2.3.13" )
+        },
         target <<= target { _ / "specs2-2.x" },
         noSupportFor( "2.12" )
       )
