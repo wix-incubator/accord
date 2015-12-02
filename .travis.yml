@@ -7,7 +7,7 @@ scala:
 
 sudo: false
 
-script: "sbt '+++$TRAVIS_SCALA_VERSION clean test'"
+script: sbt "+++$TRAVIS_SCALA_VERSION clean test"
 
 # Coverage disabled pending fix for https://github.com/scoverage/sbt-scoverage/issues/101
 #script: "sbt ++$TRAVIS_SCALA_VERSION clean coverage test"
