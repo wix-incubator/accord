@@ -8,6 +8,8 @@ import com.typesafe.sbt.SbtPgp.autoImport.PgpKeys._
 
 object Root extends Build {
 
+  val javaRuntimeVersion = System.getProperty( "java.vm.specification.version" ).toDouble
+
   lazy val publishSettings = Seq(
     publishTo := {
       val nexus = "https://oss.sonatype.org/"
@@ -38,7 +40,9 @@ object Root extends Build {
 
   lazy val compileOptions = Seq(
     scalaVersion := "2.11.1",
-    crossScalaVersions := Seq( "2.10.3", "2.11.1" ),
+    crossScalaVersions :=
+      Seq( "2.10.3", "2.11.1" ) ++
+      ( if ( javaRuntimeVersion >= 1.8 ) Seq( "2.12.0-M3" ) else Seq.empty ),
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",
       "-feature",
@@ -56,6 +60,7 @@ object Root extends Build {
     publishSettings ++
     releaseSettings ++
     compileOptions ++
+    sbtdoge.CrossPerProjectPlugin.projectSettings ++
     Seq(
       organization := "com.wix",
       homepage := Some( url( "https://github.com/wix/accord" ) ),
@@ -63,6 +68,9 @@ object Root extends Build {
     )
 
   lazy val noPublish = Seq( publish := {}, publishLocal := {}, publishArtifact := false )
+
+  def noSupportFor( scalaVersionPrefix: String* ) =
+    crossScalaVersions ~= { _ filterNot { version => scalaVersionPrefix exists { version.startsWith } } }
 
   // Projects --
 
@@ -90,31 +98,55 @@ object Root extends Build {
         name := "accord-scalatest",
         description := "ScalaTest matchers for the Accord validation library"
       ) ++ baseSettings :_* )
-      .jvmSettings( libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" )
-      .jsSettings( libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M7" )
+      .jvmSettings(
+        libraryDependencies <+= scalaVersion {
+          // TODO figure out if a 2.x/3.x split (a la Specs2) is necessary
+          case v if v startsWith "2.12" => "org.scalatest" %% "scalatest" % "3.0.0-M12"
+          case _ => "org.scalatest" %% "scalatest" % "2.2.5"
+        }
+      )
+      .jsSettings(
+        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M12"
+      )
   lazy val scalatestJVM = scalatest.jvm
   lazy val scalatestJS = scalatest.js
 
-  lazy val specs2_2x =
+  lazy val specs2_2xJVM =
     Project(
       id = "specs2_2x",
       base = file( "specs2" ),
       settings = baseSettings ++ Seq(
         name := "accord-specs2",
-        libraryDependencies += "org.specs2" %% "specs2" % "2.3.13",
-        target <<= target { _ / "specs2-2.x" }
+        libraryDependencies <++= scalaVersion {
+          // HACK for some reason this gets resolved even with sbt-doge and crossScalaVersion excluding 2.12
+          case v if v startsWith "2.12" => Seq.empty
+          case _ => Seq( "org.specs2" %% "specs2" % "2.3.13" )
+        },
+        target <<= target { _ / "specs2-2.x" },
+        noSupportFor( "2.12" )
       )
     ).dependsOn( apiJVM )
 
-  lazy val specs2_3x =
+  lazy val specs2_3xJVM =
     Project(
       id = "specs2_3x",
       base = file( "specs2" ),
       settings = baseSettings ++ Seq(
         name := "accord-specs2-3.x",
-        libraryDependencies += "org.specs2" %% "specs2-core" % "3.6",
-        resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases",
-        target <<= target { _ / "specs2-3.x" }
+        target <<= target { _ / "specs2-3.x" },
+        libraryDependencies <+= scalaVersion {
+          case v if v startsWith "2.12" =>
+            // Temporary workaround for Specs2 issue #425, see:
+            // https://github.com/etorreborre/specs2/issues/425#issuecomment-150986091
+            ( "org.specs2" %% "specs2-core" % "3.6.5-20151025224741-adea3e0" )
+              .exclude( "org.scalaz", "scalaz-concurrent_2.12.0-M2" )
+              .exclude( "org.scalaz", "scalaz-effect_2.12.0-M2" )
+              .exclude( "org.scalaz", "scalaz-core_2.12.0-M2" )
+              .exclude( "org.scala-lang.modules", "scala-xml_2.12.0-M2" )
+              .exclude( "org.scala-lang.modules", "scala-parser-combinators_2.12.0-M2" )
+
+          case _ => "org.specs2" %% "specs2-core" % "3.6.5"
+        }
       )
     ).dependsOn( apiJVM )
 
@@ -145,6 +177,7 @@ object Root extends Build {
         unmanagedSourceDirectories in Compile <+= ( scalaVersion, baseDirectory ) {
           case ( v, base ) if v startsWith "2.10" => base.getParentFile / "src/main/scala-2.10"
           case ( v, base ) if v startsWith "2.11" => base.getParentFile / "src/main/scala-2.11"
+          case ( v, base ) if v startsWith "2.12" => base.getParentFile / "src/main/scala-2.11"
           case ( v, _ ) => throw new IllegalStateException( s"Unsupported Scala version $v" )
         },
 
@@ -167,10 +200,9 @@ object Root extends Build {
       settings = baseSettings ++ noPublish ++ Seq(
         name := "accord-examples",
         libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "provided" ),
-        libraryDependencies ++= Seq( "org.scalatest" %% "scalatest" % "2.1.3" % "test" ),
         description := "Sample projects for the Accord validation library."
       ) )
-      .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2_2x % "test->compile", spring3 )
+      .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2_3xJVM % "test->compile", spring3 )
 
 
   // Root --
@@ -181,5 +213,6 @@ object Root extends Build {
       base = file( "." ),
       settings = baseSettings ++ noPublish
     )
-    .aggregate( apiJVM, apiJS, coreJVM, coreJS, scalatestJVM, scalatestJS, specs2_2x, specs2_3x, spring3, examples )
+    .aggregate(
+      apiJVM, apiJS, coreJVM, coreJS, scalatestJVM, scalatestJS, specs2_2xJVM, specs2_3xJVM, spring3, examples )
 }

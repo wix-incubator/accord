@@ -3,12 +3,15 @@ language: scala
 scala:
   - "2.10.3"
   - "2.11.1"
+  - "2.12.0-M3"
 
 sudo: false
 
-script: "sbt ++$TRAVIS_SCALA_VERSION clean test"
+script:
+  # Evidently sbt-doge doesn't like it when you specify multiple commands
+  - sbt "+++$TRAVIS_SCALA_VERSION clean" "+++$TRAVIS_SCALA_VERSION test"
 
-# Coverage disabled pending https://github.com/wix/accord/issues/50
+# Coverage disabled pending fix for https://github.com/scoverage/sbt-scoverage/issues/101
 #script: "sbt ++$TRAVIS_SCALA_VERSION clean coverage test"
 #after_success: "sbt ++$TRAVIS_SCALA_VERSION coveralls"
 
@@ -20,7 +23,7 @@ jdk:
 # Snapshot publishing via Travis courtesy of Jan Machacek, thanks!
 # http://www.cakesolutions.net/teamblogs/publishing-artefacts-to-oss-sonatype-nexus-using-sbt-and-travis-ci
 after_success:
-  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt ++$TRAVIS_SCALA_VERSION publish; };"
+  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt +++$TRAVIS_SCALA_VERSION publish; };"
 
 env:
   global:
@@ -34,3 +37,11 @@ notifications:
     on_success: change
     on_failure: always
     on_start: never
+
+# Exclude builds for Scala 2.12 on JDK <8
+matrix:
+  exclude:
+    - scala: "2.12.0-M3"
+      jdk: oraclejdk7
+    - scala: "2.12.0-M3"
+      jdk: openjdk7
