@@ -41,7 +41,7 @@ object Root extends Build {
   lazy val compileOptions = Seq(
     scalaVersion := "2.11.1",
     crossScalaVersions :=
-      Seq( "2.10.3", "2.11.1" ) ++
+      Seq( "2.10.3", "2.11.1, 2.12" ) ++
       ( if ( javaRuntimeVersion >= 1.8 ) Seq( "2.12.0-M3" ) else Seq.empty ),
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",
@@ -96,9 +96,10 @@ object Root extends Build {
       .dependsOn( api )
       .settings( Seq(
         name := "accord-scalatest",
-        description := "ScalaTest matchers for the Accord validation library",
-        libraryDependencies += "org.scalatest" %%% "scalatest" % "2.2.5"
+        description := "ScalaTest matchers for the Accord validation library"
       ) ++ baseSettings :_* )
+      .jvmSettings( libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.5" )
+      .jsSettings( libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M12" )
   lazy val scalatestJVM = scalatest.jvm
   lazy val scalatestJS = scalatest.js
 
