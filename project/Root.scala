@@ -41,7 +41,7 @@ object Root extends Build {
   lazy val compileOptions = Seq(
     scalaVersion := "2.11.1",
     crossScalaVersions :=
-      Seq( "2.10.3", "2.11.1, 2.12" ) ++
+      Seq( "2.10.3", "2.11.1" ) ++
       ( if ( javaRuntimeVersion >= 1.8 ) Seq( "2.12.0-M3" ) else Seq.empty ),
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",
@@ -115,23 +115,19 @@ object Root extends Build {
       )
     ).dependsOn( apiJVM )
 
-  lazy val specs2_3x =
-    crossProject
-      .crossType( CrossType.Pure )
-      .in( file( "specs2" ) )
-      .dependsOn( api )
-      .settings( Seq(
+  lazy val specs2_3xJVM =
+    Project(
+      id = "specs2_3x",
+      base = file( "specs2" ),
+      settings = baseSettings ++ Seq(
         name := "accord-specs2-3.x",
-        target <<= target { _ / "specs2-3.x" }
-      ) ++ baseSettings :_* )
-      .jvmSettings(
-        libraryDependencies += "org.specs2" %% "specs2-core" % "3.6.5"
+        target <<= target { _ / "specs2-3.x" },
+        libraryDependencies <+= scalaVersion {
+          case v if v startsWith "2.12" => "org.specs2" %% "specs2-core" % "3.6.5-20151025224741-adea3e0"
+          case _ => "org.specs2" %% "specs2-core" % "3.6.5"
+        }
       )
-      .jsSettings(
-        libraryDependencies += "org.specs2" %%% "specs2-core" % "3.6.5-20151025224741-adea3e0"
-      )
-  lazy val specs2_3xJVM = specs2_3x.jvm
-  lazy val specs2_3xJS = specs2_3x.js
+    ).dependsOn( apiJVM )
 
   lazy val macroDependencies =
     scalaVersion {
@@ -197,6 +193,5 @@ object Root extends Build {
       settings = baseSettings ++ noPublish
     )
     .aggregate(
-      apiJVM, apiJS, coreJVM, coreJS, scalatestJVM, scalatestJS, specs2_3xJS, specs2_3xJVM,
-      specs2_2xJVM, spring3, examples )
+      apiJVM, apiJS, coreJVM, coreJS, scalatestJVM, scalatestJS, specs2_2xJVM, specs2_3xJVM, spring3, examples )
 }
