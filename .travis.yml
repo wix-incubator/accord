@@ -8,9 +8,8 @@ scala:
 sudo: false
 
 script:
-  - echo -n "Scala version is: "
-  - export TRAVIS_SCALA_VERSION
-  - sbt "+++$TRAVIS_SCALA_VERSION clean test"
+  # Evidently sbt-doge doesn't like it when you specify multiple commands
+  - sbt "+++$TRAVIS_SCALA_VERSION clean" "+++$TRAVIS_SCALA_VERSION test"
 
 # Coverage disabled pending fix for https://github.com/scoverage/sbt-scoverage/issues/101
 #script: "sbt ++$TRAVIS_SCALA_VERSION clean coverage test"
@@ -24,7 +23,7 @@ jdk:
 # Snapshot publishing via Travis courtesy of Jan Machacek, thanks!
 # http://www.cakesolutions.net/teamblogs/publishing-artefacts-to-oss-sonatype-nexus-using-sbt-and-travis-ci
 after_success:
-  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt ++$TRAVIS_SCALA_VERSION publish; };"
+  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt +++$TRAVIS_SCALA_VERSION publish; };"
 
 env:
   global:
