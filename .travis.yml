@@ -45,3 +45,15 @@ matrix:
       jdk: oraclejdk7
     - scala: "2.12.0-M3"
       jdk: openjdk7
+
+# Cache bootstrap and dependency files for (hopefully) faster builds, per recommendation in
+# http://www.scala-sbt.org/0.13/docs/Travis-CI-with-sbt.html
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt/boot/
+
+before_cache:
+  - find $HOME/.sbt -name "*.lock" | xargs rm
+  - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+
