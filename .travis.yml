@@ -23,7 +23,7 @@ jdk:
 # Snapshot publishing via Travis courtesy of Jan Machacek, thanks!
 # http://www.cakesolutions.net/teamblogs/publishing-artefacts-to-oss-sonatype-nexus-using-sbt-and-travis-ci
 after_success:
-  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt +++$TRAVIS_SCALA_VERSION publish; };"
+  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt \"+++$TRAVIS_SCALA_VERSION publish\"; };"
 
 env:
   global:
