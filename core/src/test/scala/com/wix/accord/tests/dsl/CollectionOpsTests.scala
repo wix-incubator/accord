@@ -31,7 +31,8 @@ object CollectionOpsTests {
   val emptyValidator = seq is empty
   val notEmptyValidator = seq is notEmpty
   val distinctValidator = seq is distinct
-  
+  val inValidator= 1 is in (1,3,5)
+
   class Sized( _size: Int ) {
     private var _visited = false
     def size: Int = { _visited = true; _size }
@@ -49,7 +50,7 @@ object CollectionOpsTests {
 
 class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with Inside {
   import CollectionOpsTests._
-  import combinators.{Empty, NotEmpty, Distinct}
+  import combinators.{Empty, NotEmpty, Distinct,In}
 
 
   "Calling \"has size\"" should {
@@ -135,6 +136,11 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
         }
 
       result should failWith( failing map matcherFor :_* )
+    }
+  }
+  "Operator \"in\" over a set" should{
+    "return an In combinator" in {
+      inValidator shouldEqual In(Set(1,3,5),"got")
     }
   }
 }
