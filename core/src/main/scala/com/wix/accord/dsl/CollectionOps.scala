@@ -17,12 +17,13 @@
 package com.wix.accord.dsl
 
 import com.wix.accord.Validator
-import com.wix.accord.combinators.{Distinct, Empty, HasEmpty, NotEmpty}
+import com.wix.accord.combinators.{Distinct, Empty, HasEmpty, NotEmpty,In}
 import scala.collection.GenTraversableOnce
 import scala.language.implicitConversions
 
 /** Provides a DSL for collection-like objects. Works in conjunction with [[com.wix.accord.dsl.DslContext]]. */
 trait CollectionOps {
+  protected def prefix: String = "got"
   /** Specifies a validator that succeeds on empty instances; the object under validation must implement
     * `def isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
     */
@@ -63,4 +64,8 @@ trait CollectionOps {
     * `c.students has size > 0`.
     */
   val size = new OrderingOps { override def snippet = "has size" }
+
+  def in[T]( set: Set[T] ): Validator[ T ]  = In( set, prefix )
+
+  def in[ T ]( items: T* ): Validator[ T ]  = In( items.toSet, prefix )
 }

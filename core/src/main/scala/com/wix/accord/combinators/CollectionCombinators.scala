@@ -16,10 +16,9 @@
 
 package com.wix.accord.combinators
 
-import com.wix.accord.{Validator, NullSafeValidator}
+import com.wix.accord.{BaseValidator, Validator, NullSafeValidator}
 import com.wix.accord.ViolationBuilder._
 
-import scala.collection.TraversableLike
 
 /** Combinators that operate on collections and collection-like structures. */
 trait CollectionCombinators {
@@ -75,4 +74,7 @@ trait CollectionCombinators {
         )
       }
   }
+  /** A validator that succeeds only if the object exists in the target collection. */
+  case class In[T](  set: Set[T], prefix: String )
+    extends BaseValidator[T]( item=>set.contains(item ), v => v -> s"$prefix $v, expected one of: ${set.mkString(",")}" )
 }
