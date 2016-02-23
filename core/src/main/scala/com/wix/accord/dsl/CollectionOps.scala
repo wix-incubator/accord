@@ -65,7 +65,9 @@ trait CollectionOps {
     */
   val size = new OrderingOps { override def snippet = "has size" }
 
-  def in[T]( set: Set[T] ): Validator[ T ]  = In( set, prefix )
+  /** Specifies a validator that succeeds only if the object exists in the specified set. */
+  def in[ T ]( set: Set[ T ] ): Validator[ T ] = In( set, prefix )
 
-  def in[ T ]( items: T* ): Validator[ T ]  = In( items.toSet, prefix )
+  /** Specifies a validator that succeeds only if the object exists in the specified set of items. */
+  def in[ T ]( items: T* ): Validator[ T ] = In( items.toSet, prefix )
 }
