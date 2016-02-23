@@ -75,6 +75,6 @@ trait CollectionCombinators {
       }
   }
   /** A validator that succeeds only if the object exists in the target collection. */
-  case class In[T](  set: Set[T], prefix: String )
-    extends BaseValidator[T]( item=>set.contains(item ), v => v -> s"$prefix $v, expected one of: ${set.mkString(",")}" )
+  case class In[ T ]( set: Set[ T ], prefix: String )
+    extends BaseValidator[ T ]( set.contains, v => v -> set.mkString( s"$prefix $v, expected one of: [", ", ", "]" ) )
 }
