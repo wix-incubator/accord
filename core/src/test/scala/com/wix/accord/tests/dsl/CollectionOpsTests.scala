@@ -31,7 +31,8 @@ object CollectionOpsTests {
   val emptyValidator = seq is empty
   val notEmptyValidator = seq is notEmpty
   val distinctValidator = seq is distinct
-  val inValidator= 1 is in (1,3,5)
+  val inItemsValidator = 1 is in( 1, 3, 5 )
+  val inSetValidator = 1 is in( Set( 1, 3, 5 ) )
 
   class Sized( _size: Int ) {
     private var _visited = false
@@ -87,6 +88,16 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
     }
   }
 
+  "The expression \"in\"" should {
+    "accept a set and return a suitably-configured In combinator" in {
+      inSetValidator shouldEqual In( Set( 1, 3, 5 ), "got" )
+    }
+
+    "accept a varags item list and return a suitably-configured In combinator" in {
+      inItemsValidator shouldEqual In( Set( 1, 3, 5 ), "got" )
+    }
+  }
+
   "Calling \".each\" on a Traversable" should {
     "apply subsequent validation rules to all elements" in {
       val coll = Seq.fill( 5 )( ArbitraryType.apply )
@@ -136,11 +147,6 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
         }
 
       result should failWith( failing map matcherFor :_* )
-    }
-  }
-  "Operator \"in\" over a set" should{
-    "return an In combinator" in {
-      inValidator shouldEqual In(Set(1,3,5),"got")
     }
   }
 }

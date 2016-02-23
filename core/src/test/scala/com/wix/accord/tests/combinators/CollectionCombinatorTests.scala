@@ -91,14 +91,16 @@ class CollectionCombinatorTests extends CombinatorTestSpec {
       validator( left ) should failWith( "is not a distinct set; duplicates: [3, 4]" )
     }
   }
+
   "In combinator" should {
-    val validator = new In(Set(1,5,9),"got")
+    val validator = new In( Set( 1, 5, 9 ), "got" )
+
     "successfully validate a number in range" in {
-      validator(1)  should be( aSuccess )
+      validator( 1 ) should be( aSuccess )
     }
+
     "render a correct rule violation" in {
-      validator(2)  should failWith( "got 2, expected one of: 1,5,9" )
+      validator( 2 ) should failWith( "got 2, expected one of: [1, 5, 9]" )
     }
   }
-
 }
