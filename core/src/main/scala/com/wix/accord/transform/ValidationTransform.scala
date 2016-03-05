@@ -30,9 +30,9 @@ private[ transform ] trait MacroLogging[ C <: Context ] {
   protected def debugOutputEnabled: Boolean
   protected def traceOutputEnabled: Boolean
 
-  def debug( s: String, pos: Position = context.enclosingPosition ) =
+  def debug( s: => String, pos: Position = context.enclosingPosition ) =
     if ( debugOutputEnabled ) info( pos, s, force = false )
-  def trace( s: String, pos: Position = context.enclosingPosition ) =
+  def trace( s: => String, pos: Position = context.enclosingPosition ) =
     if ( traceOutputEnabled ) info( pos, s, force = false )
 }
 
