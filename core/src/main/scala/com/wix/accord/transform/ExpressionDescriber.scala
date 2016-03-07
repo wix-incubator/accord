@@ -35,39 +35,14 @@ import scala.language.experimental.macros
   *
   * @tparam C The macro context type
   */
-private[ accord ] trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] with PatternHelper[ C ] {
+private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] with PatternHelper[ C ] {
   import context.universe._
-
-  /** The function prototype; specifically, the single function parameter's definition as a `ValDef`. Must be
-    * provided by the inheritor.
-    */
-  protected val prototype: ValDef
 
   sealed trait Description
   case class ExplicitDescription( tree: Tree ) extends Description
   case class GenericDescription( tree: Tree ) extends Description
   case class AccessChain( elements: Seq[ Name ] ) extends Description
   case object SelfReference extends Description
-
-  private lazy val para = prototype.name
-
-  /** A helper extractor object that handles selector chains recursively. The innermost selector must select
-    * over the function prototype.
-    *
-    * For example, for the function `{ p: Person => p.firstName.size }` and the input representing the tree of the
-    * function definition, the AST will look like this:
-    *
-    *  `Select(Select(Ident(newTermName("p")), newTermName("firstName")), newTermName("size"))`
-    *
-    * This in turn gets extracted as `PrototypeSelectorChain( "firstName" :: "size" :: Nil )`.
-    */
-  private object PrototypeSelectorChain {
-    def unapplySeq( ouv: Tree ): Option[ Seq[ Name ] ] = ouv match {
-      case Select( Ident( `para` ), selector ) => Some( selector :: Nil )
-      case Select( PrototypeSelectorChain( elements @ _* ), selector ) => Some( elements :+ selector )
-      case _ => None
-    }
-  }
 
   /** An extractor for explicitly described expressions. Applies expressions like
     * `p.firstName as "described"`, where the `as` parameter (`"described"` in this case) is the extracted
@@ -91,38 +66,77 @@ private[ accord ] trait ExpressionDescriber[ C <: Context ] extends MacroHelper[
 
   /** Generates a description for the specified AST.
     *
-    * @param ouv The AST representing the function body part for which a description is to be rendered.
-    * @return The description, represented as a string literal.
+    * @param prototype The function prototype; specifically, the single function parameter's definition as
+    *                  a `ValDef`. Must be provided by the inheritor.
+    *
+    * @return The generated ddescription.
     */
-  protected def describeTree( ouv: Tree ): Description = ouv match {
-    case ExplicitDescription( description )      => description
-    case PrototypeSelectorChain( elements @ _* ) => AccessChain( elements )
-    case Ident( `para` )                         => SelfReference    // Anonymous parameter reference: validator[...] { _ is... }
-    case _                                       => GenericDescription( ouv )
+  protected def describeTree( prototype: ValDef, ouv: Tree ): Description = {
+    val PrototypeName = prototype.name
+
+    /** A helper extractor object that handles selector chains recursively. The innermost selector must select
+      * over the function prototype.
+      *
+      * For example, for the function `{ p: Person => p.firstName.size }` and the input representing the tree of the
+      * function definition, the AST will look like this:
+      *
+      *  `Select(Select(Ident(newTermName("p")), newTermName("firstName")), newTermName("size"))`
+      *
+      * This in turn gets extracted as `PrototypeSelectorChain( "firstName" :: "size" :: Nil )`.
+      */
+    object PrototypeSelectorChain {
+      def unapplySeq( ouv: Tree ): Option[ Seq[ Name ] ] = ouv match {
+        case Select( Ident( PrototypeName ), selector ) => Some( selector :: Nil )
+        case Select( PrototypeSelectorChain( elements @ _* ), selector ) => Some( elements :+ selector )
+        case _ => None
+      }
+    }
+
+    ouv match {
+      case ExplicitDescription( description )      => description
+      case PrototypeSelectorChain( elements @ _* ) => AccessChain( elements )
+      case Ident( PrototypeName )                  => SelfReference    // Anonymous parameter reference: validator[...] { _ is... }
+      case _                                       => GenericDescription( ouv )
+    }
   }
 }
 
 /** A helper class which builds on [[com.wix.accord.transform.ExpressionDescriber]] to describe function literals. */
-private class FunctionDescriber[ C <: Context, T : C#WeakTypeTag, U : C#WeakTypeTag ]( val context: C, f: C#Expr[ T => U ] )
-  extends ExpressionDescriber[ C ] {
-
+private[ transform ]
+//  class FunctionDescriber[ C <: Context, T : C#WeakTypeTag, U : C#WeakTypeTag ]( val context: C, f: C#Expr[ T => U ] )
+//  extends ExpressionDescriber[ C ] {
+  trait FunctionDescriber[ C <: Context, T, U ]
+  extends ExpressionDescriber[ C ]
+{
   import context.universe._
 
-  val ( prototype, fimpl ) = f.tree match {
-    case Function( proto :: Nil, impl ) => ( proto, impl )
-    case Function( _ :: tail, _ ) if tail != Nil =>
-      context.abort( tail.head.pos, "Only single-parameter functions are supported!" )
-    case _ =>
-      context.abort( f.tree.asInstanceOf[ context.Tree ].pos,
-        """
-          |Only function literals are supported; function parameters (val f: T => U = ...) cannot be resolved at
-          |compile time.
-        """.stripMargin )
-  }
+  def describeFunction( f: Expr[ T => U ] ): ( ValDef, Tree ) =
+    f.tree match {
+      case Function( proto :: Nil, impl ) =>
+        ( proto, impl )
+
+      case Function( _ :: tail, _ ) if tail != Nil =>
+        context.abort( tail.head.pos, "Only single-parameter functions are supported!" )
+
+      case _ =>
+        context.abort( f.tree.pos,
+          """
+            |Only function literals are supported; function parameters (val f: T => U = ...) cannot be resolved at
+            |compile time.
+          """.stripMargin )
+    }
+}
+
+private class TestFunctionDescriber[ C <: Context, T, U ]( val context: C, f: C#Expr[ T => U ] )
+  extends FunctionDescriber[ C, T, U ]
+{
+  import context.universe._
+
+  val ( prototype, implementation ) = describeFunction( f in context.mirror )
 
   /** Renders a description for the function body and externalizes it as a string expression. */
   def renderedDescription: Expr[ String ] = {
-    val desc = describeTree( fimpl )
+    val desc = describeTree( prototype, implementation )
     context.Expr[ String ]( Literal( Constant( showRaw( desc ) ) ) )
   }
 }
@@ -130,7 +144,7 @@ private class FunctionDescriber[ C <: Context, T : C#WeakTypeTag, U : C#WeakType
 private[ accord ] object ExpressionDescriber {
 
   def apply[ T : c.WeakTypeTag, U : c.WeakTypeTag ]( c: Context )( f: c.Expr[ T => U ] ): c.Expr[ String ] =
-    new FunctionDescriber[ c.type, T, U ]( c, f ).renderedDescription
+    new TestFunctionDescriber[ c.type, T, U ]( c, f ).renderedDescription
 
   /** A test invoker for [[com.wix.accord.transform.ExpressionDescriber]] */
   def describe[ T, U ]( f: T => U ): String = macro ExpressionDescriber[ T, U ]
