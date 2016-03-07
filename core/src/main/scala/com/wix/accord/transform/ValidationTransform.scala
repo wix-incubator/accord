@@ -17,27 +17,12 @@
 package com.wix.accord.transform
 
 import MacroHelper._
-import com.sun.org.glassfish.gmbal.Description
-import com.sun.xml.internal.ws.developer.MemberSubmissionAddressing.Validation
 import com.wix.accord._
 import com.wix.accord.transform.ValidationTransform.TransformedValidator
 
-private trait DescriptionRenderer[ C <: Context ] {
-  self: ExpressionDescriber[ C ] =>
-
-  import context.universe._
-
-  def renderDescription( desc: Description ): Tree = desc match {
-    case ExplicitDescription( tree ) => tree
-    case GenericDescription( tree )  => tree
-    case SelfReference               => Literal( Constant( "value" ) )
-    case AccessChain( elements )     => Literal( Constant( elements.mkString( "." ) ) )
-  }
-}
-
-private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] )
+private abstract class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] )
   extends FunctionDescriber[ C, T, Unit ]
-  with DescriptionRenderer[ C ]
+  with DescriptionRenderer[ C, String /* For now */ ]
   with RuleFinder[ C ]
   with MacroLogging[ C ] {
 
@@ -144,11 +129,14 @@ object ValidationTransform {
     override def compose[ U ]( g: U => T ): Validator[ U ] = macro ValidationTransform.compose[ U, T ]
   }
 
-  def apply[ T : c.WeakTypeTag ]( c: Context )( v: c.Expr[ T => Unit ] ): c.Expr[ TransformedValidator[ T ] ] =
-    new ValidationTransform[ c.type, T ]( c, v ).transformed
+  def apply[ T : c.WeakTypeTag ]( c: Context )( v: c.Expr[ T => Unit ] ): c.Expr[ TransformedValidator[ T ] ] = {
+    val materializedTransform =
+      new ValidationTransform[ c.type, T ]( c, v ) with StringDescriptionRenderer[ c.type ]
+    materializedTransform.transformed
+  }
 
   def compose[ U : c.WeakTypeTag, T : c.WeakTypeTag ]( c: Context )( g: c.Expr[ U => T ] ): c.Expr[ Validator[ U ] ] = {
-    val helper = new DescriptionRenderer[ c.type ] with FunctionDescriber[ c.type, U, T ] {
+    val helper = new StringDescriptionRenderer[ c.type ] with FunctionDescriber[ c.type, U, T ] {
       val context: c.type = c
       private val ( prototype, body ) = describeFunction( g )
       val description = renderDescription( describeTree( prototype, body ) )

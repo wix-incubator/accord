@@ -17,7 +17,20 @@
 package com.wix.accord.transform
 
 import MacroHelper._
+
 import scala.language.experimental.macros
+
+trait DescriptionModel[ C <: Context ] {
+  protected val context: C
+
+  import context.universe._
+
+  protected sealed trait Description
+  protected case class ExplicitDescription( tree: Tree ) extends Description
+  protected case class GenericDescription( tree: Tree ) extends Description
+  protected case class AccessChain( elements: Seq[ Name ] ) extends Description
+  protected case object SelfReference extends Description
+}
 
 /** A macro helper trait that generates implicit description for expressions. The transformation operates in the
   * context of a function of the form `Function1[ T, U ]`, or in other words only supports single-parameter
@@ -35,27 +48,21 @@ import scala.language.experimental.macros
   *
   * @tparam C The macro context type
   */
-private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] with PatternHelper[ C ] {
-  import context.universe._
+private[ transform ] trait ExpressionDescriber[ C <: Context ]
+  extends DescriptionModel[ C ]
+  with MacroHelper[ C ]
+  with PatternHelper[ C ]
+{
 
-  sealed trait Description
-  case class ExplicitDescription( tree: Tree ) extends Description
-  case class GenericDescription( tree: Tree ) extends Description
-  case class AccessChain( elements: Seq[ Name ] ) extends Description
-  case object SelfReference extends Description
+  import context.universe._
 
   /** An extractor for explicitly described expressions. Applies expressions like
     * `p.firstName as "described"`, where the `as` parameter (`"described"` in this case) is the extracted
     * description tree.
     */
-  case object ExplicitDescription {
+  case object ExplicitlyDescribed {
     private val descriptorTerm = typeOf[ com.wix.accord.dsl.Descriptor[_] ].typeSymbol.name.toTermName
     private val asTerm = termName( "as" )
-
-    def unapply( description: Description ): Option[ Tree ] = description match {
-      case ed: ExplicitDescription => Some( ed.tree )
-      case _ => None
-    }
 
     private[ ExpressionDescriber ] def unapply( ouv: Tree ): Option[ ExplicitDescription ] = ouv match {
       case Apply( Select( Apply( TypeApply( Select( _, `descriptorTerm` ), _ ), _ ), `asTerm` ), literal :: Nil ) =>
@@ -68,7 +75,6 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
     *
     * @param prototype The function prototype; specifically, the single function parameter's definition as
     *                  a `ValDef`. Must be provided by the inheritor.
-    *
     * @return The generated ddescription.
     */
   protected def describeTree( prototype: ValDef, ouv: Tree ): Description = {
@@ -93,7 +99,7 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
     }
 
     ouv match {
-      case ExplicitDescription( description )      => description
+      case ExplicitlyDescribed( description )      => description
       case PrototypeSelectorChain( elements @ _* ) => AccessChain( elements )
       case Ident( PrototypeName )                  => SelfReference    // Anonymous parameter reference: validator[...] { _ is... }
       case _                                       => GenericDescription( ouv )
@@ -102,10 +108,7 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
 }
 
 /** A helper class which builds on [[com.wix.accord.transform.ExpressionDescriber]] to describe function literals. */
-private[ transform ]
-//  class FunctionDescriber[ C <: Context, T : C#WeakTypeTag, U : C#WeakTypeTag ]( val context: C, f: C#Expr[ T => U ] )
-//  extends ExpressionDescriber[ C ] {
-  trait FunctionDescriber[ C <: Context, T, U ]
+private[ transform ] trait FunctionDescriber[ C <: Context, T, U ]
   extends ExpressionDescriber[ C ]
 {
   import context.universe._
