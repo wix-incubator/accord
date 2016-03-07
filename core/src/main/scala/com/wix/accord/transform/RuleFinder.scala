@@ -76,13 +76,20 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
         TypedRule.unapply( t ) map extractObjectUnderValidation
     }
 
+    def renderDescription( desc: Description ): Tree = desc match {
+      case ExplicitDescription( tree ) => tree
+      case GenericDescription( tree )  => tree
+      case SelfReference               => Literal( Constant( "value" ) )
+      case AccessChain( elements )     => Literal( Constant( elements.mkString( "." ) ) )
+    }
+
     def unapply( expr: Tree ): Option[ ValidatorApplication ] = expr match {
       case ObjectUnderValidation( Nil ) =>
         abort( expr.pos, s"Failed to extract object under validation from tree $expr (type=${expr.tpe}, raw=${showRaw(expr)})" )
 
       case ObjectUnderValidation( ouv :: Nil ) =>
         val sv = rewriteContextExpressionAsValidator( expr )
-        val desc = renderDescriptionTree( ouv )
+        val desc = describeTree( ouv )
         trace( s"""
               |Found validation rule:
               |  ouv=$ouv
@@ -91,7 +98,7 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
               |  svraw=${showRaw(sv)}
               |  desc=$desc
               |""".stripMargin, ouv.pos )
-        Some( ValidationRule( desc, ouv, sv ) )
+        Some( ValidationRule( renderDescription( desc ), ouv, sv ) )
 
       case ObjectUnderValidation( _ :: _ ) =>
         // Multiple validators found; this can happen in case of a multiple-clause boolean expression,

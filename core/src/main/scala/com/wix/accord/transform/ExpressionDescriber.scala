@@ -23,7 +23,7 @@ import scala.language.experimental.macros
   * context of a function of the form `Function1[ T, U ]`, or in other words only supports single-parameter
   * functions.
   *
-  * The expression is transformable via [[com.wix.accord.transform.ExpressionDescriber.renderDescriptionTree]]
+  * The expression is transformable via [[com.wix.accord.transform.ExpressionDescriber.describeTree]]
   * based on the following rules:
   *  - Selectors over the function prototype are rewritten to the selected expression; for example,
   *    `{ p: Person => p.firstName }` gets rewritten to a tree representing the string literal `"firstName"`
@@ -35,13 +35,19 @@ import scala.language.experimental.macros
   *
   * @tparam C The macro context type
   */
-trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] with PatternHelper[ C ] {
+private[ accord ] trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] with PatternHelper[ C ] {
   import context.universe._
 
   /** The function prototype; specifically, the single function parameter's definition as a `ValDef`. Must be
     * provided by the inheritor.
     */
   protected val prototype: ValDef
+
+  sealed trait Description
+  case class ExplicitDescription( tree: Tree ) extends Description
+  case class GenericDescription( tree: Tree ) extends Description
+  case class AccessChain( elements: Seq[ Name ] ) extends Description
+  case object SelfReference extends Description
 
   private lazy val para = prototype.name
 
@@ -67,27 +73,32 @@ trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] with PatternH
     * `p.firstName as "described"`, where the `as` parameter (`"described"` in this case) is the extracted
     * description tree.
     */
-  private object ExplicitDescriptor {
+  case object ExplicitDescription {
     private val descriptorTerm = typeOf[ com.wix.accord.dsl.Descriptor[_] ].typeSymbol.name.toTermName
     private val asTerm = termName( "as" )
 
-    def unapply( ouv: Tree ): Option[ Tree ] = ouv match {
+    def unapply( description: Description ): Option[ Tree ] = description match {
+      case ed: ExplicitDescription => Some( ed.tree )
+      case _ => None
+    }
+
+    private[ ExpressionDescriber ] def unapply( ouv: Tree ): Option[ ExplicitDescription ] = ouv match {
       case Apply( Select( Apply( TypeApply( Select( _, `descriptorTerm` ), _ ), _ ), `asTerm` ), literal :: Nil ) =>
-        Some( literal )
+        Some( ExplicitDescription( literal ) )
       case _ => None
     }
   }
 
-  /** Renders a description tree for the specified AST.
+  /** Generates a description for the specified AST.
     *
     * @param ouv The AST representing the function body part for which a description is to be rendered.
     * @return The description, represented as a string literal.
     */
-  protected def renderDescriptionTree( ouv: Tree ): Tree = ouv match {
-    case ExplicitDescriptor( description )       => description
-    case PrototypeSelectorChain( elements @ _* ) => Literal( Constant( elements.mkString( "." ) ) )
-    case Ident( `para` )                         => Literal( Constant( "value" ) )    // Anonymous parameter reference: validator[...] { _ is... }
-    case _                                       => Literal( Constant( ouv.toString() ) )
+  protected def describeTree( ouv: Tree ): Description = ouv match {
+    case ExplicitDescription( description )      => description
+    case PrototypeSelectorChain( elements @ _* ) => AccessChain( elements )
+    case Ident( `para` )                         => SelfReference    // Anonymous parameter reference: validator[...] { _ is... }
+    case _                                       => GenericDescription( ouv )
   }
 }
 
@@ -111,12 +122,13 @@ private class FunctionDescriber[ C <: Context, T : C#WeakTypeTag, U : C#WeakType
 
   /** Renders a description for the function body and externalizes it as a string expression. */
   def renderedDescription: Expr[ String ] = {
-    val desc = renderDescriptionTree( fimpl )
-    context.Expr[ String ]( desc )
+    val desc = describeTree( fimpl )
+    context.Expr[ String ]( Literal( Constant( showRaw( desc ) ) ) )
   }
 }
 
 private[ accord ] object ExpressionDescriber {
+
   def apply[ T : c.WeakTypeTag, U : c.WeakTypeTag ]( c: Context )( f: c.Expr[ T => U ] ): c.Expr[ String ] =
     new FunctionDescriber[ c.type, T, U ]( c, f ).renderedDescription
 
