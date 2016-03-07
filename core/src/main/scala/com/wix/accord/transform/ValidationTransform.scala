@@ -148,10 +148,10 @@ object ValidationTransform {
     new ValidationTransform[ c.type, T ]( c, v ).transformed
 
   def compose[ U : c.WeakTypeTag, T : c.WeakTypeTag ]( c: Context )( g: c.Expr[ U => T ] ): c.Expr[ Validator[ U ] ] = {
-    val helper = new DescriptionRenderer[ Context ] with FunctionDescriber[ Context, U, T ] {
-      val context = c
-      private val ( prototype, body ) = describeFunction( g in context.mirror )
-      val description = context.Expr[ String ]( renderDescription( describeTree( prototype, body ) ) ) in c.mirror
+    val helper = new DescriptionRenderer[ c.type ] with FunctionDescriber[ c.type, U, T ] {
+      val context: c.type = c
+      private val ( prototype, body ) = describeFunction( g )
+      val description = renderDescription( describeTree( prototype, body ) )
     }
 
     import c.universe._
