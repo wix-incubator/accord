@@ -51,7 +51,7 @@ private abstract class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( v
           new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
             def apply( $prototype ) = {
               val validation = ${rule.validation}
-              validation( ${rule.ouv} ) withDescription $rendered
+              validation( ${rule.ouv} ) withDescription { _ => Some( $rendered ) }
             }
           }
        """
@@ -147,7 +147,7 @@ object ValidationTransform {
      q"""
         new com.wix.accord.Validator[ ${weakTypeOf[ U ]} ] {
           override def apply( v1: ${weakTypeOf[ U ]} ): com.wix.accord.Result =
-            ${c.prefix} apply $g( v1 ) withDescription ${helper.description}
+            ${c.prefix} apply $g( v1 ) withDescription { _ => Some( ${helper.description} ) }
         }
       """
 

@@ -30,13 +30,14 @@ sealed trait Violation {
     */
   def description: Option[ String ]
 
+  // TODO update documentation
   /** Rewrites the description for this violation (used internally by the validation transform macro). As
     * violations are immutable, in practice this returns a modified copy.
     *
     * @param rewrite The rewritten description.
     * @return A modified copy of this violation with the new description in place.
     */
-  def withDescription( rewrite: String ): Violation
+  def withDescription( rewrite: Option[ String ] => Option[ String ] ): Violation
 }
 
 /** Describes a simple validation rule violation (i.e. one without hierarchy). Most built-in combinators
@@ -47,7 +48,8 @@ sealed trait Violation {
   * @param description The textual description of the object under validation.
   */
 case class RuleViolation( value: Any, constraint: String, description: Option[ String ] ) extends Violation {
-  def withDescription( rewrite: String ) = this.copy( description = Some( rewrite ) )
+  def withDescription( rewrite: Option[ String ] => Option[ String ] ) =
+    this.copy( description = rewrite( description ) )
 }
 
 /** Describes the violation of a group of constraints. For example, the `Or` combinator found in the built-in
@@ -62,7 +64,8 @@ case class RuleViolation( value: Any, constraint: String, description: Option[ S
 case class GroupViolation( value: Any, constraint: String, description: Option[ String ], children: Set[ Violation ] )
   extends Violation {
 
-  def withDescription( rewrite: String ) = this.copy( description = Some( rewrite ) )
+  def withDescription( rewrite: Option[ String ] => Option[ String ] ) =
+    this.copy( description = rewrite( description ) )
 }
 
 /** A base trait for validation results.
@@ -90,19 +93,20 @@ sealed trait Result {
    */
   def or( other: Result ): Result
 
+  // TODO update documentation
   /** Rewrites the description for all violations within this result.
     *
     * @param rewrite The rewritten description.
     * @return A modified copy of this result with the new violation description in place.
     */
-  def withDescription( rewrite: String ): Result
+  def withDescription( rewrite: Option[ String ] => Option[ String ] ): Result
 }
 
 /** An object representing a successful validation result. */
 case object Success extends Result {
   def and( other: Result ) = other
   def or( other: Result ) = this
-  def withDescription( rewrite: String ) = this
+  def withDescription( rewrite: Option[ String ] => Option[ String ] ) = this
   def isSuccess: Boolean = true
   def isFailure: Boolean = false
 }
@@ -122,7 +126,8 @@ case class Failure( violations: Set[ Violation ] ) extends Result {
     case Failure(_) => this
   }
 
-  def withDescription( rewrite: String ) = Failure( violations map { _ withDescription rewrite } )
+  def withDescription( rewrite: Option[ String ] => Option[ String ] ) =
+    Failure( violations map { _ withDescription rewrite } )
   def isSuccess: Boolean = false
   def isFailure: Boolean = true
 }

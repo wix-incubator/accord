@@ -28,7 +28,16 @@ private object Aggregates {
   private def aggregate[ Coll, Element ]( validator: Validator[ Element ], aggregator: Traversable[ Result ] => Result )
                                         ( implicit ev: Coll => Traversable[ Element ] ): Validator[ Coll ] =
     new Validator[ Coll ] {
-      def apply( col: Coll ) = if ( col == null ) Validator.nullFailure else aggregator( col map validator )
+      def apply( col: Coll ) =
+        if ( col == null )
+          Validator.nullFailure
+        else
+          aggregator(
+            col.foldLeft( Traversable.newBuilder[ Result ] -> 0 ) {
+              case ( ( acc, i ), e ) =>
+                ( acc += validator( e ).withDescription( _ map { _ + s" [at index $i]" } ) ) -> ( i + 1 )
+            }._1.result()
+          )
     }
 
   def all[ Coll, Element ]( validator: Validator[ Element ] )

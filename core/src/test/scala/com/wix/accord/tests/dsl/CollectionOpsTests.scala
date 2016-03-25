@@ -123,9 +123,9 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
       result shouldBe aSuccess
     }
 
-    def violationFor( elem: ArbitraryType ) = RuleViolation( elem, "element", None )
+    def violationFor( elem: ArbitraryType ) = RuleViolation( elem, "fake constraint", Some( "failure" ) )
     def failureFor( elem: ArbitraryType ) = Failure( Set( violationFor( elem ) ) )
-    def matcherFor( elem: ArbitraryType ) = RuleViolationMatcher( value = elem, constraint = "element" )
+    def matcherFor( elem: ArbitraryType ) = RuleViolationMatcher( value = elem, constraint = "fake constraint" )
 
     "evaluate to a Failure if any element failed" in {
       val coll = Seq.fill( 5 )( ArbitraryType.apply )
@@ -147,6 +147,17 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
         }
 
       result should failWith( failing map matcherFor :_* )
+    }
+
+    "include position in a failed element's description" in {
+      val coll = Seq.fill( 5 )( ArbitraryType.apply )
+      val result =
+        visit( coll ) {
+          case elem if elem == coll( 2 ) => failureFor( elem )
+          case _ => Success
+        }
+
+      result should failWith( RuleViolationMatcher( value = coll.head, description = "failure [at index 2]" ) )
     }
   }
 }
