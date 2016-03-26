@@ -157,7 +157,7 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
           case _ => Success
         }
 
-      result should failWith( RuleViolationMatcher( value = coll.head, description = "failure [at index 2]" ) )
+      result should failWith( RuleViolationMatcher( value = coll( 2 ), description = "failure [at index 2]" ) )
     }
   }
 }
