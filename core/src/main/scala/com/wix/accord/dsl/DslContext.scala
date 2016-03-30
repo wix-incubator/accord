@@ -31,13 +31,15 @@ private object Aggregates {
       def apply( col: Coll ) =
         if ( col == null )
           Validator.nullFailure
-        else
-          aggregator(
+        else {
+          val results =
             col.foldLeft( Traversable.newBuilder[ Result ] -> 0 ) {
               case ( ( acc, i ), e ) =>
                 ( acc += validator( e ).withDescription( _ map { _ + s" [at index $i]" } ) ) -> ( i + 1 )
             }._1.result()
-          )
+          println(results) /// TODO REMOVE
+          aggregator( results )
+        }
     }
 
   def all[ Coll, Element ]( validator: Validator[ Element ] )
