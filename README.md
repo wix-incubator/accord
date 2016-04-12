@@ -30,7 +30,7 @@ Accord is still fairly rudimentary, and there's plenty of improvements to be mad
     * Add syntax for custom violation message overrides (e.g. `p.firstName is notEmpty as "no first name!"`)
     * Support custom violation types (e.g. `p.firstName is notEmpty as MyServerError( code = -3 )`)
     * Add a validation result rendering framework
-    * Full-blown i18n support ([need feedback](#21) on this)
+    * Full-blown i18n support ([need feedback](https://github.com/wix/accord/issues/21) on this)
 
 Ideas and feature requests welcome! You can join the fun on our [Gitter channel](https://gitter.im/wix/accord), report an [issue](https://github.com/wix/accord/issues/) or contact the [maintainer](https://github.com/holograph) directly. 
 
