@@ -59,6 +59,18 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     "be propagated for an adapted validator" in {
       validate( FlatTest( null ) )( adaptedValidator ) should failWith( "field" -> "is a null" )
     }
+
+    "properly nest for runtime rewrites (e.g. position marker)" in {
+      val sample = RuntimeDescribedTest( Seq( "valid", "" ) )
+      val result = validate( sample )( implicitDescriptionWithRuntimeRewriteValidator )
+      result should failWith( "field [at index 1]" -> "must not be empty" )
+    }
+
+    "properly nest for runtime rewrites with explicit description" in {
+      val sample = RuntimeDescribedTest( Seq( "valid", "" ) )
+      val result = validate( sample )( explicitDescriptionWithRuntimeRewriteValidator )
+      result should failWith( "described [at index 1]" -> "must not be empty" )
+    }
   }
 
   "Validation block transformation" should {
@@ -100,4 +112,10 @@ object ValidationTransformTests {
   }
   val namedIndirectValidator = validator[ CompositeTest ] { c => c.member.field is notNull }
   val anonymousIndirectValidator = validator[ CompositeTest ] { _.member.field is notNull }
+
+  case class RuntimeDescribedTest( field: Seq[ String ] )
+  val implicitDescriptionWithRuntimeRewriteValidator =
+    validator[ RuntimeDescribedTest ] { rdt => rdt.field.each is notEmpty }
+  val explicitDescriptionWithRuntimeRewriteValidator =
+    validator[ RuntimeDescribedTest ] { rdt => ( rdt.field as "described" ).each is notEmpty }
 }

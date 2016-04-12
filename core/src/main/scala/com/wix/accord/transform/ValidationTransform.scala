@@ -51,7 +51,7 @@ private abstract class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( v
           new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
             def apply( $prototype ) = {
               val validation = ${rule.validation}
-              validation( ${rule.ouv} ) withDescription { _ => Some( $rendered ) }
+              validation( ${rule.ouv} ) withDescription { suffix => Some( $rendered + suffix.getOrElse( "" ) ) }
             }
           }
        """

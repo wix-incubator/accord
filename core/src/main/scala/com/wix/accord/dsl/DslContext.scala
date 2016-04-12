@@ -35,9 +35,8 @@ private object Aggregates {
           val results =
             col.foldLeft( Traversable.newBuilder[ Result ] -> 0 ) {
               case ( ( acc, i ), e ) =>
-                ( acc += validator( e ).withDescription( _ map { _ + s" [at index $i]" } ) ) -> ( i + 1 )
+                ( acc += validator( e ).withDescription( prefix => Some( prefix.getOrElse( "" ) + s" [at index $i]" ) ) ) -> ( i + 1 )
             }._1.result()
-          println(results) /// TODO REMOVE
           aggregator( results )
         }
     }
