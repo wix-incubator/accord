@@ -1,0 +1,11 @@
+![Accord](https://raw.githubusercontent.com/wix/accord/master/assets/accord-logo-light.png?raw=1)
+
+Version 0.6 fixes a few bugs and adds several asked-for features:
+
+* [#57](https://github.com/wix/accord/issues/57) Detecting position in collection combinator;
+* [#48](https://github.com/wix/accord/issues/48) Automate publishing of snapshot artifacts on TravisCI;
+* [#46](https://github.com/wix/accord/issues/46) Support for Scala 2.12.0-M3;
+* [#32](https://github.com/wix/accord/issues/32) Add set-style "is one of" combinator;
+
+As always, bug reports, pull requests and other ideas are welcome -- [join the discussion](https://gitter.im/wix/accord?utm_source=share-link&utm_medium=link&utm_campaign=share-link) on Gitter!
+
