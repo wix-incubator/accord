@@ -62,11 +62,14 @@ trait IndexedDescriptions[ T ] {
   def includeIndexInformation: Boolean
 }
 
-object IndexedDescriptions {
-  implicit def disableIndexingForOptions[ T ]: IndexedDescriptions[ Option[ T ] ] =
-    new IndexedDescriptions[ Option[ T ] ] { def includeIndexInformation: Boolean = false }
+trait FallbackIndexDescriptions {
+  implicit def disableIndexDescriptionsByDefault[ T ] = new IndexedDescriptions[ T ] {
+    def includeIndexInformation: Boolean = false
+  }
+}
 
-  implicit def enableIndexingForCollections[ T ]( implicit ev: T => Traversable[_] ): IndexedDescriptions[ T ] =
+object IndexedDescriptions extends FallbackIndexDescriptions {
+  implicit def enableIndexingForSequences[ T ]( implicit ev: T => Seq[_] ): IndexedDescriptions[ T ] =
     new IndexedDescriptions [ T ] { def includeIndexInformation: Boolean = true }
 }
 
