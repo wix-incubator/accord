@@ -42,7 +42,7 @@ object Root extends Build {
     scalaVersion := "2.11.1",
     crossScalaVersions :=
       Seq( "2.10.3", "2.11.1" ) ++
-      ( if ( javaRuntimeVersion >= 1.8 ) Seq( "2.12.0-M3" ) else Seq.empty ),
+      ( if ( javaRuntimeVersion >= 1.8 ) Seq( "2.12.0-M4" ) else Seq.empty ),
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",
       "-feature",
@@ -101,12 +101,12 @@ object Root extends Build {
       .jvmSettings(
         libraryDependencies <+= scalaVersion {
           // TODO figure out if a 2.x/3.x split (a la Specs2) is necessary
-          case v if v startsWith "2.12" => "org.scalatest" %% "scalatest" % "3.0.0-M12"
+          case v if v startsWith "2.12" => "org.scalatest" %% "scalatest" % "3.0.0-M16-SNAP4"
           case _ => "org.scalatest" %% "scalatest" % "2.2.5"
         }
       )
       .jsSettings(
-        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M12"
+        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M15"
       )
   lazy val scalatestJVM = scalatest.jvm
   lazy val scalatestJS = scalatest.js
