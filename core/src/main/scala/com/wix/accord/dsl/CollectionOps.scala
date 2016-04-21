@@ -27,12 +27,12 @@ trait CollectionOps {
   /** Specifies a validator that succeeds on empty instances; the object under validation must implement
     * `def isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
     */
-  def empty[ T <: AnyRef <% HasEmpty ]: Validator[ T ] = new Empty[ T ]
+  def empty[ T <: AnyRef ]( implicit ev: T => HasEmpty ): Validator[ T ] = new Empty[ T ]
 
   /** Specifies a validator that fails on empty instances; the object under validation must implement
     * `def isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
     */
-  def notEmpty[ T <: AnyRef <% HasEmpty ]: Validator[ T ] = new NotEmpty[ T ]
+  def notEmpty[ T <: AnyRef ]( implicit ev: T => HasEmpty ): Validator[ T ] = new NotEmpty[ T ]
 
   /** Specifies a validator that fails on collections with duplicate elements. */
   def distinct = Distinct
@@ -42,7 +42,7 @@ trait CollectionOps {
 
   /**
    * An implicit conversion to enable any collection-like object (e.g. strings, options) to be handled by
-   * [[com.wix.accord.dsl.SizeContext]].
+   * [[com.wix.accord.dsl.CollectionDslContext]].
    *
    * [[java.lang.String]] does not directly implement `size` (in practice it is implemented in
    * [[scala.collection.IndexedSeqOptimized]] via an implicit conversion and an inheritance stack), and this is
@@ -50,7 +50,7 @@ trait CollectionOps {
    * a view bound from `T` to [[scala.collection.GenTraversableOnce]] we can force any collection-like structure
    * to conform to the structural type [[com.wix.accord.dsl.CollectionOps.HasSize]], and by requiring
    * a view bound from `T` to [[com.wix.accord.dsl.CollectionOps.HasSize]] at the call site (via
-   * [[com.wix.accord.dsl.SizeContext]]) we additionally support any class that directly
+   * [[com.wix.accord.dsl.CollectionDslContext]]) we additionally support any class that directly
    * conforms to the structural type as well.
    *
    * @param gto An object that is, or is implicitly convertible to, [[scala.collection.GenTraversableOnce]].

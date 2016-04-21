@@ -49,17 +49,14 @@ private object Aggregates {
     }
 }
 
-trait SizeContext[ Inner, Outer ] {
-  self: ContextTransformer[ Inner, Outer ] =>
+class CollectionDslContext[ Inner, Outer ]( protected val transform: Validator[ Inner ] => Validator[ Outer ] )
+  extends ContextTransformer[ Inner, Outer ] {
 
   def apply( validator: Validator[ Int ] )( implicit ev: Inner => HasSize ): Validator[ Outer ] = {
     val composed = validator.boxed compose { u: Inner => if ( u == null ) null else u.size }
     transform apply composed
   }
 }
-
-class CollectionDslContext[ Inner, Outer ]( protected val transform: Validator[ Inner ] => Validator[ Outer ] )
-  extends SizeContext[ Inner, Outer ] with ContextTransformer[ Inner, Outer ]
 
 trait IndexedDescriptions[ T ] {
   def includeIndexInformation: Boolean
