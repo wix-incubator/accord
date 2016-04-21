@@ -81,7 +81,6 @@ private abstract class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( v
     */
   def liftBooleanOps( tree: Tree ): Tree = {
     val vboTerm = typeOf[ dsl.ValidatorBooleanOps[_] ].typeSymbol.name.toTermName
-    val typeTreeT = TypeTree( weakTypeOf[ T ] )
 
     transformByPattern( tree ) {
       case TypeApply( Select( Apply( TypeApply( s @ Select( _, `vboTerm` ), _ :: Nil ), e :: Nil ), name ), _ :: Nil ) =>
