@@ -30,4 +30,5 @@ trait MacroHelper[ C <: Context ] {
 
 object MacroHelper {
   type Context = scala.reflect.macros.Context
+  val shownTermName = "newTermName"
 }

@@ -62,4 +62,5 @@ trait MacroHelper[ C <: Context ] {
 
 object MacroHelper {
   type Context = scala.reflect.macros.blackbox.Context
+  val shownTermName = "TermName"
 }
