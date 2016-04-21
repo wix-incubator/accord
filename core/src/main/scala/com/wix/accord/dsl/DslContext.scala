@@ -16,7 +16,7 @@
 
 package com.wix.accord.dsl
 
-import com.wix.accord.{Success, Result, Validator}
+import com.wix.accord.Validator
 
 // TODO ScalaDocs
 
@@ -24,20 +24,8 @@ trait ContextTransformer[ Inner, Outer ] {
   protected def transform: Validator[ Inner ] => Validator[ Outer ]
 }
 
-private object Aggregates {
-  private def aggregate[ Coll, Element ]( validator: Validator[ Element ], aggregator: Traversable[ Result ] => Result )
-                                        ( implicit ev: Coll => Traversable[ Element ] ): Validator[ Coll ] =
-    new Validator[ Coll ] {
-      def apply( col: Coll ) = if ( col == null ) Validator.nullFailure else aggregator( col map validator )
-    }
-
-  def all[ Coll, Element ]( validator: Validator[ Element ] )
-                          ( implicit ev: Coll => Traversable[ Element ] ): Validator[ Coll ] =
-    aggregate( validator, r => ( r fold Success )( _ and _ ) )
-}
-
-trait SizeContext[ Inner, Outer ] {
-  self: ContextTransformer[ Inner, Outer ] =>
+class CollectionDslContext[ Inner, Outer ]( protected val transform: Validator[ Inner ] => Validator[ Outer ] )
+  extends ContextTransformer[ Inner, Outer ] {
 
   def apply( validator: Validator[ Int ] )( implicit ev: Inner => HasSize ): Validator[ Outer ] = {
     val composed = validator.boxed compose { u: Inner => if ( u == null ) null else u.size }
@@ -45,8 +33,20 @@ trait SizeContext[ Inner, Outer ] {
   }
 }
 
-class CollectionDslContext[ Inner, Outer ]( protected val transform: Validator[ Inner ] => Validator[ Outer ] )
-  extends SizeContext[ Inner, Outer ] with ContextTransformer[ Inner, Outer ]
+trait IndexedDescriptions[ T ] {
+  def includeIndexInformation: Boolean
+}
+
+trait FallbackIndexDescriptions {
+  implicit def disableIndexDescriptionsByDefault[ T ] = new IndexedDescriptions[ T ] {
+    def includeIndexInformation: Boolean = false
+  }
+}
+
+object IndexedDescriptions extends FallbackIndexDescriptions {
+  implicit def enableIndexingForSequences[ T ]( implicit ev: T => Seq[_] ): IndexedDescriptions[ T ] =
+    new IndexedDescriptions [ T ] { def includeIndexInformation: Boolean = true }
+}
 
 trait DslContext[ Inner, Outer ] {
   self: ContextTransformer[ Inner, Outer ] =>
@@ -61,9 +61,10 @@ trait DslContext[ Inner, Outer ] {
     * @tparam Element The element type m of the specified collection.
     * @return Additional syntax (see implementation).
     */
-  def each[ Element ]( implicit ev: Inner => Traversable[ Element ] ) =
+  def each[ Element ]( implicit ev: Inner => Traversable[ Element ], withIndices: IndexedDescriptions[ Inner ] ) =
     new DslContext[ Element, Outer ] with ContextTransformer[ Element, Outer ] {
-      protected override def transform = self.transform compose Aggregates.all[ Inner, Element ]
+      protected override def transform =
+        self.transform compose Aggregates.all[ Inner, Element ]( withIndices.includeIndexInformation )
     }
 
   private val collContext = new CollectionDslContext( transform )

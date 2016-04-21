@@ -38,6 +38,10 @@ class OptionOpsTests extends WordSpec with Matchers with ResultMatchers {
     "fail on Some that does not match the predicate" in {
       Some( "some string" ) validatedWith eachValidator should be( aFailure )
     }
+    "elide position indicator in description" in {
+      val result = Some( "some string" ) validatedWith eachValidator
+      result should failWith( RuleViolationMatcher( description = "o" ) )
+    }
   }
 
   "empty" should {

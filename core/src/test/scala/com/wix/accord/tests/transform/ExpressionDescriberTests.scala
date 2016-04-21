@@ -22,21 +22,32 @@ import com.wix.accord.transform.ExpressionDescriber
 class ExpressionDescriberTests extends WordSpec with Matchers {
   import com.wix.accord.dsl.Descriptor
 
-  case class Test( field1: String, field2: String )
+  case class Nested( field: String )
+  case class Test( field1: String, field2: String, nested: Nested )
 
-  "ExpressionDescriber.describe over a single-parameter function literal" should {
-    "render a correct description for expressions over the function parameter members" in {
+  "A single-parameter function literal" should {
+    "render an access chain description for a property getter" in {
       val description = ExpressionDescriber describe { ( t: Test ) => t.field1 }
-      description shouldEqual "field1"
+      description shouldEqual "AccessChain(List(TermName(\"field1\")))"
     }
-    "propagate an explicitly-described expression" in {
+    "render an access chain description for multipe indirections via property getters" in {
+      val description = ExpressionDescriber describe { ( t: Test ) => t.nested.field }
+      description shouldEqual "AccessChain(List(TermName(\"nested\"), TermName(\"field\")))"
+    }
+    "render an explicit description when \"as\" is used" in {
       val description = ExpressionDescriber describe { ( t: Test ) => t.field2 as "explicit" }
-      description shouldEqual "explicit"
+      description shouldEqual "ExplicitDescription(Literal(Constant(\"explicit\")))"
     }
-    "fall back to the expression tree itself for unsupported expressions" in {
+    "render a generic description for unsupported expressions" in {
       val description = ExpressionDescriber describe { ( _: Test ) => "arbitrary" }
-      description shouldEqual "\"arbitrary\""
+      description shouldEqual "GenericDescription(Literal(Constant(\"arbitrary\")))"
     }
+    "render a self-reference description when the sample object itself is used anonymously" in pending
+//    {
+//      TODO find a way to encode such a function, or add yet another helper macro
+//      val description = ExpressionDescriber describe[ String, String ] { _ }
+//      description shouldEqual "SelfReference"
+//    }
   }
 
   "ExpressionDescriber.describe" should {

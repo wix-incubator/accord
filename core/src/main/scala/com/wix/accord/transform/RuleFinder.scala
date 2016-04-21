@@ -27,7 +27,7 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
 
   sealed trait ValidatorApplication
   protected case class BooleanExpression( expr: Tree ) extends ValidatorApplication
-  protected case class ValidationRule( description: Tree, ouv: Tree, validation: Tree ) extends ValidatorApplication
+  protected case class ValidationRule( ouv: Tree, validation: Tree ) extends ValidatorApplication
 
   /** An extractor for validation rules. The object under validation is, by design, wrapped in the implicit
     * DSL construct [[com.wix.accord.dsl.Contextualizer]], so that a validation rule can be defined with
@@ -82,16 +82,14 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
 
       case ObjectUnderValidation( ouv :: Nil ) =>
         val sv = rewriteContextExpressionAsValidator( expr )
-        val desc = renderDescriptionTree( ouv )
         trace( s"""
               |Found validation rule:
               |  ouv=$ouv
               |  ouvraw=${showRaw(ouv)}
               |  sv=${show(sv)}
               |  svraw=${showRaw(sv)}
-              |  desc=$desc
               |""".stripMargin, ouv.pos )
-        Some( ValidationRule( desc, ouv, sv ) )
+        Some( ValidationRule( ouv, sv ) )
 
       case ObjectUnderValidation( _ :: _ ) =>
         // Multiple validators found; this can happen in case of a multiple-clause boolean expression,

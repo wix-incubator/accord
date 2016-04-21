@@ -17,8 +17,6 @@
 package com.wix.accord.dsl
 
 import com.wix.accord.Validator
-import com.wix.accord.combinators.And
-import com.wix.accord.combinators.Or
 import com.wix.accord.combinators.Valid
 import com.wix.accord.combinators.IsNull
 import com.wix.accord.combinators.IsNotNull

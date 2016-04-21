@@ -45,7 +45,7 @@ trait MacroHelper[ C <: Context ] {
       // [error]  required: Seq[_$3(in value $anonfun)] where type _$3(in value $anonfun)
       // [error]   val seqSizeValidator = validator[ Seq[_] ] { _ has size > 0 }
       case typeTree: TypeTree
-        if typeTree.tpe.dealias.typeArgs.length > 0 && typeTree.tpe.dealias.typeArgs.forall {
+        if typeTree.tpe.dealias.typeArgs.nonEmpty && typeTree.tpe.dealias.typeArgs.forall {
           case arg if internal.isSkolem( arg.typeSymbol ) && arg.typeSymbol.asInstanceOf[ TypeSymbolApi ].isExistential => true
           case _ => false
         } =>

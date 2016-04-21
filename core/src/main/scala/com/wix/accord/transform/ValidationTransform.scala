@@ -20,37 +20,20 @@ import MacroHelper._
 import com.wix.accord._
 import com.wix.accord.transform.ValidationTransform.TransformedValidator
 
-private[ transform ] trait MacroLogging[ C <: Context ] {
-  /** The macro context; inheritors must provide this */
-  protected val context: C
+private abstract class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] )
+  extends FunctionDescriber[ C, T, Unit ]
+  with DescriptionRenderer[ C, String /* For now */ ]
+  with RuleFinder[ C ]
+  with MacroLogging[ C ] {
 
   import context.universe._
-  import context.info
-
-  protected def debugOutputEnabled: Boolean
-  protected def traceOutputEnabled: Boolean
-
-  def debug( s: => String, pos: Position = context.enclosingPosition ) =
-    if ( debugOutputEnabled ) info( pos, s, force = false )
-  def trace( s: => String, pos: Position = context.enclosingPosition ) =
-    if ( traceOutputEnabled ) info( pos, s, force = false )
-}
-
-
-private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] )
-  extends RuleFinder[ C ] with MacroLogging[ C ] {
-
-  import context.universe._
-  import context.abort
 
   protected val debugOutputEnabled = context.settings.contains( "debugValidationTransform" )
   protected val traceOutputEnabled = context.settings.contains( "traceValidationTransform" )
 
-  val Function( prototype :: prototypeTail, vimpl ) = v.tree
-  if ( prototypeTail.nonEmpty )
-    abort( prototypeTail.head.pos, "Only single-parameter validators are supported!" )
-
   // Rewrite expressions into a validation chain --
+
+  val ( prototype, validatorBody ) = describeFunction( v in context.mirror )
 
   /**
    * Each validation rule of type Validator[ U ] is essentially rewritten as Validator[ T ] via the
@@ -59,20 +42,24 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
    * @param rule The validation rule to rewrite
    * @return A valid expression representing a [[com.wix.accord.Validator]] of `T`.
    */
-  def rewriteOne( rule: ValidationRule ): Tree = {
+  private def rewriteOne( rule: ValidationRule ): Tree = {
+    val description = describeTree( prototype, rule.ouv )
+    val rendered = renderDescription( description )
+
     val rewrite =
       q"""
           new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
             def apply( $prototype ) = {
               val validation = ${rule.validation}
-              validation( ${rule.ouv} ) withDescription ${rule.description}
+              validation( ${rule.ouv} ) withDescription { suffix => Some( $rendered + suffix.getOrElse( "" ) ) }
             }
           }
        """
 
     // Report and return the rewritten validator
     debug( s"""|Validation rule:
-               |  Description: ${rule.description}
+               |  Description: ${Literal( Constant( description ) )}
+               |  Rendered   : $rendered
                |  Validation : ${rule.validation}
                |  Rewrite    : ${show( rewrite )}""".stripMargin, rule.validation.pos )
     trace(    s"  Raw        : ${showRaw( rewrite )}" )
@@ -94,7 +81,6 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     */
   def liftBooleanOps( tree: Tree ): Tree = {
     val vboTerm = typeOf[ dsl.ValidatorBooleanOps[_] ].typeSymbol.name.toTermName
-    val typeTreeT = TypeTree( weakTypeOf[ T ] )
 
     transformByPattern( tree ) {
       case TypeApply( Select( Apply( TypeApply( s @ Select( _, `vboTerm` ), _ :: Nil ), e :: Nil ), name ), _ :: Nil ) =>
@@ -123,7 +109,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     */
   def transformed: Expr[ TransformedValidator[ T ] ] = {
     val validationRules =
-      collectFromPattern( vimpl )( rewriteValidationRules orElse processBooleanExpressions )
+      collectFromPattern( validatorBody )( rewriteValidationRules orElse processBooleanExpressions )
     val result = context.Expr[ TransformedValidator[ T ] ](
       q"new com.wix.accord.transform.ValidationTransform.TransformedValidator( ..$validationRules )" )
 
@@ -142,18 +128,25 @@ object ValidationTransform {
     override def compose[ U ]( g: U => T ): Validator[ U ] = macro ValidationTransform.compose[ U, T ]
   }
 
-  def apply[ T : c.WeakTypeTag ]( c: Context )( v: c.Expr[ T => Unit ] ): c.Expr[ TransformedValidator[ T ] ] =
-    new ValidationTransform[ c.type, T ]( c, v ).transformed
+  def apply[ T : c.WeakTypeTag ]( c: Context )( v: c.Expr[ T => Unit ] ): c.Expr[ TransformedValidator[ T ] ] = {
+    val materializedTransform =
+      new ValidationTransform[ c.type, T ]( c, v ) with StringDescriptionRenderer[ c.type ]
+    materializedTransform.transformed
+  }
 
   def compose[ U : c.WeakTypeTag, T : c.WeakTypeTag ]( c: Context )( g: c.Expr[ U => T ] ): c.Expr[ Validator[ U ] ] = {
-    val description = ExpressionDescriber.apply( c )( g )
+    val helper = new StringDescriptionRenderer[ c.type ] with FunctionDescriber[ c.type, U, T ] {
+      val context: c.type = c
+      private val ( prototype, body ) = describeFunction( g )
+      val description = renderDescription( describeTree( prototype, body ) )
+    }
 
     import c.universe._
     val rewrite =
      q"""
         new com.wix.accord.Validator[ ${weakTypeOf[ U ]} ] {
           override def apply( v1: ${weakTypeOf[ U ]} ): com.wix.accord.Result =
-            ${c.prefix} apply $g( v1 ) withDescription $description
+            ${c.prefix} apply $g( v1 ) withDescription { _ => Some( ${helper.description} ) }
         }
       """
 

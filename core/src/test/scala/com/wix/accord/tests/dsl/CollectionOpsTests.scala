@@ -27,10 +27,10 @@ object CollectionOpsTests {
   trait ArbitraryType
   object ArbitraryType { def apply() = new ArbitraryType {} }
 
-  val seq = Seq.empty[ ArbitraryType ]
-  val emptyValidator = seq is empty
-  val notEmptyValidator = seq is notEmpty
-  val distinctValidator = seq is distinct
+  private val someSeq = Seq.empty[ ArbitraryType ]
+  val emptyValidator = someSeq is empty
+  val notEmptyValidator = someSeq is notEmpty
+  val distinctValidator = someSeq is distinct
   val inItemsValidator = 1 is in( 1, 3, 5 )
   val inSetValidator = 1 is in( Set( 1, 3, 5 ) )
 
@@ -41,12 +41,13 @@ object CollectionOpsTests {
   }
   val sizeValidator = new Sized( 0 ) has size > 5
 
-  def visit[ T ]( coll: Traversable[ T ] )( visitor: T => Result ): Result = {
-    val visited = new Validator[ T ] {
-      def apply( v: T ) = visitor( v )
-    }
-    ( coll.each is visited )( coll )
-  }
+  import scala.language.implicitConversions
+  private implicit def visitorToValidator[ T ]( visitor: T => Result ): Validator[ T ] =
+    new Validator[ T ] { def apply( v: T ) = visitor( v ) }
+
+  def visitEach[ T ]( seq: Seq[ T ] )( visited: T => Result ): Result = ( seq.each is visited )( seq )
+  def visitEach[ T ]( opt: Option[ T ] )( visited: T => Result ): Result = ( opt.each is visited )( opt )
+  def visitEach[ T ]( set: Set[ T ] )( visited: T => Result ): Result = ( set.each is visited )( set )
 }
 
 class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with Inside {
@@ -102,35 +103,36 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
     "apply subsequent validation rules to all elements" in {
       val coll = Seq.fill( 5 )( ArbitraryType.apply )
       val visited = mutable.ListBuffer.empty[ ArbitraryType ]
-      visit( coll ) { elem => visited append elem; Success }
+      visitEach( coll ) { elem => visited append elem; Success }
       visited should contain theSameElementsAs coll
     }
 
     "evaluate to Success if no elements are present" in {
       val coll = Seq.empty[ Nothing ]
-      val result = visit( coll ) { _ => Success }
+      val result = visitEach( coll ) { _ => Success }
       result shouldBe aSuccess
     }
 
     "evaluate to Failure if the collection is null" in {
-      val result = visit( null ) { _ => Success }
+      val seq: Seq[ ArbitraryType ] = null
+      val result = visitEach( seq ) { _ => Success }
       result shouldBe aFailure
     }
 
     "evaluate to Success if validation succeeds on all elements" in {
       val coll = Seq.fill( 5 )( ArbitraryType )
-      val result = visit( coll ) { _ => Success }
+      val result = visitEach( coll ) { _ => Success }
       result shouldBe aSuccess
     }
 
-    def violationFor( elem: ArbitraryType ) = RuleViolation( elem, "element", None )
+    def violationFor( elem: ArbitraryType ) = RuleViolation( elem, "fake constraint", Some( "failure" ) )
     def failureFor( elem: ArbitraryType ) = Failure( Set( violationFor( elem ) ) )
-    def matcherFor( elem: ArbitraryType ) = RuleViolationMatcher( value = elem, constraint = "element" )
+    def matcherFor( elem: ArbitraryType ) = RuleViolationMatcher( value = elem, constraint = "fake constraint" )
 
     "evaluate to a Failure if any element failed" in {
       val coll = Seq.fill( 5 )( ArbitraryType.apply )
       val result =
-        visit( coll ) {
+        visitEach( coll ) {
           case elem if elem == coll.last => failureFor( elem )
           case _ => Success
         }
@@ -141,12 +143,35 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
       val coll = Seq.fill( 5 )( ArbitraryType.apply )
       val failing = coll.take( 2 )
       val result =
-        visit( coll ) {
+        visitEach( coll ) {
           case elem if failing contains elem => failureFor( elem )
           case _ => Success
         }
 
       result should failWith( failing map matcherFor :_* )
+    }
+
+    "include position in a failed element's description for sequences" in {
+      val coll = Seq.fill( 5 )( ArbitraryType.apply )
+      val result =
+        visitEach( coll ) {
+          case elem if elem == coll( 2 ) => failureFor( elem )
+          case _ => Success
+        }
+
+      result should failWith( RuleViolationMatcher( value = coll( 2 ), description = "failure [at index 2]" ) )
+    }
+
+    "not include positional information for options" in {
+      val coll = Option( ArbitraryType.apply )
+      val result = visitEach( coll ) { failureFor(_) }
+      result should failWith( RuleViolationMatcher( description = "failure" ) )
+    }
+
+    "not include positional information for sets" in {
+      val coll = Set( ArbitraryType.apply )
+      val result = visitEach( coll ) { failureFor(_) }
+      result should failWith( RuleViolationMatcher( description = "failure" ) )
     }
   }
 }
