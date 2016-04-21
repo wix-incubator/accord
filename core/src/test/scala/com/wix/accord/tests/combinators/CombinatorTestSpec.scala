@@ -21,5 +21,6 @@ import com.wix.accord.scalatest.ResultMatchers
 
 trait CombinatorTestSpec extends WordSpec with Matchers with ResultMatchers {
   import scala.language.implicitConversions
-  implicit def elevateStringToRuleViolationMatcher( s: String ) = RuleViolationMatcher( constraint = s )
+  implicit def elevateStringToRuleViolationMatcher( s: String ): RuleViolationMatcher =
+    RuleViolationMatcher( constraint = s )
 }
