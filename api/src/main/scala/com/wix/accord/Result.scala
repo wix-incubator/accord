@@ -93,10 +93,9 @@ sealed trait Result {
    */
   def or( other: Result ): Result
 
-  // TODO update documentation
   /** Rewrites the description for all violations within this result.
     *
-    * @param rewrite The rewritten description.
+    * @param rewrite A function that rewrites the current description.
     * @return A modified copy of this result with the new violation description in place.
     */
   def withDescription( rewrite: Option[ String ] => Option[ String ] ): Result
@@ -128,6 +127,7 @@ case class Failure( violations: Set[ Violation ] ) extends Result {
 
   def withDescription( rewrite: Option[ String ] => Option[ String ] ) =
     Failure( violations map { _ withDescription rewrite } )
+
   def isSuccess: Boolean = false
   def isFailure: Boolean = true
 }
