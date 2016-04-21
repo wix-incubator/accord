@@ -16,7 +16,7 @@
 
 package com.wix.accord.dsl
 
-import com.wix.accord.{Success, Result, Validator}
+import com.wix.accord.{Result, Success, Validator}
 
 // TODO ScalaDocs
 
@@ -25,25 +25,28 @@ trait ContextTransformer[ Inner, Outer ] {
 }
 
 private object Aggregates {
-  private def aggregate[ Coll, Element ]( validator: Validator[ Element ], aggregator: Traversable[ Result ] => Result )
-                                        ( implicit ev: Coll => Traversable[ Element ] ): Validator[ Coll ] =
+
+  def all[ Coll, Element ]( includeIndices: Boolean = true )( validator: Validator[ Element ] )
+                          ( implicit ev: Coll => Traversable[ Element ] ): Validator[ Coll ] =
     new Validator[ Coll ] {
-      def apply( col: Coll ) =
-        if ( col == null )
-          Validator.nullFailure
+      def apply( coll: Coll ): Result =
+        if ( coll == null ) Validator.nullFailure
         else {
-          val results =
-            col.foldLeft( Traversable.newBuilder[ Result ] -> 0 ) {
-              case ( ( acc, i ), e ) =>
-                ( acc += validator( e ).withDescription( prefix => Some( prefix.getOrElse( "" ) + s" [at index $i]" ) ) ) -> ( i + 1 )
-            }._1.result()
-          aggregator( results )
+          var index = 0
+          val appendIndex: ( Option[ String ] => Option[ String ] ) =
+            if ( includeIndices ) { prefix: Option[ String ] => Some( prefix.getOrElse( "" ) + s" [at index $index]" ) }
+            else identity
+
+          var aggregate: Result = Success
+          coll foreach { element =>
+            val result = validator apply element withDescription appendIndex
+            aggregate = aggregate and result
+            index = index + 1
+          }
+
+          aggregate
         }
     }
-
-  def all[ Coll, Element ]( validator: Validator[ Element ] )
-                          ( implicit ev: Coll => Traversable[ Element ] ): Validator[ Coll ] =
-    aggregate( validator, r => ( r fold Success )( _ and _ ) )
 }
 
 trait SizeContext[ Inner, Outer ] {
@@ -58,6 +61,18 @@ trait SizeContext[ Inner, Outer ] {
 class CollectionDslContext[ Inner, Outer ]( protected val transform: Validator[ Inner ] => Validator[ Outer ] )
   extends SizeContext[ Inner, Outer ] with ContextTransformer[ Inner, Outer ]
 
+trait IndexedDescriptions[ T ] {
+  def includeIndexInformation: Boolean
+}
+
+object IndexedDescriptions {
+  implicit def disableIndexingForOptions[ T ]: IndexedDescriptions[ Option[ T ] ] =
+    new IndexedDescriptions[ Option[ T ] ] { def includeIndexInformation: Boolean = false }
+
+  implicit def enableIndexingForCollections[ T ]( implicit ev: T => Traversable[_] ): IndexedDescriptions[ T ] =
+    new IndexedDescriptions [ T ] { def includeIndexInformation: Boolean = true }
+}
+
 trait DslContext[ Inner, Outer ] {
   self: ContextTransformer[ Inner, Outer ] =>
 
@@ -71,9 +86,10 @@ trait DslContext[ Inner, Outer ] {
     * @tparam Element The element type m of the specified collection.
     * @return Additional syntax (see implementation).
     */
-  def each[ Element ]( implicit ev: Inner => Traversable[ Element ] ) =
+  def each[ Element ]( implicit ev: Inner => Traversable[ Element ], withIndices: IndexedDescriptions[ Inner ] ) =
     new DslContext[ Element, Outer ] with ContextTransformer[ Element, Outer ] {
-      protected override def transform = self.transform compose Aggregates.all[ Inner, Element ]
+      protected override def transform =
+        self.transform compose Aggregates.all[ Inner, Element ]( withIndices.includeIndexInformation )
     }
 
   private val collContext = new CollectionDslContext( transform )
