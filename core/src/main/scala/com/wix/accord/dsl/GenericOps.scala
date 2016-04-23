@@ -22,6 +22,10 @@ import com.wix.accord.combinators.IsNull
 import com.wix.accord.combinators.IsNotNull
 import com.wix.accord.combinators.EqualTo
 import com.wix.accord.combinators.NotEqualTo
+import com.wix.accord.combinators.AnInstanceOf
+import com.wix.accord.combinators.NotAnInstanceOf
+
+import scala.reflect.ClassTag
 
 /** Provides a DSL for untyped validators. */
 trait GenericOps {
@@ -60,4 +64,14 @@ trait GenericOps {
     * Respects nulls an performs equality checks via [[java.lang.Object.equals]].
     */
   def notEqualTo[ T ]( to: T ): Validator[ T ] = new NotEqualTo[ T ]( to )
+
+  /** Specifies a validator that succeeds only if the validation expression evaluates to the specified type. Respects
+    * nulls.
+    */
+  def anInstanceOf[ T <: AnyRef : ClassTag ]: Validator[ AnyRef ] = new AnInstanceOf[ T ]
+
+  /** Specifies a validator that fails only if the validation expression evaluates to the specified type. Respects
+    * nulls.
+    */
+  def notAnInstanceOf[ T <: AnyRef : ClassTag ]: Validator[ AnyRef ] = new NotAnInstanceOf[ T ]
 }
