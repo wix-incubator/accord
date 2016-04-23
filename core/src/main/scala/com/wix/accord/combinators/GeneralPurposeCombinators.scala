@@ -19,6 +19,8 @@ package com.wix.accord.combinators
 import com.wix.accord._
 import com.wix.accord.ViolationBuilder._
 
+import scala.reflect.ClassTag
+
 /** Non type-specific combinators. */
 trait GeneralPurposeCombinators {
   /** A combinator that takes a chain of predicates and implements logical AND between them.
@@ -113,4 +115,26 @@ trait GeneralPurposeCombinators {
           case Failure( rules ) => Failure( Set( x -> "is invalid" -> rules ) )
         }
   }
+
+  /** A validator that succeeds only if the validated object is an instance of the specified type. Respects nulls.
+    *
+    * @param ct A runtime representation of the desired type.
+    * @tparam T The desired type for objects under validation.
+    */
+  class AnInstanceOf[ T <: AnyRef ]( implicit ct: ClassTag[ T ] )
+    extends NullSafeValidator[ AnyRef ](
+      value => ct.runtimeClass isAssignableFrom value.getClass,
+      _ -> s"is not an instance of $ct"
+    )
+
+  /** A validator that fails only if the validated object is an instance of the specified type. Respects nulls.
+    *
+    * @param ct A runtime representation of the undesirable type.
+    * @tparam T The undesirable type for objects under validation.
+    */
+  class NotAnInstanceOf[ T <: AnyRef ]( implicit ct: ClassTag[ T ] )
+    extends NullSafeValidator[ AnyRef ](
+      value => !( ct.runtimeClass isAssignableFrom value.getClass ),
+      _ -> s"is an instance of $ct"
+    )
 }

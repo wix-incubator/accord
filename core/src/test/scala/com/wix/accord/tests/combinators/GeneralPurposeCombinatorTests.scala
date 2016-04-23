@@ -87,7 +87,6 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
   }
 
-
   "NotEqualTo validator" should {
     "successfully validate an unequal object" in {
       val validator = new NotEqualTo[ String ]( "test" )
@@ -129,6 +128,28 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
 
       val validator = new Valid[ Test ]
       validator( null ) should failWith( "is a null" )
+    }
+  }
+
+  "AnInstanceOf validator" should {
+    "successfully validate an object of the correct type" in {
+      val validator = new AnInstanceOf[ String ]
+      validator( "test" ) should be( aSuccess )
+    }
+    "render a correct rule violation" in {
+      val validator = new AnInstanceOf[ BigDecimal ]
+      validator( "invalid" ) should failWith( "is not an instance of scala.math.BigDecimal" )
+    }
+  }
+
+  "NotAnInstanceOf validator" should {
+    "successfully validate an object of a differnet type" in {
+      val validator = new NotAnInstanceOf[ BigDecimal ]
+      validator( "test" ) should be( aSuccess )
+    }
+    "render a correct rule violation" in {
+      val validator = new NotAnInstanceOf[ String ]
+      validator( "invalid" ) should failWith( "is an instance of java.lang.String" )
     }
   }
 }
