@@ -96,9 +96,14 @@ object Root extends Build {
       .dependsOn( api )
       .settings( Seq(
         name := "accord-scalatest",
-        description := "ScalaTest matchers for the Accord validation library",
-        libraryDependencies += "org.scalatest" %%% "scalatest" % "2.2.6"
+        description := "ScalaTest matchers for the Accord validation library"
       ) ++ baseSettings :_* )
+      .jsSettings(
+        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M16-SNAP4"
+      )
+      .jvmSettings(
+        libraryDependencies += "org.scalatest" %%% "scalatest" % "2.2.6"
+      )
   lazy val scalatestJVM = scalatest.jvm
   lazy val scalatestJS = scalatest.js
 
@@ -127,14 +132,9 @@ object Root extends Build {
         target <<= target { _ / "specs2-3.x" },
         libraryDependencies <+= scalaVersion {
           case v if v startsWith "2.12" =>
-            // Temporary workaround for Specs2 issue #425, see:
-            // https://github.com/etorreborre/specs2/issues/425#issuecomment-150986091
-            ( "org.specs2" %% "specs2-core" % "3.6.5-20151025224741-adea3e0" )
-              .exclude( "org.scalaz", "scalaz-concurrent_2.12.0-M2" )
-              .exclude( "org.scalaz", "scalaz-effect_2.12.0-M2" )
-              .exclude( "org.scalaz", "scalaz-core_2.12.0-M2" )
-              .exclude( "org.scala-lang.modules", "scala-xml_2.12.0-M2" )
-              .exclude( "org.scala-lang.modules", "scala-parser-combinators_2.12.0-M2" )
+            // Temporary workaround for Specs2 issue #469, see:
+            // https://github.com/etorreborre/specs2/issues/469#issuecomment-214331971
+            ( "org.specs2" %% "specs2-core" % "3.7.3" ).exclude( "org.spire-math", "kind-projector_2.12.0-M3" )
 
           case _ => "org.specs2" %% "specs2-core" % "3.6.5"
         }
