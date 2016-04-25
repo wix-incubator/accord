@@ -3,7 +3,7 @@ language: scala
 scala:
   - "2.10.3"
   - "2.11.1"
-  - "2.12.0-M3"
+  - "2.12.0-M4"
 
 sudo: false
 
@@ -41,9 +41,9 @@ notifications:
 # Exclude builds for Scala 2.12 on JDK <8
 matrix:
   exclude:
-    - scala: "2.12.0-M3"
+    - scala: "2.12.0-M4"
       jdk: oraclejdk7
-    - scala: "2.12.0-M3"
+    - scala: "2.12.0-M4"
       jdk: openjdk7
 
 # Cache bootstrap and dependency files for (hopefully) faster builds, per recommendation in
