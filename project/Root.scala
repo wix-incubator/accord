@@ -96,18 +96,9 @@ object Root extends Build {
       .dependsOn( api )
       .settings( Seq(
         name := "accord-scalatest",
-        description := "ScalaTest matchers for the Accord validation library"
+        description := "ScalaTest matchers for the Accord validation library",
+        libraryDependencies += "org.scalatest" %%% "scalatest" % "2.2.6"
       ) ++ baseSettings :_* )
-      .jvmSettings(
-        libraryDependencies <+= scalaVersion {
-          // TODO figure out if a 2.x/3.x split (a la Specs2) is necessary
-          case v if v startsWith "2.12" => "org.scalatest" %% "scalatest" % "3.0.0-M16-SNAP4"
-          case _ => "org.scalatest" %% "scalatest" % "2.2.5"
-        }
-      )
-      .jsSettings(
-        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M15"
-      )
   lazy val scalatestJVM = scalatest.jvm
   lazy val scalatestJS = scalatest.js
 
