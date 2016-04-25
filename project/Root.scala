@@ -131,11 +131,7 @@ object Root extends Build {
         name := "accord-specs2-3.x",
         target <<= target { _ / "specs2-3.x" },
         libraryDependencies <+= scalaVersion {
-          case v if v startsWith "2.12" =>
-            // Temporary workaround for Specs2 issue #469, see:
-            // https://github.com/etorreborre/specs2/issues/469#issuecomment-214331971
-            ( "org.specs2" %% "specs2-core" % "3.7.3" ).exclude( "org.spire-math", "kind-projector_2.12.0-M3" )
-
+          case v if v startsWith "2.12" => "org.specs2" %% "specs2-core" % "3.7.3.1"
           case _ => "org.specs2" %% "specs2-core" % "3.6.5"
         }
       )
