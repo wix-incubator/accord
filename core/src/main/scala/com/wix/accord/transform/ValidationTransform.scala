@@ -49,14 +49,14 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
             def apply( $prototype ) = {
               val validation = ${rule.validation}
               val description = $description
-              validation( ${rule.ouv} ) applyDescription $description
+              validation( ${rule.ouv} ) applyDescription description
             }
           }
        """
 
     // Report and return the rewritten validator
     debug( s"""|Validation rule:
-               |  Description: ${Literal( Constant( description ) )}
+               |  Description: $description
                |  Validation : ${rule.validation}
                |  Rewrite    : ${show( rewrite )}""".stripMargin, rule.validation.pos )
     trace(    s"  Raw        : ${showRaw( rewrite )}" )
@@ -140,7 +140,7 @@ object ValidationTransform {
      q"""
         new com.wix.accord.Validator[ ${weakTypeOf[ U ]} ] {
           override def apply( v1: ${weakTypeOf[ U ]} ): com.wix.accord.Result =
-            ${c.prefix} apply $g( v1 ) withDescription { _ => Some( ${helper.description} ) }
+            ${c.prefix} apply $g( v1 ) applyDescription ${helper.description}
         }
       """
 

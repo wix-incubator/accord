@@ -18,6 +18,7 @@ package com.wix.accord.transform
 
 import MacroHelper._
 import com.wix.accord.Descriptions
+import com.wix.accord.Descriptions.Description
 
 import scala.language.experimental.macros
 
@@ -53,7 +54,7 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
 
     private[ ExpressionDescriber ] def unapply( ouv: Tree ): Option[ context.Expr[ Explicit ] ] = ouv match {
       case Apply( Select( Apply( TypeApply( Select( _, `descriptorTerm` ), _ ), _ ), `asTerm` ), literal :: Nil ) =>
-        Some( context.Expr[ Explicit ]( q"com.wix.accord.Descriptions.Explicit( ${literal.toString()} )" ) )
+        Some( context.Expr[ Explicit ]( q"com.wix.accord.Descriptions.Explicit( $literal )" ) )
       case _ => None
     }
   }
@@ -90,14 +91,15 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
         description
 
       case PrototypeSelectorChain( elements @ _* ) =>
-        context.Expr[ Description ]( q"com.wix.accord.Descriptions.AccessChain( ..${elements map show} )" )
+        def renderName( n: Name ) = n.decodedName.toString
+        context.Expr[ Description ]( q"com.wix.accord.Descriptions.AccessChain( ..${ elements map renderName } )" )
 
       case Ident( PrototypeName ) =>
         // Anonymous parameter reference: validator[...] { _ is... }
-        context.Expr[ Description ]( q"com.wix.accord.SelfReference" )
+        context.Expr[ Description ]( q"com.wix.accord.Descriptions.SelfReference" )
 
       case _ =>
-        context.Expr[ Description ]( q"com.wix.accord.Generic( ${ouv.toString} )" )
+        context.Expr[ Description ]( q"com.wix.accord.Descriptions.Generic( ${ ouv.toString } )" )
     }
   }
 }
@@ -133,17 +135,14 @@ private class TestFunctionDescriber[ C <: Context, T, U ]( val context: C, f: C#
   val ( prototype, implementation ) = describeFunction( f in context.mirror )
 
   /** Renders a description for the function body and externalizes it as a string expression. */
-  def renderedDescription: Expr[ String ] = {
-    val desc = describeTree( prototype, implementation )
-    context.Expr[ String ]( Literal( Constant( showRaw( desc ) ) ) )
-  }
+  def renderedDescription: Expr[ Description ] = describeTree( prototype, implementation )
 }
 
 private[ accord ] object ExpressionDescriber {
 
-  def apply[ T : c.WeakTypeTag, U : c.WeakTypeTag ]( c: Context )( f: c.Expr[ T => U ] ): c.Expr[ String ] =
+  def apply[ T : c.WeakTypeTag, U : c.WeakTypeTag ]( c: Context )( f: c.Expr[ T => U ] ): c.Expr[ Description ] =
     new TestFunctionDescriber[ c.type, T, U ]( c, f ).renderedDescription
 
   /** A test invoker for [[com.wix.accord.transform.ExpressionDescriber]] */
-  def describe[ T, U ]( f: T => U ): String = macro ExpressionDescriber[ T, U ]
+  def describe[ T, U ]( f: T => U ): Description = macro ExpressionDescriber[ T, U ]
 }

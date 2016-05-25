@@ -16,9 +16,11 @@
 
 package com.wix.accord.tests.dsl
 
+import com.wix.accord.Descriptions.Generic
 import com.wix.accord._
 import com.wix.accord.scalatest.ResultMatchers
 import org.scalatest.{Inside, Matchers, WordSpec}
+
 import scala.collection.mutable
 
 object CollectionOpsTests {
@@ -125,7 +127,7 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
       result shouldBe aSuccess
     }
 
-    def violationFor( elem: ArbitraryType ) = RuleViolation( elem, "fake constraint", Some( "failure" ) )
+    def violationFor( elem: ArbitraryType ) = RuleViolation( elem, "fake constraint", Generic( "failure" ) )
     def failureFor( elem: ArbitraryType ) = Failure( Set( violationFor( elem ) ) )
     def matcherFor( elem: ArbitraryType ) = RuleViolationMatcher( value = elem, constraint = "fake constraint" )
 
