@@ -1,5 +1,7 @@
 package com.wix.accord
 
+import com.sun.org.glassfish.gmbal.Description
+
 /**
   * Created by tomerga on 05/05/2016.
   */
@@ -14,23 +16,26 @@ object Descriptions {
 
   // Description algebra --
 
-  def combine( lhs: Description, rhs: Description ): Description =
-    ( lhs, rhs ) match {
-      case ( _, Empty ) => lhs
-      case ( Empty, _ ) => rhs
+  val combine: ( ( Description, Description ) => Description ) = {
+    case ( lhs, Empty ) => lhs
+    case ( Empty, rhs ) => rhs
 
-      case ( _, Indexed( index, Empty ) ) => Indexed( index, lhs )
-      case ( Indexed( index, Empty ), _ ) => Indexed( index, rhs )
+    case ( lhs, Indexed( index, Empty ) ) => Indexed( index, lhs )
+    case ( Indexed( index, Empty ), rhs ) => Indexed( index, rhs )
 
-      case _ => throw new IllegalArgumentException( s"Cannot combine description '$lhs' with '$rhs'" )
-    }
+    case ( lhs, SelfReference ) => lhs
+    case ( SelfReference, rhs ) => rhs
 
-  def render( description: Description ): String = description match {
+    case ( lhs, rhs ) =>
+      throw new IllegalArgumentException( s"Cannot combine description '$lhs' with '$rhs'" )
+  }
+
+  val render: Description => String = {
     case Empty => "unknown"
     case Indexed( index, of ) => s"${render( of )} [at index $index]"
     case Explicit( s ) => s
     case Generic( s ) => s
-    case AccessChain( elements ) => elements.mkString( "." )
+    case AccessChain( elements @ _* ) => elements.mkString( "." )
     case SelfReference => "value"
   }
 }

@@ -5,39 +5,47 @@ import org.scalatest.{FlatSpec, Matchers}
 class DescriptionModelSpec extends FlatSpec with Matchers {
   import Descriptions._
 
-  private val empty = Empty
-  private val indexed = Indexed( 1, empty )
+  private val indexed = Indexed( 1, Empty )
   private val explicit = Explicit( "test" )
   private val generic = Generic( "test" )
-  private val accessChain = AccessChain( Seq( "a", "b", "c" ) )
-  private val selfReference = SelfReference
+  private val accessChain = AccessChain( "a", "b", "c" )
 
   "Any combination of Empty" should "return the other description as-is" in {
-    combine( empty, empty ) shouldEqual empty
-    combine( empty, indexed ) shouldEqual indexed
-    combine( empty, explicit ) shouldEqual explicit
-    combine( empty, generic ) shouldEqual generic
-    combine( empty, accessChain ) shouldEqual accessChain
-    combine( empty, selfReference ) shouldEqual selfReference
-    combine( empty, empty ) shouldEqual empty
-    combine( indexed, empty ) shouldEqual indexed
-    combine( explicit, empty ) shouldEqual explicit
-    combine( generic, empty ) shouldEqual generic
-    combine( accessChain, empty ) shouldEqual accessChain
-    combine( selfReference, empty ) shouldEqual selfReference
+    combine( Empty, Empty ) shouldEqual Empty
+    combine( Empty, indexed ) shouldEqual indexed
+    combine( Empty, explicit ) shouldEqual explicit
+    combine( Empty, generic ) shouldEqual generic
+    combine( Empty, accessChain ) shouldEqual accessChain
+    combine( Empty, SelfReference ) shouldEqual SelfReference
+    combine( Empty, Empty ) shouldEqual Empty
+    combine( indexed, Empty ) shouldEqual indexed
+    combine( explicit, Empty ) shouldEqual explicit
+    combine( generic, Empty ) shouldEqual generic
+    combine( accessChain, Empty ) shouldEqual accessChain
+    combine( SelfReference, Empty ) shouldEqual SelfReference
   }
 
-  "Any combination of Indexed (of Empty)" should "replace the empty inner description with the specified one" in {
+  "Any combination of Indexed (of Empty)" should "replace the Empty inner description with the specified one" in {
     combine( indexed, indexed ) shouldEqual Indexed( 1, indexed )
     combine( indexed, explicit ) shouldEqual Indexed( 1, explicit )
     combine( indexed, generic ) shouldEqual Indexed( 1, generic )
     combine( indexed, accessChain ) shouldEqual Indexed( 1, accessChain )
-    combine( indexed, selfReference ) shouldEqual Indexed( 1, selfReference )
+    combine( indexed, SelfReference ) shouldEqual Indexed( 1, SelfReference )
     combine( indexed, indexed ) shouldEqual Indexed( 1, indexed )
     combine( explicit, indexed ) shouldEqual Indexed( 1, explicit )
     combine( generic, indexed ) shouldEqual Indexed( 1, generic )
     combine( accessChain, indexed ) shouldEqual Indexed( 1, accessChain )
-    combine( selfReference, indexed ) shouldEqual Indexed( 1, selfReference )
+    combine( SelfReference, indexed ) shouldEqual Indexed( 1, SelfReference )
+  }
+
+  "Any combination of SelfReference" should "return the other description as-is" in {
+    combine( SelfReference, explicit ) shouldEqual explicit
+    combine( SelfReference, generic ) shouldEqual generic
+    combine( SelfReference, accessChain ) shouldEqual accessChain
+    combine( SelfReference, SelfReference ) shouldEqual SelfReference
+    combine( explicit, SelfReference ) shouldEqual explicit
+    combine( generic, SelfReference ) shouldEqual generic
+    combine( accessChain, SelfReference ) shouldEqual accessChain
   }
 
   "Explicit description" should "combine with nothing" in {

@@ -16,16 +16,15 @@
 
 package com.wix.accord.specs2
 
+import com.wix.accord.Descriptions.Generic
 import org.specs2.mutable.Specification
 import com.wix.accord._
-import com.wix.accord.GroupViolation
-import com.wix.accord.RuleViolation
 
 class ResultMatchersSpec extends Specification with ResultMatchers {
 
   "RuleViolationMatcher" should {
 
-    val sampleViolation = RuleViolation( "value", "constraint", Some( "description" ) )
+    val sampleViolation = RuleViolation( "value", "constraint", Generic( "description" ) )
 
     "correctly match a rule violation based on value" in {
       val matchRule = RuleViolationMatcher( value = "value" )
@@ -50,8 +49,8 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
 
   "GroupViolationMatcher" should {
 
-    val sampleRule = RuleViolation( "value", "constraint", Some( "description" ) )
-    val sampleGroup = GroupViolation( value = "group", constraint = "violation", description = Some( "ftw" ), children = Set( sampleRule ) )
+    val sampleRule = RuleViolation( "value", "constraint", Generic( "description" ) )
+    val sampleGroup = GroupViolation( "group", "violation", children = Set( sampleRule ), Generic( "ftw" ) )
 
     "correctly match a group violation based on value" in {
       val matchRule = GroupViolationMatcher( value = "group" )
@@ -112,7 +111,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
 
   "failWith matcher" should {
 
-    val result: Result = Failure( Set( RuleViolation( "value", "constraint", Some( "description" ) ) ) )
+    val result: Result = Failure( Set( RuleViolation( "value", "constraint", Generic( "description" ) ) ) )
 
     "succeed if a validation rule matches successfully" in {
       result should failWith( "description" -> "constraint" )
