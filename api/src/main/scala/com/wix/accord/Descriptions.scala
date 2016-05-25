@@ -26,6 +26,8 @@ object Descriptions {
     case ( lhs, SelfReference ) => lhs
     case ( SelfReference, rhs ) => rhs
 
+    case ( AccessChain( left @ _* ), AccessChain( right @ _* ) ) => AccessChain( ( left ++ right ) :_* )
+
     case ( lhs, rhs ) =>
       throw new IllegalArgumentException( s"Cannot combine description '$lhs' with '$rhs'" )
   }

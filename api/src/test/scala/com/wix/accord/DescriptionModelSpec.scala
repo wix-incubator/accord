@@ -48,6 +48,10 @@ class DescriptionModelSpec extends FlatSpec with Matchers {
     combine( accessChain, SelfReference ) shouldEqual accessChain
   }
 
+  "Combining an AccessChain with another AccessChain" should "produce a new AccessChain indirecting left-to-right" in {
+    combine( AccessChain( "a" ), AccessChain( "b" ) ) shouldEqual AccessChain( "a", "b" )
+  }
+
   "Explicit description" should "combine with nothing" in {
     an[ IllegalArgumentException ] shouldBe thrownBy { combine( explicit, generic ) }
     an[ IllegalArgumentException ] shouldBe thrownBy { combine( explicit, explicit ) }
