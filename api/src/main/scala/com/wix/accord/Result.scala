@@ -16,7 +16,9 @@
 
 package com.wix.accord
 
-/** A base trait for all violation types. */ 
+import com.wix.accord.Descriptions.Description
+
+/** A base trait for all violation types. */
 sealed trait Violation {
   /** The actual runtime value of the object under validation. */
   def value: Any
@@ -28,16 +30,11 @@ sealed trait Violation {
     * runtime, produces the value in [[com.wix.accord.Violation.value]]). This is normally filled in
     * by the validation transform macro, but can also be explicitly provided via the DSL.
     */
-  def description: Option[ String ]
+  def description: String = Descriptions.render( _description )
 
-  // TODO update documentation
-  /** Rewrites the description for this violation (used internally by the validation transform macro). As
-    * violations are immutable, in practice this returns a modified copy.
-    *
-    * @param rewrite The rewritten description.
-    * @return A modified copy of this violation with the new description in place.
-    */
-  def withDescription( rewrite: Option[ String ] => Option[ String ] ): Violation
+  protected def _description: Description
+
+  def applyDescription( description: Description ): Violation
 }
 
 /** Describes a simple validation rule violation (i.e. one without hierarchy). Most built-in combinators
@@ -45,11 +42,15 @@ sealed trait Violation {
   * 
   * @param value The value of the object which failed the validation rule.
   * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
-  * @param description The textual description of the object under validation.
+  * @param _description The description of the object under validation.
   */
-case class RuleViolation( value: Any, constraint: String, description: Option[ String ] ) extends Violation {
-  def withDescription( rewrite: Option[ String ] => Option[ String ] ) =
-    this.copy( description = rewrite( description ) )
+case class RuleViolation( value: Any,
+                          constraint: String,
+                          protected val _description: Description = Descriptions.Empty )
+  extends Violation {
+
+  def applyDescription( description: Description ) =
+    this.copy( _description = Descriptions.combine( _description, description ) )
 }
 
 /** Describes the violation of a group of constraints. For example, the `Or` combinator found in the built-in
@@ -58,17 +59,21 @@ case class RuleViolation( value: Any, constraint: String, description: Option[ S
   * @param value The value of the object which failed validation.
   * @param constraint A textual description of the constraint being violated (for example, "doesn't meet any
   *                   of the requirements").
-  * @param description The textual description of the object under validation.
+  * @param _description The description of the object under validation.
   * @param children The set of violations contained within the group.
   */
-case class GroupViolation( value: Any, constraint: String, description: Option[ String ], children: Set[ Violation ] )
+case class GroupViolation( value: Any,
+                           constraint: String,
+                           children: Set[ Violation ],
+                           protected val _description: Description = Descriptions.Empty )
   extends Violation {
 
-  def withDescription( rewrite: Option[ String ] => Option[ String ] ) =
-    this.copy( description = rewrite( description ) )
+  def applyDescription( description: Description ) =
+    this.copy( _description = Descriptions.combine( _description, description ) )
 }
 
 /** A base trait for validation results.
+  *
   * @see [[com.wix.accord.Success]], [[com.wix.accord.Failure]]
   */
 sealed trait Result {
@@ -81,33 +86,35 @@ sealed trait Result {
 
   /**
    * Returns a new result representing successful validation of both rules, or failure or either.
-   * @param other Another result to be composed with this one.
+    *
+    * @param other Another result to be composed with this one.
    * @return The resulting instance of [[com.wix.accord.Result]].
    */
   def and( other: Result ): Result
 
   /**
    * Returns a new result representing successful validation of either rule, or failure or both.
-   * @param other Another result to be composed with this one.
+    *
+    * @param other Another result to be composed with this one.
    * @return The resulting instance of [[com.wix.accord.Result]].
    */
   def or( other: Result ): Result
 
-  /** Rewrites the description for all violations within this result.
+  /** Applies a description to all violations within this result.
     *
-    * @param rewrite A function that rewrites the current description.
+    * @param description The description to be applied
     * @return A modified copy of this result with the new violation description in place.
     */
-  def withDescription( rewrite: Option[ String ] => Option[ String ] ): Result
+  def applyDescription( description: Description ): Result
 }
 
 /** An object representing a successful validation result. */
 case object Success extends Result {
-  def and( other: Result ) = other
-  def or( other: Result ) = this
-  def withDescription( rewrite: Option[ String ] => Option[ String ] ) = this
-  def isSuccess: Boolean = true
-  def isFailure: Boolean = false
+  override def and( other: Result ) = other
+  override def or( other: Result ) = this
+  override def applyDescription( description: Description ) = this
+  override def isSuccess: Boolean = true
+  override def isFailure: Boolean = false
 }
 
 /** An object representing a failed validation result.
@@ -115,19 +122,19 @@ case object Success extends Result {
   * @param violations The violations that caused the validation to fail.
   */
 case class Failure( violations: Set[ Violation ] ) extends Result {
-  def and( other: Result ) = other match {
+  override def and( other: Result ) = other match {
     case Success => this
     case Failure( vother ) => Failure( violations ++ vother )
   }
 
-  def or( other: Result ) = other match {
+  override def or( other: Result ) = other match {
     case Success => other
     case Failure(_) => this
   }
 
-  def withDescription( rewrite: Option[ String ] => Option[ String ] ) =
-    Failure( violations map { _ withDescription rewrite } )
+  override def applyDescription( description: Description ) =
+    Failure( violations map { _ applyDescription description } )
 
-  def isSuccess: Boolean = false
-  def isFailure: Boolean = true
+  override def isSuccess: Boolean = false
+  override def isFailure: Boolean = true
 }

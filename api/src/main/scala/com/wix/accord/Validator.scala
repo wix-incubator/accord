@@ -55,7 +55,7 @@ trait Validator[ -T ] extends ( T => Result ) {
 /** A companion object mostly responsible for allowing null-safe validation of boxed Java primitive types. */
 object Validator {
   /** The default failure when validating `null`. */
-  val nullFailure = Failure( Set( RuleViolation( null, "is a null", None ) ) )
+  val nullFailure = Failure( Set( RuleViolation( null, "is a null" ) ) )
 
   // Primitive promotions --
 

@@ -20,9 +20,8 @@ import MacroHelper._
 import com.wix.accord._
 import com.wix.accord.transform.ValidationTransform.TransformedValidator
 
-private abstract class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] )
+private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val context: C, v: C#Expr[ T => Unit ] )
   extends FunctionDescriber[ C, T, Unit ]
-  with DescriptionRenderer[ C, String /* For now */ ]
   with RuleFinder[ C ]
   with MacroLogging[ C ] {
 
@@ -44,14 +43,13 @@ private abstract class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( v
    */
   private def rewriteOne( rule: ValidationRule ): Tree = {
     val description = describeTree( prototype, rule.ouv )
-    val rendered = renderDescription( description )
-
     val rewrite =
       q"""
           new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
             def apply( $prototype ) = {
               val validation = ${rule.validation}
-              validation( ${rule.ouv} ) withDescription { suffix => Some( $rendered + suffix.getOrElse( "" ) ) }
+              val description = $description
+              validation( ${rule.ouv} ) applyDescription $description
             }
           }
        """
@@ -59,7 +57,6 @@ private abstract class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( v
     // Report and return the rewritten validator
     debug( s"""|Validation rule:
                |  Description: ${Literal( Constant( description ) )}
-               |  Rendered   : $rendered
                |  Validation : ${rule.validation}
                |  Rewrite    : ${show( rewrite )}""".stripMargin, rule.validation.pos )
     trace(    s"  Raw        : ${showRaw( rewrite )}" )
@@ -128,17 +125,14 @@ object ValidationTransform {
     override def compose[ U ]( g: U => T ): Validator[ U ] = macro ValidationTransform.compose[ U, T ]
   }
 
-  def apply[ T : c.WeakTypeTag ]( c: Context )( v: c.Expr[ T => Unit ] ): c.Expr[ TransformedValidator[ T ] ] = {
-    val materializedTransform =
-      new ValidationTransform[ c.type, T ]( c, v ) with StringDescriptionRenderer[ c.type ]
-    materializedTransform.transformed
-  }
+  def apply[ T : c.WeakTypeTag ]( c: Context )( v: c.Expr[ T => Unit ] ): c.Expr[ TransformedValidator[ T ] ] =
+    new ValidationTransform[ c.type, T ]( c, v ).transformed
 
   def compose[ U : c.WeakTypeTag, T : c.WeakTypeTag ]( c: Context )( g: c.Expr[ U => T ] ): c.Expr[ Validator[ U ] ] = {
-    val helper = new StringDescriptionRenderer[ c.type ] with FunctionDescriber[ c.type, U, T ] {
+    val helper = new FunctionDescriber[ c.type, U, T ] {
       val context: c.type = c
       private val ( prototype, body ) = describeFunction( g )
-      val description = renderDescription( describeTree( prototype, body ) )
+      val description = describeTree( prototype, body )
     }
 
     import c.universe._
