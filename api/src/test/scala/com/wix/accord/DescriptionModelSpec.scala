@@ -48,8 +48,14 @@ class DescriptionModelSpec extends FlatSpec with Matchers {
     combine( accessChain, SelfReference ) shouldEqual accessChain
   }
 
-  "Combining an AccessChain with another AccessChain" should "produce a new AccessChain indirecting left-to-right" in {
-    combine( AccessChain( "a" ), AccessChain( "b" ) ) shouldEqual AccessChain( "a", "b" )
+  "Combining an AccessChain with another AccessChain" should "produce a new AccessChain indirecting right-to-left" in {
+    // AccessChains can be generated in one of two ways: directly (when ExpressionDescriber runs into a.b.c), or
+    // indirectly via Result.applyDescription. In the latter case, the innermost description is actually on the right
+    // side of the indirection (so a.b.c => c applyDescription b applyDescription a), hence the reverse indirection
+    // order.
+    // See issue #66 (https://github.com/wix/accord/issues/66) for an example use caes.
+
+    combine( AccessChain( "a" ), AccessChain( "b" ) ) shouldEqual AccessChain( "b", "a" )
   }
 
   "Explicit description" should "combine with nothing" in {
