@@ -27,7 +27,7 @@ class BaseValidatorTests extends WordSpec with Matchers with ViolationBuilder {
       val result = validator.apply( null )
       result shouldBe a[ Failure ]
       val Failure( violations ) = result
-      violations.loneElement shouldEqual RuleViolation( null, "is a null", None )
+      violations.loneElement shouldEqual RuleViolation( null, "is a null" )
     }
 
     "return a Success if test succeeds" in {
@@ -38,7 +38,7 @@ class BaseValidatorTests extends WordSpec with Matchers with ViolationBuilder {
       val result = validator.apply( "no" )
       result shouldBe a[ Failure ]
       val Failure( violations ) = result
-      violations.loneElement shouldEqual RuleViolation( "no", "no good", None )
+      violations.loneElement shouldEqual RuleViolation( "no", "no good" )
     }
   }
 }

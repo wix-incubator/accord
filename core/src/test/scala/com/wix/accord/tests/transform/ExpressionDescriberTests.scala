@@ -16,8 +16,9 @@
 
 package com.wix.accord.tests.transform
 
+import com.wix.accord.Descriptions._
 import org.scalatest.{Matchers, WordSpec}
-import com.wix.accord.transform.{ExpressionDescriber, MacroHelper}
+import com.wix.accord.transform.ExpressionDescriber
 
 class ExpressionDescriberTests extends WordSpec with Matchers {
   import com.wix.accord.dsl.Descriptor
@@ -25,24 +26,22 @@ class ExpressionDescriberTests extends WordSpec with Matchers {
   case class Nested( field: String )
   case class Test( field1: String, field2: String, nested: Nested )
 
-  import MacroHelper.shownTermName
-
   "A single-parameter function literal" should {
     "render an access chain description for a property getter" in {
       val description = ExpressionDescriber describe { ( t: Test ) => t.field1 }
-      description shouldEqual s"""AccessChain(List($shownTermName("field1")))"""
+      description shouldEqual AccessChain( "field1" )
     }
     "render an access chain description for multiple indirections via property getters" in {
       val description = ExpressionDescriber describe { ( t: Test ) => t.nested.field }
-      description shouldEqual s"""AccessChain(List($shownTermName("nested"), $shownTermName("field")))"""
+      description shouldEqual AccessChain( "nested", "field" )
     }
     "render an explicit description when \"as\" is used" in {
       val description = ExpressionDescriber describe { ( t: Test ) => t.field2 as "explicit" }
-      description shouldEqual """ExplicitDescription(Literal(Constant("explicit")))"""
+      description shouldEqual Explicit( "explicit" )
     }
     "render a generic description for unsupported expressions" in {
       val description = ExpressionDescriber describe { ( _: Test ) => "arbitrary" }
-      description shouldEqual """GenericDescription(Literal(Constant("arbitrary")))"""
+      description shouldEqual Generic( "\"arbitrary\"" )
     }
     "render a self-reference description when the sample object itself is used anonymously" in pending
 //    {

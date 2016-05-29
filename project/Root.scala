@@ -85,6 +85,12 @@ object Root extends Build {
           "dead-simple and self-contained story for defining validation rules and executing them on object " +
           "instances. Feedback, bug reports and improvements are welcome!"
       ) ++ baseSettings :_* )
+      .jsSettings(
+        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M16-SNAP4"
+      )
+      .jvmSettings(
+        libraryDependencies += "org.scalatest" %%% "scalatest" % "2.2.6"
+      )
 
   lazy val apiJVM = api.jvm
   lazy val apiJS = api.js

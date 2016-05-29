@@ -23,7 +23,7 @@ trait SpringAdapterBase {
 
   /** Formats Spring Validation rejection messages. */
   protected def formatMessage( failure: Violation ) =
-    ( failure.description.toSeq :+ failure.constraint ).mkString( " " )
+    s"${failure.description} ${failure.constraint}"
 
   /** Formats Spring Validation error codes. Currently hardcoded. */
   protected def formatErrorCode( failure: Violation ) = SpringAdapterBase.defaultErrorCode
@@ -36,7 +36,7 @@ trait SpringAdapterBase {
       case Failure( violations ) =>
         violations foreach { v => errors.reject( formatErrorCode( v ), formatMessage( v ) ) }
       case Success =>
-      // Do nothing
+        // Do nothing
     }
   }
 }

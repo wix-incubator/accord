@@ -1,5 +1,6 @@
 package com.wix.accord.dsl
 
+import com.wix.accord.Descriptions._
 import com.wix.accord.{Result, Success, Validator}
 
 object Aggregates {
@@ -12,13 +13,10 @@ object Aggregates {
         if ( coll == null ) Validator.nullFailure
         else {
           var index = 0
-          val appendIndex: ( Option[ String ] => Option[ String ] ) =
-            if ( includeIndices ) { prefix: Option[ String ] => Some( prefix.getOrElse( "" ) + s" [at index $index]" ) }
-            else identity
 
           var aggregate: Result = Success
           coll foreach { element =>
-            val result = validator apply element withDescription appendIndex
+            val result = validator apply element applyDescription ( if ( includeIndices ) Indexed( index ) else Empty )
             aggregate = aggregate and result
             index = index + 1
           }

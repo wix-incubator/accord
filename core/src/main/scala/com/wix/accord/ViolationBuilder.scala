@@ -28,11 +28,11 @@ trait ViolationBuilder {
 
   /** Converts a tuple of the form value->constraint to a [[com.wix.accord.RuleViolation]]. */
   implicit def ruleViolationFromTuple( v: ( Any, String ) ): RuleViolation =
-    RuleViolation( value = v._1, constraint = v._2, description = None )
+    RuleViolation( value = v._1, constraint = v._2 )
 
   /** Converts an extended tuple of the form value->constraint->ruleSeq to a [[com.wix.accord.GroupViolation]]. */
   implicit def groupViolationFromTuple( v: ( ( Any, String ), Set[ Violation ] ) ): GroupViolation =
-    GroupViolation( value = v._1._1, constraint = v._1._2, description = None, children = v._2 )
+    GroupViolation( value = v._1._1, constraint = v._1._2, children = v._2 )
 
   /** Wraps a single violation to a [[com.wix.accord.Failure]]. */
   implicit def singleViolationToFailure[ V ]( v: V )( implicit ev: V => Violation ): Failure =

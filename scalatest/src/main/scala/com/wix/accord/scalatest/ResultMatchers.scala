@@ -50,9 +50,9 @@ trait ResultMatchers {
     def apply( left: Violation ): MatchResult = left match {
       case rv: RuleViolation =>
         MatchResult(
-          matches = ( value       == null || rv.value       == value               ) &&
-                    ( constraint  == null || rv.constraint  == constraint          ) &&
-                    ( description == null || rv.description == Some( description ) ),
+          matches = ( value       == null || rv.value       == value       ) &&
+                    ( constraint  == null || rv.constraint  == constraint  ) &&
+                    ( description == null || rv.description == description ),
           s"Rule violation $rv did not match pattern $this",
           s"Rule violation $rv matches pattern $this"
         )
@@ -76,7 +76,7 @@ trait ResultMatchers {
     * val rule = RuleViolationMatcher( description = "firstName", constraint = "must not be empty" )
     * ```
     */
-  implicit def stringTuple2RuleMatcher( v: ( String, String ) ) =
+  implicit def stringTuple2RuleMatcher( v: ( String, String ) ): RuleViolationMatcher =
     RuleViolationMatcher( description = v._1, constraint = v._2 )
 
   /** A matcher over [[com.wix.accord.GroupViolation]]s. To generate a violation rule "pattern", call
@@ -109,9 +109,9 @@ trait ResultMatchers {
                          ( gv.children.size == violations.size &&
                            gv.children.forall( rule => violations.exists( _.apply( rule ).matches ) ) )
         MatchResult(
-          matches = ( value       == null || gv.value       == value               ) &&
-                    ( constraint  == null || gv.constraint  == constraint          ) &&
-                    ( description == null || gv.description == Some( description ) ) &&
+          matches = ( value       == null || gv.value       == value       ) &&
+                    ( constraint  == null || gv.constraint  == constraint  ) &&
+                    ( description == null || gv.description == description ) &&
                     rulesMatch,
           s"Group violation $gv did not match pattern $this",
           s"Group violation $gv matches pattern $this"
@@ -182,9 +182,9 @@ trait ResultMatchers {
     * @return A matcher over [[com.wix.accord.GroupViolation]]s.
     */
   def group( description: String, constraint: String, expectedViolations: ( String, String )* ) =
-    new GroupViolationMatcher( constraint  = constraint,
-                               description = description,
-                               violations  = ( expectedViolations map stringTuple2RuleMatcher ).toSet )
+    GroupViolationMatcher( constraint  = constraint,
+                           description = description,
+                           violations  = ( expectedViolations map stringTuple2RuleMatcher ).toSet )
 
   /** Enables syntax like `someResult should be( aFailure )` */
   val aFailure = new BeMatcher[ Result ] {

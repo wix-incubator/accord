@@ -17,20 +17,12 @@
 package com.wix.accord.transform
 
 import MacroHelper._
+import com.wix.accord.Descriptions
+import com.wix.accord.Descriptions.Description
 
 import scala.language.experimental.macros
 
-trait DescriptionModel[ C <: Context ] {
-  protected val context: C
 
-  import context.universe._
-
-  protected sealed trait Description
-  protected case class ExplicitDescription( tree: Tree ) extends Description
-  protected case class GenericDescription( tree: Tree ) extends Description
-  protected case class AccessChain( elements: Seq[ Name ] ) extends Description
-  protected case object SelfReference extends Description
-}
 
 /** A macro helper trait that generates implicit description for expressions. The transformation operates in the
   * context of a function of the form `Function1[ T, U ]`, or in other words only supports single-parameter
@@ -39,21 +31,17 @@ trait DescriptionModel[ C <: Context ] {
   * The expression is transformable via [[com.wix.accord.transform.ExpressionDescriber.describeTree]]
   * based on the following rules:
   *  - Selectors over the function prototype are rewritten to the selected expression; for example,
-  *    `{ p: Person => p.firstName }` gets rewritten to a tree representing the string literal `"firstName"`
+  *    `{ p: Person => p.firstName }` gets rewritten to a tree representing `AccessChain( "firstName" )`
   *  - Explicitly described expressions (via [[com.wix.accord.dsl.Descriptor]]) are rewritten to a tree
   *    representing the description as a string literal, for example `{ p: Person => p.firstName as "first name" }`
-  *    gets rewritten simply as `"first name"`
-  *  - Any other expression is rewritten as tree representing a string literal of the expression itself, for
-  *    example `{ _ => 1 + 2 + 3 }` gets rewritten as `"1 + 2 + 3"`.
+  *    gets rewritten as `Explicit( "first name" )`
+  *  - Any other expression is rewritten as tree representing the expression itself, for
+  *    example `{ _ => 1 + 2 + 3 }` gets rewritten as `Generic( "1 + 2 + 3" )`.
   *
   * @tparam C The macro context type
   */
-private[ transform ] trait ExpressionDescriber[ C <: Context ]
-  extends DescriptionModel[ C ]
-  with MacroHelper[ C ]
-  with PatternHelper[ C ]
-{
-
+private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] with PatternHelper[ C ] {
+  import Descriptions._
   import context.universe._
 
   /** An extractor for explicitly described expressions. Applies expressions like
@@ -64,9 +52,9 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ]
     private val descriptorTerm = typeOf[ com.wix.accord.dsl.Descriptor[_] ].typeSymbol.name.toTermName
     private val asTerm = termName( "as" )
 
-    private[ ExpressionDescriber ] def unapply( ouv: Tree ): Option[ ExplicitDescription ] = ouv match {
+    private[ ExpressionDescriber ] def unapply( ouv: Tree ): Option[ context.Expr[ Explicit ] ] = ouv match {
       case Apply( Select( Apply( TypeApply( Select( _, `descriptorTerm` ), _ ), _ ), `asTerm` ), literal :: Nil ) =>
-        Some( ExplicitDescription( literal ) )
+        Some( context.Expr[ Explicit ]( q"com.wix.accord.Descriptions.Explicit( $literal )" ) )
       case _ => None
     }
   }
@@ -75,9 +63,9 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ]
     *
     * @param prototype The function prototype; specifically, the single function parameter's definition as
     *                  a `ValDef`. Must be provided by the inheritor.
-    * @return The generated ddescription.
+    * @return The generated description.
     */
-  protected def describeTree( prototype: ValDef, ouv: Tree ): Description = {
+  protected def describeTree( prototype: ValDef, ouv: Tree ): context.Expr[ Description ] = {
     val PrototypeName = prototype.name
 
     /** A helper extractor object that handles selector chains recursively. The innermost selector must select
@@ -99,10 +87,19 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ]
     }
 
     ouv match {
-      case ExplicitlyDescribed( description )      => description
-      case PrototypeSelectorChain( elements @ _* ) => AccessChain( elements )
-      case Ident( PrototypeName )                  => SelfReference    // Anonymous parameter reference: validator[...] { _ is... }
-      case _                                       => GenericDescription( ouv )
+      case ExplicitlyDescribed( description ) =>
+        description
+
+      case PrototypeSelectorChain( elements @ _* ) =>
+        def renderName( n: Name ) = n.decodedName.toString
+        context.Expr[ Description ]( q"com.wix.accord.Descriptions.AccessChain( ..${ elements map renderName } )" )
+
+      case Ident( PrototypeName ) =>
+        // Anonymous parameter reference: validator[...] { _ is... }
+        context.Expr[ Description ]( q"com.wix.accord.Descriptions.SelfReference" )
+
+      case _ =>
+        context.Expr[ Description ]( q"com.wix.accord.Descriptions.Generic( ${ ouv.toString } )" )
     }
   }
 }
@@ -138,17 +135,14 @@ private class TestFunctionDescriber[ C <: Context, T, U ]( val context: C, f: C#
   val ( prototype, implementation ) = describeFunction( f in context.mirror )
 
   /** Renders a description for the function body and externalizes it as a string expression. */
-  def renderedDescription: Expr[ String ] = {
-    val desc = describeTree( prototype, implementation )
-    context.Expr[ String ]( Literal( Constant( showRaw( desc ) ) ) )
-  }
+  def renderedDescription: Expr[ Description ] = describeTree( prototype, implementation )
 }
 
 private[ accord ] object ExpressionDescriber {
 
-  def apply[ T : c.WeakTypeTag, U : c.WeakTypeTag ]( c: Context )( f: c.Expr[ T => U ] ): c.Expr[ String ] =
+  def apply[ T : c.WeakTypeTag, U : c.WeakTypeTag ]( c: Context )( f: c.Expr[ T => U ] ): c.Expr[ Description ] =
     new TestFunctionDescriber[ c.type, T, U ]( c, f ).renderedDescription
 
   /** A test invoker for [[com.wix.accord.transform.ExpressionDescriber]] */
-  def describe[ T, U ]( f: T => U ): String = macro ExpressionDescriber[ T, U ]
+  def describe[ T, U ]( f: T => U ): Description = macro ExpressionDescriber[ T, U ]
 }
