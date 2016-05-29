@@ -74,4 +74,7 @@ trait GenericOps {
     * nulls.
     */
   def notAnInstanceOf[ T <: AnyRef : ClassTag ]: Validator[ AnyRef ] = new NotAnInstanceOf[ T ]
+
+  // TODO ScalaDocs
+  def conditional[ C, T ]( cond: C )( cases: PartialFunction[ C, Validator[ T ] ] ): Validator[ T ] = ???
 }
