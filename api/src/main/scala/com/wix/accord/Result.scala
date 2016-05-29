@@ -26,14 +26,23 @@ sealed trait Violation {
   /** A textual description of the constraint being violated (for example, "must not be empty"). */
   def constraint: String
 
-  /** The textual description of the object under validation (this is the expression that, when evaluated at
+  /**
+    * A textual rendition of the generated description (see [[com.wix.accord.Violation.rawDescription]]). This
+    * property exists largely to maintain backwards compatibility with prior versions of the API.
+    */
+  def description: String = Descriptions.render( rawDescription )
+
+  /** The actual generated description of the object under validation (this is the expression that, when evaluated at
     * runtime, produces the value in [[com.wix.accord.Violation.value]]). This is normally filled in
     * by the validation transform macro, but can also be explicitly provided via the DSL.
     */
-  def description: String = Descriptions.render( _description )
+  def rawDescription: Description
 
-  protected def _description: Description
-
+  /** Applies the specified description to this violation, and produces a new instance with the resulting
+    * description. For the exact semantics please refer to [[com.wix.accord.Descriptions.combine]].
+    *
+    * @see com.wix.accord.Descriptions.combine
+    */
   def applyDescription( description: Description ): Violation
 }
 
@@ -42,15 +51,15 @@ sealed trait Violation {
   * 
   * @param value The value of the object which failed the validation rule.
   * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
-  * @param _description The description of the object under validation.
+  * @param rawDescription The description of the object under validation.
   */
 case class RuleViolation( value: Any,
                           constraint: String,
-                          protected val _description: Description = Descriptions.Empty )
+                          rawDescription: Description = Descriptions.Empty )
   extends Violation {
 
   def applyDescription( description: Description ) =
-    this.copy( _description = Descriptions.combine( _description, description ) )
+    this.copy( rawDescription = Descriptions.combine( rawDescription, description ) )
 }
 
 /** Describes the violation of a group of constraints. For example, the `Or` combinator found in the built-in
@@ -59,17 +68,17 @@ case class RuleViolation( value: Any,
   * @param value The value of the object which failed validation.
   * @param constraint A textual description of the constraint being violated (for example, "doesn't meet any
   *                   of the requirements").
-  * @param _description The description of the object under validation.
+  * @param rawDescription The description of the object under validation.
   * @param children The set of violations contained within the group.
   */
 case class GroupViolation( value: Any,
                            constraint: String,
                            children: Set[ Violation ],
-                           protected val _description: Description = Descriptions.Empty )
+                           rawDescription: Description = Descriptions.Empty )
   extends Violation {
 
   def applyDescription( description: Description ) =
-    this.copy( _description = Descriptions.combine( _description, description ) )
+    this.copy( rawDescription = Descriptions.combine( rawDescription, description ) )
 }
 
 /** A base trait for validation results.
