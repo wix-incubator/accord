@@ -2,11 +2,12 @@
 
 Version 0.6 fixes a few bugs and adds several asked-for features:
 
-* [#69](https://github.com/wix/accord/issues/69) Add support for Scala 2.12.0-M4;
-* [#65](https://github.com/wix/accord/issues/65) Add anInstanceOf and notAnInstanceOf validators;
-* [#57](https://github.com/wix/accord/issues/57) Detecting position in collection combinator;
-* [#48](https://github.com/wix/accord/issues/48) Automate publishing of snapshot artifacts on TravisCI;
-* [#32](https://github.com/wix/accord/issues/32) Add set-style "is one of" combinator;
+* [#69](https://github.com/wix/accord/issues/69) Feature: Add support for Scala 2.12.0-M4;
+* [#66](https://github.com/wix/accord/issues/66) Bug: Resolving property names in explicit validators
+* [#65](https://github.com/wix/accord/issues/65) Feature: Add anInstanceOf and notAnInstanceOf validators;
+* [#57](https://github.com/wix/accord/issues/57) Feature: Detecting position in collection combinator;
+* [#48](https://github.com/wix/accord/issues/48) Feature: Automate publishing of snapshot artifacts on TravisCI;
+* [#32](https://github.com/wix/accord/issues/32) Feature: Add set-style "is one of" combinator;
 * Upgraded to Scala.js 0.6.8 (required for Scala 2.12 support).
 
 As always, bug reports, pull requests and other ideas are welcome -- [join the discussion](https://gitter.im/wix/accord?utm_source=share-link&utm_medium=link&utm_campaign=share-link) on Gitter!
