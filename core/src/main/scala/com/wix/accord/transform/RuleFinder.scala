@@ -19,7 +19,7 @@ package com.wix.accord.transform
 import MacroHelper._
 import com.wix.accord._
 
-private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ] with ExpressionDescriber[ C ] {
+private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ] with MacroHelper[ C ] {
   self: MacroLogging[ C ] =>
 
   import context.universe._
