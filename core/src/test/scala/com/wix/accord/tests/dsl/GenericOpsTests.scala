@@ -88,7 +88,7 @@ class GenericOpsTests extends WordSpec with Matchers with ResultMatchers {
       val violation1 = extractViolation( conditionalValidator( test1 ) )
       val violation2 = extractViolation( conditionalValidator( test2 ) )
       violation1.value shouldEqual "test1"
-      violation1.value shouldEqual "test2"
+      violation2.value shouldEqual "test2"
     }
 
     "include the runtime value" in {
