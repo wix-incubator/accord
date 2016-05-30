@@ -99,4 +99,33 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
       case _ => None
     }
   }
+
+  object PartialFunction {
+    def unapply( tree: Tree ): Option[ Seq[ CaseDef ] ] = {
+      var l = scala.collection.mutable.ArrayBuffer.empty[ CaseDef ]
+      val traverser = new Traverser {
+
+        override def traverseCases( cases: List[ CaseDef ] ): Unit =
+          if ( currentOwner.isMethod && currentOwner.asMethod.name.decodedName.toString == "applyOrElse" ) {
+            l ++= cases
+          } else super.traverseCases( cases )
+      }.traverse( tree )
+      if ( l.isEmpty ) None else Some( l )
+    }
+  }
+
+  object ConditionalRule {
+    private val conditionalTerm = context.universe.TermName( "conditional" )
+
+    def unapply( t: Tree ): Option[( Tree, Seq[ CaseDef ] )] = t match {
+        // TODO clean this shit up. Seriously.
+      case Apply(
+             Apply( TypeApply( Select( _, `conditionalTerm` ), condTpe :: ouvTpe :: Nil ), cond :: Nil ),
+             PartialFunction( cases ) :: Nil ) =>
+        Some( resetAttrs( cond.duplicate ) -> cases )
+
+      case _ =>
+        None
+    }
+  }
 }

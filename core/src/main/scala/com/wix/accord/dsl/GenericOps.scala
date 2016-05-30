@@ -24,7 +24,9 @@ import com.wix.accord.combinators.EqualTo
 import com.wix.accord.combinators.NotEqualTo
 import com.wix.accord.combinators.AnInstanceOf
 import com.wix.accord.combinators.NotAnInstanceOf
+import com.wix.accord.transform.ValidationTransform
 
+import scala.annotation.compileTimeOnly
 import scala.reflect.ClassTag
 
 /** Provides a DSL for untyped validators. */
@@ -76,5 +78,6 @@ trait GenericOps {
   def notAnInstanceOf[ T <: AnyRef : ClassTag ]: Validator[ AnyRef ] = new NotAnInstanceOf[ T ]
 
   // TODO ScalaDocs
+  @compileTimeOnly( "Conditional statements should not be used outside of a validator definition block." )
   def conditional[ C, T ]( cond: C )( cases: PartialFunction[ C, Validator[ T ] ] ): Validator[ T ] = ???
 }

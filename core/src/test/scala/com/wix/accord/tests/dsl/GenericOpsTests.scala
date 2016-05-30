@@ -19,7 +19,6 @@ package com.wix.accord.tests.dsl
 import com.wix.accord.scalatest.ResultMatchers
 import org.scalatest.{Matchers, WordSpec}
 import com.wix.accord.combinators.{AnInstanceOf, EqualTo, IsNotNull, IsNull, NotAnInstanceOf, NotEqualTo}
-import org.scalatest.matchers.{MatchResult, Matcher}
 
 class GenericOpsTests extends WordSpec with Matchers with ResultMatchers {
   import GenericOpsTests._
