@@ -104,7 +104,6 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
     def unapply( tree: Tree ): Option[ Seq[ CaseDef ] ] = {
       var l = scala.collection.mutable.ArrayBuffer.empty[ CaseDef ]
       val traverser = new Traverser {
-
         override def traverseCases( cases: List[ CaseDef ] ): Unit =
           if ( currentOwner.isMethod && currentOwner.asMethod.name.decodedName.toString == "applyOrElse" ) {
             l ++= cases
