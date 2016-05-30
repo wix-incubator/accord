@@ -58,6 +58,30 @@ trait MacroHelper[ C <: Context ] {
 
     transformByPattern( tree )( typeRewrite )
   }
+
+  def prettyPrint( tree: Tree ): String = {
+    // Ouch. Taking a leaf from Li Haoyi, see:
+    // https://github.com/lihaoyi/sourcecode/blob/master/sourcecode/shared/src/main/scala/sourcecode/SourceContext.scala
+    val fileContent = new String( tree.pos.source.content )
+    val start = tree.collect { case t => t.pos.start }.min
+    val end = {
+      // For some reason, ouv.pos.isRange doesn't work -- I'm probably missing something, but this is
+      // a decent workaround for now.
+      val rangeEnd = tree.collect { case t => t.pos.end }.max
+      if ( start != rangeEnd )
+        rangeEnd + 1
+      else {
+        // Point position, need to actually parse to figure out the slice size by parsing
+        val g: scala.tools.nsc.Global =
+          context.asInstanceOf[ reflect.macros.runtime.Context ].global   // TODO is this safe?
+        val parser = g.newUnitParser( fileContent.substring( start ), "<Accord>" )
+        parser.expr()
+        start + parser.in.lastOffset
+      }
+    }
+
+    fileContent.slice( start, end )
+  }
 }
 
 object MacroHelper {

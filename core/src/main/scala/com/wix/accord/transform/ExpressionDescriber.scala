@@ -99,36 +99,7 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
         context.Expr[ Description ]( q"com.wix.accord.Descriptions.SelfReference" )
 
       case _ =>
-//        context.Expr[ Description ]( q"com.wix.accord.Descriptions.Generic( ${ ouv.toString } )" )
-
-        import scala.language.existentials
-        val literal = {
-          // Ouch. Taking a leaf from Li Haoyi, see:
-          // https://github.com/lihaoyi/sourcecode/blob/master/sourcecode/shared/src/main/scala/sourcecode/SourceContext.scala
-          val fileContent = new String( ouv.pos.source.content )
-          val start = ouv.collect { case t => t.pos.start }.min
-          val end = {
-            // For some reason, ouv.pos.isRange doesn't work -- I'm probably missing something, but this is
-            // a decent workaround for now.
-            val rangeEnd = ouv.collect { case t => t.pos.end }.max
-            if ( start != rangeEnd )
-              rangeEnd + 1
-            else {
-              // Point position, need to actually parse to figure out the slice size
-              val g = context.asInstanceOf[ reflect.macros.runtime.Context ].global   // TODO is this safe?
-              val parser = g.newUnitParser( fileContent.substring( start ), "<Accord>" )
-              parser.expr()
-              start + parser.in.lastOffset
-            }
-          }
-
-          fileContent.slice(start, end)
-        }
-//        println(s"${showRaw(ouv)}")
-        println(s"for ouv: ${ouv.toString} at ${ouv.pos}, the literal is $literal")
-        val tree = Literal( Constant( literal ) )
-
-        context.Expr[ Description ]( q"""com.wix.accord.Descriptions.Generic( $tree )""" )
+        context.Expr[ Description ]( q"""com.wix.accord.Descriptions.Generic( ${ prettyPrint( ouv ) } )""" )
     }
   }
 }
