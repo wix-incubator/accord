@@ -16,13 +16,127 @@
 
 package com.wix.accord.tests.transform
 
+import com.wix.accord.Descriptions.{AccessChain, Conditional, Generic}
 import org.scalatest.{Matchers, WordSpec}
 import com.wix.accord._
 import com.wix.accord.scalatest.ResultMatchers
 
+
+
 class ValidationTransformTests extends WordSpec with Matchers with ResultMatchers {
-  "Validator description" should {
-    import ValidationTransformTests._
+  import ValidationTransformTests._
+
+  "An \"if\" control structure that resolves to a validation rule" should {
+    import ControlStructures._
+
+    "dispatch to the true branch if at runtime if the condition is met" in {
+      val trueBranchValid = ControlStructureTest( -5, "-5" )
+      val trueBranchInvalid = ControlStructureTest( -5, "5" )
+      ifWithBothBranches( trueBranchValid ) shouldBe aSuccess
+      ifWithBothBranches( trueBranchInvalid ) shouldBe aFailure
+    }
+
+    "dispatch to the false branch at runtime if the condition is not met" in {
+      val falseBranchValid = ControlStructureTest( 5, "5" )
+      val falseBranchInvalid = ControlStructureTest( 5, "" )
+      ifWithBothBranches( falseBranchValid ) shouldBe aSuccess
+      ifWithBothBranches( falseBranchInvalid ) shouldBe aFailure
+    }
+
+    "correctly handle empty branches" in {
+      val trueBranchValid = ControlStructureTest( -5, "-5" )
+      val trueBranchInvalid = ControlStructureTest( -5, "5" )
+      val falseBranch = ControlStructureTest( 5, "whatever" )
+      ifWithNoElse( trueBranchInvalid ) shouldBe aFailure
+      ifWithNoElse( trueBranchValid ) shouldBe aSuccess
+      ifWithNoElse( falseBranch ) shouldBe aSuccess
+    }
+
+    // TODO a proper Conditional matcher builder, then:
+    // TODO split into separate tests for each property
+    "describe the true branch correctly" in {
+      val trueBranchInvalid = ControlStructureTest( -5, "5" )
+      ifWithBothBranches( trueBranchInvalid ) should failWith( Conditional(
+        on = Generic( "branch" ),
+        value = "-5",
+        guard = Some( Generic( "cst.field1 < 0" ) ),
+        target = AccessChain( "field1" )
+      ) )
+    }
+
+    "describe the false branch correctly" in {
+      val falseBranchInvalid = ControlStructureTest( 5, "" )
+      ifWithBothBranches( falseBranchInvalid ) should failWith( Conditional(
+        on = Generic( "branch" ),
+        value = "",
+        guard = Some( Generic( "<else>" ) ),
+        target = AccessChain( "field1" )
+      ) )
+    }
+
+    "derive the guard description on non-terminal branches of an if-else chain" in {
+      val secondBranchInvalid = ControlStructureTest( 0, "5" )
+      ifElseChain( secondBranchInvalid ) should failWith( Conditional(
+        on = Generic( "branch" ),
+        value = "5",
+        guard = Some( Generic( "cst.field1 == 0" ) ),
+        target = AccessChain( "field1" )
+      ) )
+    }
+    "describe the last branch of an if-else chain correctly" in {
+      val thirdBranchInvalid = ControlStructureTest( 5, "" )
+      ifElseChain( thirdBranchInvalid ) should failWith( Conditional(
+        on = Generic( "branch" ),
+        value = "",
+        guard = Some( Generic( "<else>" ) ),
+        target = AccessChain( "field1" )
+      ) )
+    }
+  }
+
+  "A pattern match that resolves to a validation rule" should {
+    import ControlStructures._
+
+    "dispatch to the correct case at runtime" in {
+      val valid1 = ControlStructureTest( 1, "1" )
+      val invalid1 = ControlStructureTest( 1, "wrong" )
+      val valid2 = ControlStructureTest( 2, "2" )
+      val invalid2 = ControlStructureTest( 2, "wrong" )
+      simplePatternMatch( valid1 ) shouldBe aSuccess
+      simplePatternMatch( invalid1 ) shouldBe aFailure
+      simplePatternMatch( valid2 ) shouldBe aSuccess
+      simplePatternMatch( invalid2 ) shouldBe aFailure
+    }
+    "correctly describe a case on failure" in {
+      val invalid = ControlStructureTest( 1, "wrong" )
+      simplePatternMatch( invalid ) should failWith( Conditional(
+        on = AccessChain( "field1" ),
+        value = 1,
+        guard = None,
+        target = AccessChain( "field2" )  // TODO elide from test once we have a proper matcher in place
+      ) )
+    }
+    "correctly describe a guard on failure" in {
+      val invalid = ControlStructureTest( -1, "wrong" )
+      patternMatchWithGuard( invalid ) should failWith( Conditional(
+        on = AccessChain( "field1" ),
+        value = -1,
+        guard = Some( Generic( "n < 0" ) ),
+        target = AccessChain( "field2" )
+      ) )
+    }
+    "treat an empty case as an implicit success" in {
+      val valid1 = ControlStructureTest( 1, "1" )
+      val invalid1 = ControlStructureTest( 1, "wrong" )
+      val validDefault = ControlStructureTest( -5, "all good" )
+      patternMatchWithEmptyDefault( valid1 ) shouldBe aSuccess
+      patternMatchWithEmptyDefault( invalid1 ) shouldBe aFailure
+      patternMatchWithEmptyDefault( validDefault ) shouldBe aSuccess
+    }
+  }
+
+  "A static validator description" should {
+    import Descriptions.Static._
 
     "be generated for a fully-qualified field selector" in {
       validate( FlatTest( null ) )( implicitlyDescribedNamedValidator ) should failWith( "field" -> "is a null" )
@@ -44,7 +158,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     "be generated for a multiple-clause boolean expression" in {
       val obj = FlatTest( "123" )
       validate( obj )( booleanExpressionValidator ) should failWith(
-        group( null, "doesn't meet any of the requirements",
+        group( null: String, "doesn't meet any of the requirements",
           "field" -> "is not a null",
           "field" -> "has size 3, expected more than 5"
         ) )
@@ -59,14 +173,18 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     "be propagated for an adapted validator" in {
       validate( FlatTest( null ) )( adaptedValidator ) should failWith( "field" -> "is a null" )
     }
+  }
 
-    "properly nest for runtime rewrites (e.g. position marker)" in {
+  "A runtime validator description decoration (e.g. sequence position)" should {
+    import Descriptions.Runtime._
+
+    "propagate correctly when the object under validation is implicitly described" in {
       val sample = RuntimeDescribedTest( Seq( "valid", "" ) )
       val result = validate( sample )( implicitDescriptionWithRuntimeRewriteValidator )
       result should failWith( "field [at index 1]" -> "must not be empty" )
     }
 
-    "properly nest for runtime rewrites with explicit description" in {
+    "propagate correctly when the object under validation is explicitly described with \"as\"" in {
       val sample = RuntimeDescribedTest( Seq( "valid", "" ) )
       val result = validate( sample )( explicitDescriptionWithRuntimeRewriteValidator )
       result should failWith( "described [at index 1]" -> "must not be empty" )
@@ -96,26 +214,75 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
 
 object ValidationTransformTests {
   import dsl._
-  
-  case class FlatTest( field: String )
-  val implicitlyDescribedNamedValidator = validator[ FlatTest ] { t => t.field is notNull }
-  val implicitlyDescribedAnonymousValidator = validator[ FlatTest ] { _.field is notNull }
-  val explicitlyDescribedValidator = validator[ FlatTest ] { t => t.field as "described" is notNull }
-  val implicitlyDescribedValueValidator = validator[ String ] { _ is notNull }
-  val adaptedValidator = implicitlyDescribedValueValidator compose { ( f: FlatTest ) => f.field }
-  val booleanExpressionValidator = validator[ FlatTest ] { t => ( t.field is aNull ) or ( t.field has size > 5 ) }
 
-  case class CompositeTest( member: FlatTest )
-  val compositeValidator = {
-    implicit val flatValidator = implicitlyDescribedAnonymousValidator
-    validator[ CompositeTest ] { _.member is valid }
+  object Descriptions {
+
+    object Static {
+      case class FlatTest( field: String )
+      val implicitlyDescribedNamedValidator = validator[ FlatTest ] { t => t.field is notNull }
+      val implicitlyDescribedAnonymousValidator = validator[ FlatTest ] { _.field is notNull }
+      val explicitlyDescribedValidator = validator[ FlatTest ] { t => t.field as "described" is notNull }
+      val implicitlyDescribedValueValidator = validator[ String ] { _ is notNull }
+      val adaptedValidator = implicitlyDescribedValueValidator compose { ( f: FlatTest ) => f.field }
+      val booleanExpressionValidator = validator[ FlatTest ] { t => ( t.field is aNull ) or ( t.field has size > 5 ) }
+
+      case class CompositeTest( member: FlatTest )
+      val compositeValidator = {
+        implicit val flatValidator = implicitlyDescribedAnonymousValidator
+        validator[ CompositeTest ] { _.member is valid }
+      }
+      val namedIndirectValidator = validator[ CompositeTest ] { c => c.member.field is notNull }
+      val anonymousIndirectValidator = validator[ CompositeTest ] { _.member.field is notNull }
+    }
+
+    object Runtime {
+      case class RuntimeDescribedTest( field: Seq[ String ] )
+      val implicitDescriptionWithRuntimeRewriteValidator =
+        validator[ RuntimeDescribedTest ] { rdt => rdt.field.each is notEmpty }
+      val explicitDescriptionWithRuntimeRewriteValidator =
+        validator[ RuntimeDescribedTest ] { rdt => ( rdt.field as "described" ).each is notEmpty }
+
+    }
   }
-  val namedIndirectValidator = validator[ CompositeTest ] { c => c.member.field is notNull }
-  val anonymousIndirectValidator = validator[ CompositeTest ] { _.member.field is notNull }
 
-  case class RuntimeDescribedTest( field: Seq[ String ] )
-  val implicitDescriptionWithRuntimeRewriteValidator =
-    validator[ RuntimeDescribedTest ] { rdt => rdt.field.each is notEmpty }
-  val explicitDescriptionWithRuntimeRewriteValidator =
-    validator[ RuntimeDescribedTest ] { rdt => ( rdt.field as "described" ).each is notEmpty }
+  object ControlStructures {
+    case class ControlStructureTest( field1: Int, field2: String )
+    val ifWithNoElse = validator [ ControlStructureTest ] { cst =>
+      if ( cst.field1 < 0 )
+        cst.field2 should startWith( "-" )
+    }
+    val ifWithBothBranches = validator[ ControlStructureTest ] { cst =>
+      if ( cst.field1 < 0 )
+        cst.field2 should startWith( "-" )
+      else
+        cst.field2 is notEmpty
+    }
+    val ifElseChain = validator[ ControlStructureTest ] { cst =>
+      if ( cst.field1 < 0 )
+        cst.field2 should startWith( "-" )
+      else if ( cst.field1 == 0 )
+        cst.field2 is equalTo( "0" )
+      else if ( cst.field1 > 0 )
+        cst.field2 is notEmpty
+    }
+    val simplePatternMatch = validator[ ControlStructureTest ] { cst =>
+      cst.field1 match {
+        case 1 => cst.field2 is equalTo( "1" )
+        case 2 => cst.field2 is equalTo( "2" )
+      }
+    }
+    val patternMatchWithEmptyDefault = validator[ ControlStructureTest ] { cst =>
+      cst.field1 match {
+        case 1 => cst.field2 is equalTo( "1" )
+        case _ =>
+      }
+    }
+    val patternMatchWithGuard = validator[ ControlStructureTest ] { cst =>
+      cst.field1 match {
+        case n if n < 0 => cst.field2 should startWith( "-" )
+        case 0          => cst.field2 is equalTo( "0" )
+        case n if n > 0 => cst.field2 is notEmpty
+      }
+    }
+  }
 }
