@@ -137,4 +137,13 @@ trait GeneralPurposeCombinators {
       value => !( ct.runtimeClass isAssignableFrom value.getClass ),
       _ -> s"is an instance of $ct"
     )
+
+  class Conditional[ T ]( branches: Seq[( T => Boolean, Validator[ T ] )], default: Option[ Validator[ T ] ] )
+    extends Validator[ T ] {
+
+    def apply( v: T ) = {
+      val branch = branches.collectFirst { case ( test, validator ) if test( v ) => validator }
+      ( branch orElse default ).map( _ apply v ).getOrElse( Success )
+    }
+  }
 }

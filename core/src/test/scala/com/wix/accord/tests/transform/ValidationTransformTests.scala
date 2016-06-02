@@ -58,7 +58,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       val trueBranchInvalid = ControlStructureTest( -5, "5" )
       ifWithBothBranches( trueBranchInvalid ) should failWith( Conditional(
         on = Generic( "branch" ),
-        value = "-5",
+        value = true,
         guard = Some( Generic( "cst.field1 < 0" ) ),
         target = AccessChain( "field1" )
       ) )
@@ -68,7 +68,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       val falseBranchInvalid = ControlStructureTest( 5, "" )
       ifWithBothBranches( falseBranchInvalid ) should failWith( Conditional(
         on = Generic( "branch" ),
-        value = "",
+        value = false,
         guard = Some( Generic( "<else>" ) ),
         target = AccessChain( "field1" )
       ) )
@@ -78,7 +78,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       val secondBranchInvalid = ControlStructureTest( 0, "5" )
       ifElseChain( secondBranchInvalid ) should failWith( Conditional(
         on = Generic( "branch" ),
-        value = "5",
+        value = true,
         guard = Some( Generic( "cst.field1 == 0" ) ),
         target = AccessChain( "field1" )
       ) )
@@ -87,7 +87,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       val thirdBranchInvalid = ControlStructureTest( 5, "" )
       ifElseChain( thirdBranchInvalid ) should failWith( Conditional(
         on = Generic( "branch" ),
-        value = "",
+        value = false,
         guard = Some( Generic( "<else>" ) ),
         target = AccessChain( "field1" )
       ) )

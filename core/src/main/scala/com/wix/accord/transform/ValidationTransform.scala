@@ -129,6 +129,39 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       rewrittenValidator
   }
 
+  case class ConditionalBranch( cond: Tree, validator: Tree )
+  case class ValidationRuleBranch( branches: Seq[ ConditionalBranch ], default: Option[ Tree ] )
+
+  object Branch {
+    def unapply( t: Tree ): Option[ ValidationRuleBranch ] = t match {
+      case q"if ( $cond ) { ${ left @ ValidatorApplication(_) }; () } else ${ Branch( right ) }" =>
+        Some( right.copy( branches = ConditionalBranch( cond, left ) +: right.branches ) )
+
+      case q"if ( $cond ) { ${ left @ ValidatorApplication(_) }; () } else { ${ right @ ValidatorApplication(_) }; () }" =>
+        Some( ValidationRuleBranch( Seq( ConditionalBranch( cond, left ) ), Some( right ) ) )
+
+      case q"if ( $cond ) { ${ opt @ ValidatorApplication(_) }; () }" =>
+        Some( ValidationRuleBranch( Seq( ConditionalBranch( cond, opt ) ), None ) )
+
+      case _ =>
+        None
+    }
+  }
+
+  val processBranches: TransformAST = {
+    case Branch( ValidationRuleBranch( branches, default ) ) =>
+      val rewrittenBranches =
+        branches.map { b => q"( $prototype => ${ b.cond } ) -> ${ rewriteValidatorApplication( b.validator ) }" }
+      val rewrittenDefault =
+        default.map( d => q"scala.Some( ${ rewriteValidatorApplication( d ) } )" ).getOrElse( q"scala.None" )
+      println(s"--- branching for:\n${branches.mkString("\n")}\ndefault: $default")
+      val rewrite = q"new com.wix.accord.combinators.Conditional[ ${ weakTypeOf[ T ] } ]( Seq( ..$rewrittenBranches ), $rewrittenDefault )"
+      println(s"--- after rewrite:\n$rewrite")
+      rewrite
+  }
+
+  val processControlStructures: TransformAST = processBranches orElse processConditionals
+
   /** A pattern which rewrites validation rules found in the tree. */
   val rewriteValidationRules: TransformAST = {
     case ValidatorApplication( sv: ValidationRule ) =>
@@ -141,13 +174,15 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       liftBooleanOps( transformByPattern( tree )( rewriteValidationRules ) )
   }
 
+  val rewriteValidatorApplication = rewriteValidationRules orElse processBooleanExpressions
+
   /** Returns the specified validation block, transformed into a single monolithic validator.
     *
     * @return The transformed [[com.wix.accord.Validator]] of `T`.
     */
   def transformed: Expr[ TransformedValidator[ T ] ] = {
     val validationRules =
-      collectFromPattern( validatorBody )( processConditionals orElse rewriteValidationRules orElse processBooleanExpressions )
+      collectFromPattern( validatorBody )( processControlStructures orElse rewriteValidatorApplication )
     val result = context.Expr[ TransformedValidator[ T ] ](
       q"new com.wix.accord.transform.ValidationTransform.TransformedValidator( ..$validationRules )" )
 
