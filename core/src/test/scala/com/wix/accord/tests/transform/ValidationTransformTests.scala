@@ -83,6 +83,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
         target = AccessChain( "field2" )
       ) )
     }
+
     "describe the last branch of an if-else chain correctly" in {
       val thirdBranchInvalid = ControlStructureTest( 5, "" )
       ifElseChain( thirdBranchInvalid ) should failWith( Conditional(
@@ -262,7 +263,7 @@ object ValidationTransformTests {
         cst.field2 should startWith( "-" )
       else if ( cst.field1 == 0 )
         cst.field2 is equalTo( "0" )
-      else if ( cst.field1 > 0 )
+      else
         cst.field2 is notEmpty
     }
     val simplePatternMatch = validator[ ControlStructureTest ] { cst =>
