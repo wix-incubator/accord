@@ -168,9 +168,24 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       }
 
       val rewrittenBranches =
-        branches.map { b => q"( $prototype => ${ b.cond } ) -> ${ rewriteValidatorApplication( describeBranch( b.cond ) )( b.validator ) }" }
+        branches.map { b =>
+          val liftedCondition = q"( $prototype => ${ b.cond } )"
+          q"$liftedCondition -> ${ rewriteValidatorApplication( describeBranch( b.cond ) )( b.validator ) }"
+        }
       val rewrittenDefault =
-        default.map( d => q"scala.Some( ${ rewriteValidatorApplication()( d ) } )" ).getOrElse( q"scala.None" )
+        default.map { d =>
+          val describeDefault: DescriptionTransformation = { target => context.Expr[ Description ](
+            q"""
+              com.wix.accord.Descriptions.Conditional(
+                on = com.wix.accord.Descriptions.Generic( "branch" ),
+                value = false,
+                guard = Some( com.wix.accord.Descriptions.Generic( "<else>" ) ),
+                target = $target
+              )
+            """ )
+          }
+          q"scala.Some( ${ rewriteValidatorApplication( describeDefault )( d ) } )"
+        }.getOrElse( q"scala.None" )
       val rewrite = q"new com.wix.accord.combinators.Conditional[ ${ weakTypeOf[ T ] } ]( Seq( ..$rewrittenBranches ), $rewrittenDefault )"
       println(s"--- after rewrite:\n$rewrite")
       rewrite
