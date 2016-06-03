@@ -60,7 +60,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
         on = Generic( "branch" ),
         value = true,
         guard = Some( Generic( "cst.field1 < 0" ) ),
-        target = AccessChain( "field1" )
+        target = AccessChain( "field2" )
       ) )
     }
 
@@ -70,7 +70,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
         on = Generic( "branch" ),
         value = false,
         guard = Some( Generic( "<else>" ) ),
-        target = AccessChain( "field1" )
+        target = AccessChain( "field2" )
       ) )
     }
 
@@ -80,7 +80,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
         on = Generic( "branch" ),
         value = true,
         guard = Some( Generic( "cst.field1 == 0" ) ),
-        target = AccessChain( "field1" )
+        target = AccessChain( "field2" )
       ) )
     }
     "describe the last branch of an if-else chain correctly" in {
@@ -89,7 +89,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
         on = Generic( "branch" ),
         value = false,
         guard = Some( Generic( "<else>" ) ),
-        target = AccessChain( "field1" )
+        target = AccessChain( "field2" )
       ) )
     }
   }
