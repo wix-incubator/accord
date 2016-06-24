@@ -29,6 +29,12 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
   protected case class BooleanExpression( expr: Tree ) extends ValidatorApplication
   protected case class ValidationRule( ouv: Tree, validation: Tree ) extends ValidatorApplication
 
+  protected object ValidationRule {
+    def isValidationRule( tpe: Type ): Boolean = !tpe.isBottom && tpe <:< typeOf[ Validator[_] ]
+    def isValidationRule( tree: Tree ): Boolean = isValidationRule( tree.tpe )
+    def unapply( t: Tree ): Option[ Tree ] = if ( isValidationRule( t ) ) Some( t ) else None
+  }
+
   /** An extractor for validation rules. The object under validation is, by design, wrapped in the implicit
     * DSL construct [[com.wix.accord.dsl.Contextualizer]], so that a validation rule can be defined with
     * syntax like `p.firstName is notEmpty`.
@@ -63,17 +69,9 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
           rewriteExistentialTypes( root )
       }
 
-    object TypedRule {
-      def unapply( t: Tree ): Option[ Tree ] =
-        if ( !t.tpe.isBottom && t.tpe <:< typeOf[ Validator[_] ] )
-          Some( t )
-        else
-          None
-    }
-
     object ObjectUnderValidation {
       def unapply( t: Tree ): Option[ List[ Tree ] ] =
-        TypedRule.unapply( t ) map extractObjectUnderValidation
+        ValidationRule.unapply( t ) map extractObjectUnderValidation
     }
 
     def unapply( expr: Tree ): Option[ ValidatorApplication ] = expr match {
@@ -110,6 +108,14 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
           } else super.traverseCases( cases )
       }.traverse( tree )
       if ( l.isEmpty ) None else Some( l )
+    }
+  }
+
+  object PatternMatch {
+    def unapply( t: Tree ): Option[( Tree, Seq[ CaseDef ] )] = t match {
+      case q"$matched match { case ..$defs }" if defs forall ValidationRule.isValidationRule =>
+        println(s"found pattern match on $matched, cases:\n${defs.mkString("\n")}")
+        context.abort(t.pos, "hurrah!")
     }
   }
 

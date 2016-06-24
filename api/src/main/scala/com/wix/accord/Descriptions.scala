@@ -66,7 +66,7 @@ object Descriptions {
     *           [[com.wix.accord.dsl.GenericOps.conditional]].
     * @param value The runtime value of the condition for the matching case.
     * @param guard An optional description of the guard specified for the matching case.
-    * @param target The description of the validation taregt for the matching case.
+    * @param target The description of the validation target for the matching case.
     */
   case class Conditional( on: Description,
                           value: Any,
