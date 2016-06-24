@@ -37,14 +37,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
   type DescriptionTransformation = context.Expr[ Description ] => context.Expr[ Description ]
 
-  /**
-   * Each validation rule of type Validator[ U ] is essentially rewritten as Validator[ T ] via the
-   * its extractor; constraint violations are prefixed with the extracted description.
-   *
-   * @param rule The validation rule to rewrite
-   * @return A valid expression representing a [[com.wix.accord.Validator]] of `T`.
-   */
-  private def rewriteOne( rule: ValidationRule, transform: DescriptionTransformation = identity ): Tree = {
+  def rewriteOne( rule: ValidationRule, transform: DescriptionTransformation = identity ): Tree = {
     val description = transform( describeTree( prototype, rule.ouv ) )
     val rewrite =
       q"""
@@ -91,6 +84,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     }
   }
 
+  // TODO this should probably be elided entirely. Waiting on community feedback
   val processConditionals: TransformAST = {
     case ruleBody @ ConditionalRule( cond, cases ) =>
 
@@ -180,12 +174,12 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       }
       val rewrite =
         q"new com.wix.accord.combinators.Conditional[ ${ weakTypeOf[ T ] } ]( Seq( ..$rewrittenBranches ), None )"
-      context.info( t.pos, s"---------------\nAfter rewrite:\n$rewrite", true )
+      trace( s"After pattern match rewrite:\n$rewrite", pos = t.pos )
       rewrite
   }
 
   val processBranches: TransformAST = {
-    case Branch( ValidationRuleBranch( branches, default ) ) =>
+    case t @ Branch( ValidationRuleBranch( branches, default ) ) =>
       def describeBranch( cond: Tree ): DescriptionTransformation = {
         val condDescription = describeTree( prototype, cond )
         target: context.Expr[ Description ] => context.Expr[ Description ](
@@ -220,8 +214,10 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
           }
           q"scala.Some( ${ rewriteValidatorApplication( describeDefault )( d ) } )"
         }.getOrElse( q"scala.None" )
-      val rewrite = q"new com.wix.accord.combinators.Conditional[ ${ weakTypeOf[ T ] } ]( Seq( ..$rewrittenBranches ), $rewrittenDefault )"
-      //println(s"--- after rewrite:\n$rewrite")
+
+      val rewrite =
+        q"new com.wix.accord.combinators.Conditional[ ${ weakTypeOf[ T ] } ]( Seq( ..$rewrittenBranches ), $rewrittenDefault )"
+      trace( s"After branch rewrite:\n$rewrite", pos = t.pos )
       rewrite
   }
 
