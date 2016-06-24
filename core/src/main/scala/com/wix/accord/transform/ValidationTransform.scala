@@ -151,23 +151,19 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     }
   }
 
-  val validatorType = typeOf[ Validator[_] ]
   def isWrappedValidationRule( caseDef: CaseDef ): Boolean =
     caseDef.body match {
       case q"{ $rule; () }" if ValidationRule.isValidationRule( rule ) => true
       case q"()" => true  // Default case
       case _ => false
     }
-//  def unwrapValidationRule( caseDef: CaseDef ): Option[ ConditionalBranch ] =
-//    caseDef.body match {
-//      case q"{ $rule; () }" => Some( ConditionalBranch( caseDef.pat )
-//    }
+
   val processMatches: TransformAST = {
-    case t @ Match( cond, cases ) if cases forall isWrappedValidationRule =>
+    case t @ Match( rawCond, cases ) if cases forall isWrappedValidationRule =>
+      val cond = resetAttrs( rawCond.duplicate )          // Not entirely sure why this is necessary
       val rewrittenBranches = cases collect {
         case CaseDef( pat, guard, q"{ $rule; () }" ) =>
-//          val va =  ValidatorApplication.unapply( rule ).getOrElse( context.abort( rule.pos, "Huh?!" ) ) // TODO clean up
-          val guardDescription = if ( guard.isEmpty ) q"None" else q"Some( ${describeTree( prototype, guard )} )"
+          val guardDescription = if ( guard.isEmpty ) q"scala.None" else q"scala.Some( ${describeTree( prototype, guard )} )"
           val condDescription = describeTree( prototype, cond )
           val description: DescriptionTransformation = { target => context.Expr[ Description ](
             q"""
@@ -178,15 +174,15 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
                 target = $target
               )
             """ ) }
-          val liftedCondition = q"{ $prototype => $cond match { case $pat if $guard => true; case _ => false } }"
+          val proto = resetAttrs( prototype.duplicate )     // Not entirely sure why this is necessary
+          val liftedCondition = q"{ $proto => $cond match { case $pat if $guard => true; case _ => false } }"
           q"$liftedCondition -> ${ rewriteValidatorApplication( description )( rule ) }"
       }
-      val rewrite = q"new com.wix.accord.combinators.Conditional[ ${ weakTypeOf[ T ] } ]( Seq( ..$rewrittenBranches ), None )"
+      val rewrite =
+        q"new com.wix.accord.combinators.Conditional[ ${ weakTypeOf[ T ] } ]( Seq( ..$rewrittenBranches ), None )"
       context.info( t.pos, s"---------------\nAfter rewrite:\n$rewrite", true )
       rewrite
   }
-//
-//    case q"$matched match { ..$defs }" if defs.forall( _.tpe <:< validator )
 
   val processBranches: TransformAST = {
     case Branch( ValidationRuleBranch( branches, default ) ) =>
