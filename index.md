@@ -74,6 +74,7 @@ res3: com.wix.accord.Result = Failure(List(RuleViolation(List(),has size 0, expe
 ```
 
 <a name="getting-started"></a>
+
 Getting Started
 ===============
 
