@@ -196,5 +196,3 @@ def oneOf[ T ]( options : T* ): Validator[ T ] =
     }
   }
 ```
-
-\

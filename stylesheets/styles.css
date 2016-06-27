@@ -88,6 +88,12 @@ section,
 summary {
   display: block;
 }
+postit {
+  display: block;
+  padding: 10px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
 
 /*
  * Corrects inline-block display not defined in IE6/7/8/9 & FF3

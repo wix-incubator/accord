@@ -18,16 +18,10 @@ Accord is developed and used at <a href="http://www.wix.com"><img src="images/wi
 Example
 =======
 
-Importing the library for use:
-
-```scala
-import com.wix.accord._
-```
-
 [Defining](dsl.html) a validator:
 
 ```scala
-import dsl._    // Import the validator DSL
+import com.wix.accord.dsl._    // Import the validator DSL
 
 case class Person( firstName: String, lastName: String )
 case class Classroom( teacher: Person, students: Seq[ Person ] )
@@ -42,12 +36,18 @@ implicit val classValidator = validator[ Classroom ] { c =>
   c.students.each is valid
   c.students have size > 0
 }
+
+<postit>
+  :point_right: &nbsp;&nbsp;<em>See the <a href="dsl.html">DSL user guide</a> for all available features.</em>
+</postit>
+
 ```
 
-
-[Running](api.html) a validator:
+[Executing](api.html) a validator:
 
 ```
+scala> import com.wix.accord._
+
 scala> val validPerson = Person( "Wernher", "von Braun" )
 validPerson: Person = Person(Wernher,von Braun)
 
@@ -73,12 +73,17 @@ scala> validate( invalidClassroom )
 res3: com.wix.accord.Result = Failure(List(RuleViolation(List(),has size 0, expected more than 0,students)))
 ```
 
+<postit>
+  :point_right: &nbsp;&nbsp;<em>See the <a href="api.html">API user guide</a> for details of how descriptions are generated.</em>
+</postit>
+
+
 <a name="getting-started"></a>
 
 Getting Started
 ===============
 
-Accord version {{ site.version.release }} is available on Maven Central Repository. Scala versions 2.10.3+ and 2.11.x are supported. The next milestone is {{ site.version.snapshot }} and is available from the Sonatype snapshots repository.
+Accord version {{ site.version.release }} is available on Maven Central Repository. Scala versions 2.10.4+ and 2.11.x are supported. The next milestone is {{ site.version.snapshot }} and is available from the Sonatype snapshots repository.
 
 SBT
 ---
