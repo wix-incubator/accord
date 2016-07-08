@@ -40,7 +40,7 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
     }
 
     "correctly match a rule violation based on description" in {
-      val matchRule = RuleViolationMatcher( description = "description" )
+      val matchRule = RuleViolationMatcher( legacyDescription = "description" )
       sampleViolation should matchRule
     }
 
@@ -66,12 +66,12 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
     }
 
     "correctly match a rule violation based on description" in {
-      val matchRule = GroupViolationMatcher( description = "ftw" )
+      val matchRule = GroupViolationMatcher( legacyDescription = "ftw" )
       sampleGroup should matchRule
     }
 
     "correctly match a rule violation based on children" in {
-      val matchChildRule = RuleViolationMatcher( value = "value", constraint = "constraint", description = "description" )
+      val matchChildRule = RuleViolationMatcher( value = "value", constraint = "constraint", legacyDescription = "description" )
       val matchRule = GroupViolationMatcher( violations = Set( matchChildRule ) )
       sampleGroup should matchRule
     }
@@ -92,17 +92,17 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
 
     "generate a correct rule violation for a Tuple2[String, String]" in {
       val rv: RuleViolationMatcher = "description" -> "constraint"
-      rv.description shouldEqual "description"
+      rv.legacyDescription shouldEqual "description"
       rv.constraint shouldEqual "constraint"
       rv.value should ===( null )
     }
 
     "generate a correct group violation via group()" in {
       val gv = group( "description", "constraint", "description" -> "constraint" )
-      gv.description shouldEqual "description"
+      gv.legacyDescription shouldEqual "description"
       gv.constraint shouldEqual "constraint"
       gv.value should ===( null )
-      gv.violations should contain only RuleViolationMatcher( description = "description", constraint = "constraint" )
+      gv.violations should contain only RuleViolationMatcher( legacyDescription = "description", constraint = "constraint" )
     }
   }
 

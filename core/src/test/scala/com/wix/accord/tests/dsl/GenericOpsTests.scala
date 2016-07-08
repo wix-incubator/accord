@@ -71,7 +71,7 @@ class GenericOpsTests extends WordSpec with Matchers with ResultMatchers {
         throw new IllegalArgumentException( s"Unexpected result $result, expected a failure with a single RuleViolation" )
     }
 
-    def extractConditional( result: Result ) = extractViolation( result ).rawDescription match {
+    def extractConditional( result: Result ) = extractViolation( result ).description match {
       case c: Conditional => c
       case desc =>
         throw new IllegalArgumentException( s"Unexpected description $desc, expected a Conditional" )

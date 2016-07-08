@@ -40,7 +40,7 @@ class OptionOpsTests extends WordSpec with Matchers with ResultMatchers {
     }
     "elide position indicator in description" in {
       val result = Some( "some string" ) validatedWith eachValidator
-      result should failWith( RuleViolationMatcher( description = "o" ) )
+      result should failWith( RuleViolationMatcher( legacyDescription = "o" ) )
     }
   }
 

@@ -73,10 +73,10 @@ class ScalaTest extends WordSpec with Matchers with ResultMatchers {
       val invalidMinor = validMinor.copy( guardians = Set( validAdult.copy( name = "" ) ) )
       validate( invalidMinor ) should failWith(
         GroupViolationMatcher(
-          description = "guardians",
+          legacyDescription = "guardians",
           violations = Set(
             GroupViolationMatcher(
-              description = "value",
+              legacyDescription = "value",
               constraint = "is invalid" ) ) ) )
     }
   }
@@ -99,7 +99,7 @@ class ScalaTest extends WordSpec with Matchers with ResultMatchers {
 
     "fail on a classroom with an invalid teacher" in {
       val invalidClassroom = validClassroom.copy( teacher = validAdult.copy( age = -5 ) )
-      validate( invalidClassroom ) should failWith( GroupViolationMatcher( description = "teacher", constraint = "is invalid" ) )
+      validate( invalidClassroom ) should failWith( GroupViolationMatcher( legacyDescription = "teacher", constraint = "is invalid" ) )
     }
 
     "fail on a classroom with an invalid student" in {
@@ -107,10 +107,10 @@ class ScalaTest extends WordSpec with Matchers with ResultMatchers {
       val invalidClassroom = validClassroom.copy( students = validClassroom.students + invalidStudent )
       validate( invalidClassroom ) should failWith(
         GroupViolationMatcher(
-          description = "students",
+          legacyDescription = "students",
           violations = Set(
             GroupViolationMatcher(
-              description = "value",
+              legacyDescription = "value",
               constraint = "is invalid" ) ) ) )
     }
 

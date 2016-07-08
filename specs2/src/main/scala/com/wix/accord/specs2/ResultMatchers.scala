@@ -16,6 +16,8 @@
 
 package com.wix.accord.specs2
 
+import com.wix.accord.Descriptions.Description
+
 import scala.language.implicitConversions
 import com.wix.accord._
 import org.specs2.matcher.{Expectable, Matcher}
@@ -40,7 +42,7 @@ trait ResultMatchers {
     * @param description A predicate specifying the description of the object being validated.
     * @see [[com.wix.accord.RuleViolation]]
     */
-  case class RuleViolationMatcher( value: Any = null, constraint: String = null, description: String = null )
+  case class RuleViolationMatcher( value: Any = null, constraint: String = null, description: Description = null )
     extends ViolationMatcher {
 
     require( value != null || constraint != null || description != null )
@@ -70,12 +72,12 @@ trait ResultMatchers {
   /** A convenience implicit to simplify test code. Enables syntax like:
     *
     * ```
-    * val rule: RuleViolationMatcher = "firstName" -> "must not be empty"
+    * val rule: RuleViolationMatcher = AccessChain( "firstName" ) -> "must not be empty"
     * // ... which is equivalent to
-    * val rule = RuleViolationMatcher( description = "firstName", constraint = "must not be empty" )
+    * val rule = RuleViolationMatcher( description = AccessChain( "firstName" ), constraint = "must not be empty" )
     * ```
     */
-  implicit def stringTuple2RuleMatcher( v: ( String, String ) ): RuleViolationMatcher =
+  implicit def descriptionAndConstraintTuple2RuleMatcher( v: ( Description, String ) ): RuleViolationMatcher =
     RuleViolationMatcher( description = v._1, constraint = v._2 )
 
   /** A matcher over [[com.wix.accord.GroupViolation]]s. To generate a violation rule "pattern", call
@@ -186,7 +188,7 @@ trait ResultMatchers {
   def group( description: String, constraint: String, expectedViolations: ( String, String )* ) =
     GroupViolationMatcher( constraint  = constraint,
                            description = description,
-                           violations  = ( expectedViolations map stringTuple2RuleMatcher ).toSet )
+                           violations  = ( expectedViolations map descriptionAndConstraintTuple2RuleMatcher ).toSet )
 
   /** Enables syntax like `someResult should fail` */
   val fail = new Matcher[ Result ] {

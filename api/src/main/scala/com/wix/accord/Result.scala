@@ -26,17 +26,11 @@ sealed trait Violation {
   /** A textual description of the constraint being violated (for example, "must not be empty"). */
   def constraint: String
 
-  /**
-    * A textual rendition of the generated description (see [[com.wix.accord.Violation.rawDescription]]). This
-    * property exists largely to maintain backwards compatibility with prior versions of the API.
-    */
-  def description: String = Descriptions.render( rawDescription )
-
   /** The actual generated description of the object under validation (this is the expression that, when evaluated at
     * runtime, produces the value in [[com.wix.accord.Violation.value]]). This is normally filled in
     * by the validation transform macro, but can also be explicitly provided via the DSL.
     */
-  def rawDescription: Description
+  def description: Description
 
   /** Applies the specified description to this violation, and produces a new instance with the resulting
     * description. For the exact semantics please refer to [[com.wix.accord.Descriptions.combine]].
@@ -51,15 +45,15 @@ sealed trait Violation {
   * 
   * @param value The value of the object which failed the validation rule.
   * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
-  * @param rawDescription The description of the object under validation.
+  * @param description The description of the object under validation.
   */
-case class RuleViolation( value: Any,
-                          constraint: String,
-                          rawDescription: Description = Descriptions.Empty )
+case class RuleViolation(value: Any,
+                         constraint: String,
+                         description: Description = Descriptions.Empty )
   extends Violation {
 
   def applyDescription( description: Description ) =
-    this.copy( rawDescription = Descriptions.combine( rawDescription, description ) )
+    this.copy( description = Descriptions.combine( this.description, description ) )
 }
 
 /** Describes the violation of a group of constraints. For example, the `Or` combinator found in the built-in
@@ -68,17 +62,17 @@ case class RuleViolation( value: Any,
   * @param value The value of the object which failed validation.
   * @param constraint A textual description of the constraint being violated (for example, "doesn't meet any
   *                   of the requirements").
-  * @param rawDescription The description of the object under validation.
+  * @param description The description of the object under validation.
   * @param children The set of violations contained within the group.
   */
-case class GroupViolation( value: Any,
-                           constraint: String,
-                           children: Set[ Violation ],
-                           rawDescription: Description = Descriptions.Empty )
+case class GroupViolation(value: Any,
+                          constraint: String,
+                          children: Set[ Violation ],
+                          description: Description = Descriptions.Empty )
   extends Violation {
 
   def applyDescription( description: Description ) =
-    this.copy( rawDescription = Descriptions.combine( rawDescription, description ) )
+    this.copy( description = Descriptions.combine( this.description, description ) )
 }
 
 /** A base trait for validation results.
