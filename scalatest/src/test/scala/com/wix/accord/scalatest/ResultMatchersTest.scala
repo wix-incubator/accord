@@ -39,7 +39,12 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
       sampleViolation should matchRule
     }
 
-    "correctly match a rule violation based on description" in {
+    "correctly match a rule violation based on legacy description" in {
+      val matchRule = RuleViolationMatcher( description = Generic( "description" ) )
+      sampleViolation should matchRule
+    }
+
+    "correctly match a rule violation based on legacy description" in {
       val matchRule = RuleViolationMatcher( legacyDescription = "description" )
       sampleViolation should matchRule
     }
@@ -88,7 +93,42 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
     }
   }
 
-  "Matcher construction DSL" should {
+  "Legacy matcher construction DSL" should {
+
+    // Hacky way to test over deprecated APIs with -Xfatal-warnings enabled. For details:
+    // https://issues.scala-lang.org/browse/SI-7934
+    //noinspection ScalaDeprecation
+    @deprecated( "", "" ) class Legacy {
+      object Implicits {
+        implicit val fwdStringTuple2RuleMatcher = ResultMatchersTest.this.stringTuple2RuleMatcher _
+      }
+
+      def group( legacyDescription: String, constraint: String, expectedViolations: ( String, String )* ) =
+        ResultMatchersTest.this.group( legacyDescription, constraint, expectedViolations:_* )
+
+      def group[ T ]( legacyDescription: String, constraint: String, expectedViolations: T* )
+                    ( implicit ev: T => RuleViolationMatcher ): GroupViolationMatcher =
+        ResultMatchersTest.this.group( legacyDescription, constraint, expectedViolations:_* )( ev )
+    }
+
+    //noinspection ScalaDeprecation
+    object Legacy extends Legacy
+    import Legacy.Implicits._
+
+    "generate a correct rule violation for a Tuple2[String, String] (deprecated)" in {
+      val rv: RuleViolationMatcher = "description" -> "constraint"
+      rv.legacyDescription shouldEqual "description"
+      rv.constraint shouldEqual "constraint"
+      rv.value should ===( null )
+    }
+
+    "generate a correct group violation via group()" in {
+      val gv = Legacy.group( "description", "constraint", "description" -> "constraint" )
+      gv.legacyDescription shouldEqual "description"
+      gv.constraint shouldEqual "constraint"
+      gv.value should ===( null )
+      gv.violations should contain only RuleViolationMatcher( legacyDescription = "description", constraint = "constraint" )
+    }
 
     "generate a correct rule violation for a Tuple2[String, String]" in {
       val rv: RuleViolationMatcher = "description" -> "constraint"
@@ -98,7 +138,7 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
     }
 
     "generate a correct group violation via group()" in {
-      val gv = group( "description", "constraint", "description" -> "constraint" )
+      val gv = Legacy.group( "description", "constraint", "description" -> "constraint" )
       gv.legacyDescription shouldEqual "description"
       gv.constraint shouldEqual "constraint"
       gv.value should ===( null )
@@ -111,11 +151,11 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
     val result: Result = Failure( Set( RuleViolation( "value", "constraint", Generic( "description" ) ) ) )
 
     "succeed if a validation rule matches successfully" in {
-      result should failWith( "description" -> "constraint" )
+      result should failWith( Generic( "description" ) -> "constraint" )
     }
 
     "fail if a validation rule does not match" in {
-      result should not( failWith( "invalid" -> "invalid" ) )
+      result should not( failWith( Generic( "invalid" ) -> "invalid" ) )
     }
   }
 

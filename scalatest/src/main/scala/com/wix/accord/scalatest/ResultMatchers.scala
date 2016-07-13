@@ -34,14 +34,18 @@ trait ResultMatchers {
     * the constructor with the required predicates, for example:
     *
     * ``` 
-    * val firstNameNotEmpty = RuleViolationMatcher( description = "firstName", constraint = "must not be empty" )
+    * val firstNameNotEmpty =
+    *   RuleViolationMatcher( description = AccessChain( "firstName" ), constraint = "must not be empty" )
     * val validationResult: Result = ...
     * validationResult must failWith( firstNameNotEmpty )
     * ```
     * 
     * @param value A predicate specifying the object under validation.
     * @param constraint A predicate specifying the constraint being violated.
-    * @param legacyDescription A predicate specifying the description of the object being validated.
+    * @param description A predicate specifying the description of the object being validated.
+    * @param legacyDescription Retained for backwards compatibility; matches against the rendered description of
+    *                          the object being validated. See [[com.wix.accord.Descriptions.render]] for details
+    *                          of how descriptions are rendered into strings.
     * @see [[com.wix.accord.RuleViolation]]
     */
   case class RuleViolationMatcher( value: Any = null,
@@ -81,9 +85,12 @@ trait ResultMatchers {
     * ```
     * val rule: RuleViolationMatcher = "firstName" -> "must not be empty"
     * // ... which is equivalent to
-    * val rule = RuleViolationMatcher( description = "firstName", constraint = "must not be empty" )
+    * val rule = RuleViolationMatcher( legacyDescription = "firstName", constraint = "must not be empty" )
     * ```
     */
+  @deprecated( "Intended for backwards compatibility. It is recommended to match against Description types instead " +
+               "(see descriptionAndConstraintTuple2RuleMatcher).",
+               since = "0.6" )
   implicit def stringTuple2RuleMatcher( v: ( String, String ) ): RuleViolationMatcher =
     RuleViolationMatcher( legacyDescription = v._1, constraint = v._2 )
 
@@ -107,17 +114,23 @@ trait ResultMatchers {
     * the constructor with the required predicates, for example:
     *
     * ```
-    * val firstNameNotEmpty = RuleViolationMatcher( description = "firstName", constraint = "must not be empty" )
-    * val lastNameNotEmpty = RuleViolationMatcher( description = "lastName", constraint = "must not be empty" )
-    * val orPredicateFailed = GroupViolationMatcher( constraint = "doesn't meet any of the requirements",
-    *                                                violations = firstNameNotEmpty :: lastNameNotEmpty :: Nil )
+    * val firstNameNotEmpty =
+    *   RuleViolationMatcher( description = AccessChain( "firstName" ), constraint = "must not be empty" )
+    * val lastNameNotEmpty =
+    *   RuleViolationMatcher( description = AccessChain( "lastName" ), constraint = "must not be empty" )
+    * val orPredicateFailed =
+    *   GroupViolationMatcher( constraint = "doesn't meet any of the requirements",
+    *                          violations = firstNameNotEmpty :: lastNameNotEmpty :: Nil )
     * val validationResult: Result = ...
     * validationResult must failWith( orPredicateFailed )
     * ```
     *
     * @param value A predicate specifying the object under validation.
     * @param constraint A predicate specifying the constraint being violated.
-    * @param legacyDescription A predicate specifying the description of the object being validated.
+    * @param description A predicate specifying the description of the object being validated.
+    * @param legacyDescription Retained for backwards compatibility; matches against the rendered description of
+    *                          the object being validated. See [[com.wix.accord.Descriptions.render]] for details
+    *                          of how descriptions are rendered into strings.
     * @param violations The set of violations that comprise the group being validated.
     * @see [[com.wix.accord.GroupViolation]]
     */
@@ -191,7 +204,10 @@ trait ResultMatchers {
     *
     * ```
     * val result: Result = ...
-    * result should failWith( "firstName" -> "must not be empty", "lastName" -> "must not be empty" )
+    * result should failWith(
+    *   AccessChain( "firstName" ) -> "must not be empty",
+    *   AccessChain( "lastName" ) -> "must not be empty"
+    * )
     * ```
     *
     * @param expectedViolations The set of expected violations.
@@ -203,31 +219,57 @@ trait ResultMatchers {
     *
     * ```
     * val result: Result = ...
-    * result should failWith( group( "teacher", "is invalid",                // The group context
-    *                                "firstName -> "must not be empty" ) )   // The rule violations
+    * result should failWith( group( AccessChain( "teacher" ), "is invalid",                // The group context
+    *                                AccessChain( "firstName ) -> "must not be empty" ) )   // The rule violations
     * ```
     *
     * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
-    * @param description The textual description of the object under validation.
+    * @param description A predicate specifying the description of the object being validated.
     * @param expectedViolations The set of expected violations that comprise the group.
     * @return A matcher over [[com.wix.accord.GroupViolation]]s.
     */
-  def group( description: String, constraint: String, expectedViolations: ( String, String )* ) =
+  def group( description: Description, constraint: String, expectedViolations: ( Description, String )* ) =
     GroupViolationMatcher( constraint  = constraint,
-                           legacyDescription = description,
-                           violations  = ( expectedViolations map stringTuple2RuleMatcher ).toSet )
+                           description = description,
+                           violations  = ( expectedViolations map descriptionAndConstraintTuple2RuleMatcher ).toSet )
+
+  /** A convenience method for matching violation groups. Enables syntax like:
+    *
+    * ```
+    * val result: Result = ...
+    * result should failWith( group( AccessChain( "teacher" ), "is invalid",                // The group context
+    *                                AccessChain( "firstName ) -> "must not be empty" ) )   // The rule violations
+    * ```
+    *
+    * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
+    * @param legacyDescription Retained for backwards compatibility; matches against the rendered description of
+    *                          the object being validated. See [[com.wix.accord.Descriptions.render]] for details
+    *                          of how descriptions are rendered into strings.
+    * @param expectedViolations The set of expected violations that comprise the group.
+    * @return A matcher over [[com.wix.accord.GroupViolation]]s.
+    */
+  //noinspection ScalaDeprecation
+  @deprecated( "Intended for backwards compatibility. It is recommended to match against Description types instead.",
+               since = "0.6" )
+  def group( legacyDescription: String, constraint: String, expectedViolations: ( String, String )* ) =
+    GroupViolationMatcher( constraint  = constraint,
+      legacyDescription = legacyDescription,
+      violations  = ( expectedViolations map stringTuple2RuleMatcher ).toSet )
 
   // TODO docs
-  def group[ T ]( description: String, constraint: String, expectedViolations: T* )
+  @deprecated( "Intended for backwards compatibility. It is recommended to match against Description types instead.",
+               since = "0.6" )
+  def group[ T ]( legacyDescription: String, constraint: String, expectedViolations: T* )
+                ( implicit ev: T => RuleViolationMatcher ): GroupViolationMatcher =
+    GroupViolationMatcher( constraint        = constraint,
+                           legacyDescription = legacyDescription,
+                           violations        = ( expectedViolations map ev ).toSet )
+
+  def group[ T ]( description: Description, constraint: String, expectedViolations: T* )
                 ( implicit ev: T => RuleViolationMatcher ): GroupViolationMatcher =
     GroupViolationMatcher( constraint  = constraint,
-                           legacyDescription = description,
+                           description = description,
                            violations  = ( expectedViolations map ev ).toSet )
-  def group[ T ]( rawDescription: Description, constraint: String, expectedViolations: T* )
-                ( implicit ev: T => RuleViolationMatcher ): GroupViolationMatcher =
-    GroupViolationMatcher( constraint     = constraint,
-                           description = rawDescription,
-                           violations     = ( expectedViolations map ev ).toSet )
 
   /** Enables syntax like `someResult should be( aFailure )` */
   val aFailure = new BeMatcher[ Result ] {
