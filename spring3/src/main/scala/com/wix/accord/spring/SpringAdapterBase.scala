@@ -16,14 +16,14 @@
 
 package com.wix.accord.spring
 
-import com.wix.accord.{Validator, Success, Failure, Violation}
+import com.wix.accord._
 import org.springframework.validation.Errors
 
 trait SpringAdapterBase {
 
   /** Formats Spring Validation rejection messages. */
   protected def formatMessage( failure: Violation ) =
-    s"${failure.description} ${failure.constraint}"
+    s"${Descriptions.render( failure.description )} ${failure.constraint}"
 
   /** Formats Spring Validation error codes. Currently hardcoded. */
   protected def formatErrorCode( failure: Violation ) = SpringAdapterBase.defaultErrorCode

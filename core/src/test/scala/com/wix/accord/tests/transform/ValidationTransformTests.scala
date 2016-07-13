@@ -16,7 +16,7 @@
 
 package com.wix.accord.tests.transform
 
-import com.wix.accord.Descriptions.{AccessChain, Conditional, Generic}
+import com.wix.accord.Descriptions._
 import org.scalatest.{Matchers, WordSpec}
 import com.wix.accord._
 import com.wix.accord.scalatest.ResultMatchers
@@ -139,40 +139,46 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
   "A static validator description" should {
     import Descriptions.Static._
 
+    // TODO fold these tests into ExpressionDescriberTest if necessary, only test propagation herein
+
     "be generated for a fully-qualified field selector" in {
-      validate( FlatTest( null ) )( implicitlyDescribedNamedValidator ) should failWith( "field" -> "is a null" )
+      validate( FlatTest( null ) )( implicitlyDescribedNamedValidator ) should
+        failWith( AccessChain( "field" ) -> "is a null" )
     }
     "be generated for an anonymously-qualified field selector" in {
-      validate( FlatTest( null ) )( implicitlyDescribedAnonymousValidator ) should failWith( "field" -> "is a null" )
+      validate( FlatTest( null ) )( implicitlyDescribedAnonymousValidator ) should
+        failWith( AccessChain( "field" ) -> "is a null" )
     }
     "be generated for an anonymous value reference" in {
-      validate( null )( implicitlyDescribedValueValidator ) should failWith( "value" -> "is a null" )
+      validate( null )( implicitlyDescribedValueValidator ) should failWith( SelfReference -> "is a null" )
     }
     "be generated for a fully-qualified selector with multiple indirections" in {
       val obj = CompositeTest( FlatTest( null ) )
-      validate( obj )( namedIndirectValidator ) should failWith( "member.field" -> "is a null" )
+      validate( obj )( namedIndirectValidator ) should failWith( AccessChain( "member", "field" ) -> "is a null" )
     }
     "be generated for an anonymously-qualified selector with multiple indirections" in {
       val obj = CompositeTest( FlatTest( null ) )
-      validate( obj )( anonymousIndirectValidator ) should failWith( "member.field" -> "is a null" )
+      validate( obj )( anonymousIndirectValidator ) should failWith( AccessChain( "member", "field" ) -> "is a null" )
     }
     "be generated for a multiple-clause boolean expression" in {
       val obj = FlatTest( "123" )
       validate( obj )( booleanExpressionValidator ) should failWith(
-        group( null: String, "doesn't meet any of the requirements",
-          "field" -> "is not a null",
-          "field" -> "has size 3, expected more than 5"
+        group( null: Description, "doesn't meet any of the requirements",
+          AccessChain( "field" ) -> "is not a null",
+          AccessChain( "field" ) -> "has size 3, expected more than 5"
         ) )
     }
     "be propagated for an explicitly-described expression" in {
-      validate( FlatTest( null ) )( explicitlyDescribedValidator ) should failWith( "described" -> "is a null" )
+      validate( FlatTest( null ) )( explicitlyDescribedValidator ) should
+        failWith( Explicit( "described" ) -> "is a null" )
     }
     "be propagated for a composite validator" in {
       val obj = CompositeTest( FlatTest( null ) )
-      validate( obj )( compositeValidator ) should failWith( group( "member", "is invalid", "field" -> "is a null" ) )
+      validate( obj )( compositeValidator ) should
+        failWith( group( AccessChain( "member" ), "is invalid", AccessChain( "field" ) -> "is a null" ) )
     }
     "be propagated for an adapted validator" in {
-      validate( FlatTest( null ) )( adaptedValidator ) should failWith( "field" -> "is a null" )
+      validate( FlatTest( null ) )( adaptedValidator ) should failWith( AccessChain( "field" ) -> "is a null" )
     }
   }
 
@@ -182,13 +188,13 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     "propagate correctly when the object under validation is implicitly described" in {
       val sample = RuntimeDescribedTest( Seq( "valid", "" ) )
       val result = validate( sample )( implicitDescriptionWithRuntimeRewriteValidator )
-      result should failWith( "field [at index 1]" -> "must not be empty" )
+      result should failWith( Indexed( 1L, AccessChain( "field" ) ) -> "must not be empty" )
     }
 
     "propagate correctly when the object under validation is explicitly described with \"as\"" in {
       val sample = RuntimeDescribedTest( Seq( "valid", "" ) )
       val result = validate( sample )( explicitDescriptionWithRuntimeRewriteValidator )
-      result should failWith( "described [at index 1]" -> "must not be empty" )
+      result should failWith( Indexed( 1L, Explicit( "described" ) ) -> "must not be empty" )
     }
   }
 
