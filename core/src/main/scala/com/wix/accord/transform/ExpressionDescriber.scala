@@ -28,21 +28,47 @@ import scala.language.experimental.macros
   * context of a function of the form `Function1[ T, U ]`, or in other words only supports single-parameter
   * functions.
   *
-  * The expression is transformable via [[com.wix.accord.transform.ExpressionDescriber.describeTree]]
+  * A given expression can be transformed with [[com.wix.accord.transform.ExpressionDescriber.describeTree]]
   * based on the following rules:
-  *  - Selectors over the function prototype are rewritten to the selected expression; for example,
-  *    `{ p: Person => p.firstName }` gets rewritten to a tree representing `AccessChain( "firstName" )`
-  *  - Explicitly described expressions (via [[com.wix.accord.dsl.Descriptor]]) are rewritten to a tree
-  *    representing the description as a string literal, for example `{ p: Person => p.firstName as "first name" }`
-  *    gets rewritten as `Explicit( "first name" )`
-  *  - Any other expression is rewritten as tree representing the expression itself, for
-  *    example `{ _ => 1 + 2 + 3 }` gets rewritten as `Generic( "1 + 2 + 3" )`.
+  *  - Selectors over the function prototype are rewritten to [[com.wix.accord.Descriptions.AccessChain AccessChains]];
+  *    for example, `{ p: Person => p.firstName }` gets rewritten to a tree representing `AccessChain( "firstName" )`
+  *  - Explicitly described expressions (via [[com.wix.accord.dsl.Descriptor]]) are rewritten to
+  *    [[com.wix.accord.Descriptions.Explicit Explicit]] descriptions, for example
+  *    `{ p: Person => p.firstName as "first name" }` gets rewritten to a tree representing `Explicit( "first name" )`
+  *  - An anonymous parameter reference gets rewritten to [[com.wix.accord.Descriptions.SelfReference SelfReference]];
+  *    for example in `validator[ String ] { _ is notEmpty }` gets rewritten to a tree representing `SelfReference`.
+  *  - Any other expression is rewritten as a [[com.wix.accord.Descriptions.Generic Generic]]
+  *    description, for example `{ _ => 1 + 2 + 3 }` gets rewritten as `Generic( "1 + 2 + 3" )`.
   *
   * @tparam C The macro context type
   */
 private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] with PatternHelper[ C ] {
   import Descriptions._
   import context.universe._
+
+  private def prettyPrint( tree: Tree ): String = {
+    // Ouch. Taking a leaf from Li Haoyi, see:
+    // https://github.com/lihaoyi/sourcecode/blob/master/sourcecode/shared/src/main/scala/sourcecode/SourceContext.scala
+    val fileContent = new String( tree.pos.source.content )
+    val start = tree.collect { case t => t.pos.start }.min
+    val end = {
+      // For some reason, ouv.pos.isRange doesn't work -- I'm probably missing something, but this is
+      // a decent workaround for now.
+      val rangeEnd = tree.collect { case t => t.pos.end }.max
+      if ( start != rangeEnd )
+        rangeEnd + 1
+      else {
+        // Point position, need to actually parse to figure out the slice size by parsing
+        val g: scala.tools.nsc.Global =
+        context.asInstanceOf[ reflect.macros.runtime.Context ].global   // TODO is this safe?
+        val parser = g.newUnitParser( fileContent.substring( start ), "<Accord>" )
+        parser.expr()
+        start + parser.in.lastOffset
+      }
+    }
+
+    fileContent.slice( start, end )
+  }
 
   /** An extractor for explicitly described expressions. Applies expressions like
     * `p.firstName as "described"`, where the `as` parameter (`"described"` in this case) is the extracted
