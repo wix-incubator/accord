@@ -17,16 +17,7 @@
 package com.wix.accord.dsl
 
 import com.wix.accord.Validator
-import com.wix.accord.combinators.Valid
-import com.wix.accord.combinators.IsNull
-import com.wix.accord.combinators.IsNotNull
-import com.wix.accord.combinators.EqualTo
-import com.wix.accord.combinators.NotEqualTo
-import com.wix.accord.combinators.AnInstanceOf
-import com.wix.accord.combinators.NotAnInstanceOf
-import com.wix.accord.transform.ValidationTransform
-
-import scala.annotation.compileTimeOnly
+import com.wix.accord.combinators._
 import scala.reflect.ClassTag
 
 /** Provides a DSL for untyped validators. */

@@ -50,6 +50,9 @@ trait MacroHelper[ C <: Context ] {
 
     fileContent.slice( start, end )
   }
+
+  // Stubs for forwards compatibility with 2.11 APIs --
+  final class compileTimeOnly(message: String) extends scala.annotation.StaticAnnotation
 }
 
 object MacroHelper {

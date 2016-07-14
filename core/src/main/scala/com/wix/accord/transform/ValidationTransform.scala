@@ -90,7 +90,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
       val condDescription = describeTree( prototype, cond )
       val rewrittenCases: Seq[ CaseDef ] = cases map {
-        case cq"$_ @ _ => default.apply( $_ )" =>
+        case cq"$ignored1 @ _ => default.apply( $ignored2 )" =>   // Macro Paradise for Scala 2.10.x doesn't support $_
           // Replace synthetic default case with "always succeed"
           cq"_ => com.wix.accord.Success: com.wix.accord.Result"
 
