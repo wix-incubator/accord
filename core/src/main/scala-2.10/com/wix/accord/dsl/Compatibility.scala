@@ -14,20 +14,11 @@
   limitations under the License.
  */
 
-package com.wix.accord.transform
+package com.wix.accord.dsl
 
-import MacroHelper._
-trait MacroHelper[ C <: Context ] {
-  /** The macro context (of type `C`), must be provided by the inheritor */
-  protected val context: C
 
-  import context.universe._
-
-  def termName( symbol: String ): TermName = context.universe.newTermName( symbol )
-  def resetAttrs( tree: Tree ): Tree = context.resetAllAttrs( tree )
-  def rewriteExistentialTypes( tree: Tree ): Tree = tree
-}
-
-object MacroHelper {
-  type Context = scala.reflect.macros.Context
+/** Stubs for forwards compatibility with 2.11 APIs */
+object Compatibility {
+  /** Stub implementation for {{scala.annotation.compileTimeOnly}} */
+  final class compileTimeOnly(message: String) extends scala.annotation.StaticAnnotation
 }
