@@ -60,6 +60,12 @@ trait MacroHelper[ C <: Context ] {
   }
 
   type compileTimeOnly = scala.annotation.compileTimeOnly
+
+  def newUnitParser( code: String ) = {
+    val g: scala.tools.nsc.Global =
+      context.asInstanceOf[ reflect.macros.runtime.Context ].global   // TODO is this safe?
+    g.newUnitParser( code, "<Accord>" )
+  }
 }
 
 object MacroHelper {

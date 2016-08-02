@@ -120,7 +120,7 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
   }
 
   object ConditionalRule {
-    private val conditionalTerm = context.universe.TermName( "conditional" )
+    private val conditionalTerm = termName( "conditional" )
 
     def unapply( t: Tree ): Option[( Tree, Seq[ CaseDef ] )] = t match {
         // TODO clean this shit up. Seriously.

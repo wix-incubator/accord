@@ -59,9 +59,7 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
         rangeEnd + 1
       else {
         // Point position, need to actually parse to figure out the slice size by parsing
-        val g: scala.tools.nsc.Global =
-        context.asInstanceOf[ reflect.macros.runtime.Context ].global   // TODO is this safe?
-        val parser = g.newUnitParser( fileContent.substring( start ), "<Accord>" )
+        val parser = newUnitParser( fileContent.substring( start ) )
         parser.expr()
         start + parser.in.lastOffset
       }

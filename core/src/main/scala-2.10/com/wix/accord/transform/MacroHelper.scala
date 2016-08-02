@@ -22,10 +22,15 @@ trait MacroHelper[ C <: Context ] {
   protected val context: C
 
   import context.universe._
+  import scala.tools.nsc.{Global, ast}
 
   def termName( symbol: String ): TermName = context.universe.newTermName( symbol )
   def resetAttrs( tree: Tree ): Tree = context.resetAllAttrs( tree )
   def rewriteExistentialTypes( tree: Tree ): Tree = tree
+  def newUnitParser( code: String ): ast.parser.Parsers#UnitParser = {
+    val g: Global = context.asInstanceOf[ reflect.macros.runtime.Context ].global   // TODO is this safe?
+    g.newUnitParser( code )
+  }
 }
 
 object MacroHelper {
