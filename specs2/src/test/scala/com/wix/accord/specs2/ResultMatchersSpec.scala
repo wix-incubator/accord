@@ -19,8 +19,9 @@ package com.wix.accord.specs2
 import com.wix.accord.Descriptions.Generic
 import org.specs2.mutable.Specification
 import com.wix.accord._
+import org.specs2.matcher.Matchers
 
-class ResultMatchersSpec extends Specification with ResultMatchers {
+class ResultMatchersSpec extends Specification with ResultMatchers with Matchers {
 
   "RuleViolationMatcher" should {
 
@@ -37,7 +38,12 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
     }
 
     "correctly match a rule violation based on description" in {
-      val matchRule = RuleViolationMatcher( description = "description" )
+      val matchRule = RuleViolationMatcher( description = Generic( "description" ) )
+      sampleViolation should matchRule
+    }
+
+    "correctly match a rule violation based on legacy description" in {
+      val matchRule = RuleViolationMatcher( legacyDescription = "description" )
       sampleViolation should matchRule
     }
 
@@ -63,12 +69,18 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
     }
 
     "correctly match a rule violation based on description" in {
-      val matchRule = GroupViolationMatcher( description = "ftw" )
+      val matchRule = GroupViolationMatcher( description = Generic( "ftw" ) )
+      sampleGroup should matchRule
+    }
+
+    "correctly match a rule violation based on legacy description" in {
+      val matchRule = GroupViolationMatcher( legacyDescription = "ftw" )
       sampleGroup should matchRule
     }
 
     "correctly match a rule violation based on children" in {
-      val matchChildRule = RuleViolationMatcher( value = "value", constraint = "constraint", description = "description" )
+      val matchChildRule =
+        RuleViolationMatcher( value = "value", constraint = "constraint", description = Generic( "description" ) )
       val matchRule = GroupViolationMatcher( violations = Set( matchChildRule ) )
       sampleGroup should matchRule
     }
@@ -87,25 +99,63 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
 
   "Matcher construction DSL" should {
 
-    "generate a correct rule violation for a Tuple2[String, String]" in {
+    object Legacy {
+      // Hacky way to test over deprecated APIs with -Xfatal-warnings enabled. For details:
+      // https://issues.scala-lang.org/browse/SI-7934
+      //noinspection ScalaDeprecation
+      @deprecated( "", "" ) class Delegations {
+        object Implicits {
+          implicit val fwdStringTuple2RuleMatcher = ResultMatchersSpec.this.stringTuple2RuleMatcher _
+        }
+
+        def group( legacyDescription: String, constraint: String, expectedViolations: ( String, String )* ) =
+          ResultMatchersSpec.this.group( legacyDescription, constraint, expectedViolations:_* )
+
+        def group[ T ]( legacyDescription: String, constraint: String, expectedViolations: T* )
+                      ( implicit ev: T => RuleViolationMatcher ): GroupViolationMatcher =
+          ResultMatchersSpec.this.group( legacyDescription, constraint, expectedViolations:_* )( ev )
+      }
+
+      //noinspection ScalaDeprecation
+      object Delegations extends Delegations
+    }
+
+    import Legacy.Delegations.Implicits._
+
+    "generate a correct rule violation for a Tuple2[String, String] (deprecated)" in {
       val rv: RuleViolationMatcher = "description" -> "constraint"
-      rv.description shouldEqual "description"
+      rv.legacyDescription shouldEqual "description"
+      rv.description should beNull
+      rv.constraint shouldEqual "constraint"
+      rv.value should beNull
+    }
+
+    "generate a correct group violation via group() with legacy description (deprecated)" in {
+      val gv = Legacy.Delegations.group( "description", "constraint", "description" -> "constraint" )
+      gv.legacyDescription shouldEqual "description"
+      gv.description should beNull
+      gv.constraint shouldEqual "constraint"
+      gv.value should beNull
+      gv.violations shouldEqual Set(
+        RuleViolationMatcher( legacyDescription = "description", constraint = "constraint" ): ViolationMatcher )
+    }
+
+    "generate a correct rule violation for a Tuple2[Description, String]" in {
+      val rv: RuleViolationMatcher = Generic( "description" ) -> "constraint"
+      rv.legacyDescription shouldEqual null       // beNull won't compile. Not sure why
+      rv.description shouldEqual Generic( "description" )
       rv.constraint shouldEqual "constraint"
       rv.value should beNull
     }
 
     "generate a correct group violation via group()" in {
-      val gv = group( "description", "constraint", "description" -> "constraint" )
-      gv.description shouldEqual "description"
+      val gv = group( Generic( "description" ), "constraint", Generic( "description" ) -> "constraint" )
+      gv.legacyDescription shouldEqual null       // beNull won't compile. Not sure why
+      gv.description shouldEqual Generic( "description" )
       gv.constraint shouldEqual "constraint"
       gv.value should beNull
-      gv.violations should have size 1
-      gv.violations.head should beLike {
-        case rv: RuleViolationMatcher =>
-          ( rv.description shouldEqual "description" ) and
-          ( rv.constraint shouldEqual "constraint" ) and
-          ( rv.value should beNull )
-      }
+      gv.violations shouldEqual Set(
+        RuleViolationMatcher( description = Generic( "description" ), constraint = "constraint" ) )
     }
   }
 
@@ -114,11 +164,11 @@ class ResultMatchersSpec extends Specification with ResultMatchers {
     val result: Result = Failure( Set( RuleViolation( "value", "constraint", Generic( "description" ) ) ) )
 
     "succeed if a validation rule matches successfully" in {
-      result should failWith( "description" -> "constraint" )
+      result should failWith( Generic( "description" ) -> "constraint" )
     }
 
     "fail if a validation rule does not match" in {
-      result should not( failWith( "invalid" -> "invalid" ) )
+      result should not( failWith( Generic( "invalid" ) -> "invalid" ) )
     }
   }
 

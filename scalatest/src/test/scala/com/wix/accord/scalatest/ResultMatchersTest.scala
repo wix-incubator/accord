@@ -71,12 +71,18 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
     }
 
     "correctly match a rule violation based on description" in {
+      val matchRule = GroupViolationMatcher( description = Generic( "ftw" ) )
+      sampleGroup should matchRule
+    }
+
+    "correctly match a rule violation based on legacy description" in {
       val matchRule = GroupViolationMatcher( legacyDescription = "ftw" )
       sampleGroup should matchRule
     }
 
     "correctly match a rule violation based on children" in {
-      val matchChildRule = RuleViolationMatcher( value = "value", constraint = "constraint", legacyDescription = "description" )
+      val matchChildRule =
+        RuleViolationMatcher( value = "value", constraint = "constraint", description = Generic( "description" ) )
       val matchRule = GroupViolationMatcher( violations = Set( matchChildRule ) )
       sampleGroup should matchRule
     }
@@ -96,28 +102,27 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
   "Matcher construction DSL" should {
 
     object Legacy {
-    // Hacky way to test over deprecated APIs with -Xfatal-warnings enabled. For details:
-    // https://issues.scala-lang.org/browse/SI-7934
-    //noinspection ScalaDeprecation
-    @deprecated( "", "" ) class Delegations {
-      object Implicits {
-        implicit val fwdStringTuple2RuleMatcher = ResultMatchersTest.this.stringTuple2RuleMatcher _
+      // Hacky way to test over deprecated APIs with -Xfatal-warnings enabled. For details:
+      // https://issues.scala-lang.org/browse/SI-7934
+      //noinspection ScalaDeprecation
+      @deprecated( "", "" ) class Delegations {
+        object Implicits {
+          implicit val fwdStringTuple2RuleMatcher = ResultMatchersTest.this.stringTuple2RuleMatcher _
+        }
+
+        def group( legacyDescription: String, constraint: String, expectedViolations: ( String, String )* ) =
+          ResultMatchersTest.this.group( legacyDescription, constraint, expectedViolations:_* )
+
+        def group[ T ]( legacyDescription: String, constraint: String, expectedViolations: T* )
+                      ( implicit ev: T => RuleViolationMatcher ): GroupViolationMatcher =
+          ResultMatchersTest.this.group( legacyDescription, constraint, expectedViolations:_* )( ev )
       }
 
-      def group( legacyDescription: String, constraint: String, expectedViolations: ( String, String )* ) =
-        ResultMatchersTest.this.group( legacyDescription, constraint, expectedViolations:_* )
-
-      def group[ T ]( legacyDescription: String, constraint: String, expectedViolations: T* )
-                    ( implicit ev: T => RuleViolationMatcher ): GroupViolationMatcher =
-        ResultMatchersTest.this.group( legacyDescription, constraint, expectedViolations:_* )( ev )
-    }
-
-    //noinspection ScalaDeprecation
-    object Delegations extends Delegations
+      //noinspection ScalaDeprecation
+      object Delegations extends Delegations
     }
 
     import Legacy.Delegations.Implicits._
-//    import Legacy.Delegations
 
     "generate a correct rule violation for a Tuple2[String, String] (deprecated)" in {
       val rv: RuleViolationMatcher = "description" -> "constraint"

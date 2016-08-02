@@ -38,6 +38,16 @@ object Root extends Build {
     releasePublishArtifactsAction := publishSigned.value
   )
 
+  def noFatalWarningsOn( task: sbt.TaskKey[_] ) =
+    task match {
+      case `compile` =>
+        scalacOptions ~= { _ filterNot { _ == "-Xfatal-warnings" } }
+
+      case _ =>
+        scalacOptions in ( Compile, task ) :=
+          ( scalacOptions in ( Compile, compile ) ).value filterNot { _ == "-Xfatal-warnings" }
+    }
+
   lazy val compileOptions = Seq(
     scalaVersion := "2.11.1",
     crossScalaVersions :=
@@ -50,10 +60,7 @@ object Root extends Build {
       "-unchecked",
       "-Xfatal-warnings"
     ),
-
-    // Warnings aren't considered fatal on document generation. There's probably a cleaner way to do this
-    scalacOptions in ( Compile, doc ) :=
-      ( scalacOptions in ( Compile, compile ) ).value filterNot { _ == "-Xfatal-warnings" }
+    noFatalWarningsOn( doc )      // Warnings aren't considered fatal on document generation
   )
 
   lazy val baseSettings =
@@ -193,7 +200,8 @@ object Root extends Build {
       settings = baseSettings ++ noPublish ++ Seq(
         name := "accord-examples",
         libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "provided" ),
-        description := "Sample projects for the Accord validation library."
+        description := "Sample projects for the Accord validation library.",
+        noFatalWarningsOn( compile )
       ) )
       .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2_3xJVM % "test->compile", spring3 )
 

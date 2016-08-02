@@ -77,7 +77,6 @@ trait ResultMatchers {
            Option( constraint ) getOrElse "_",
            Option( description ) orElse Option( legacyDescription ) getOrElse "_" )
       .mkString( "RuleViolation(", ",", ")" )
-
   }
 
   /** A convenience implicit to simplify test code. Enables syntax like:
