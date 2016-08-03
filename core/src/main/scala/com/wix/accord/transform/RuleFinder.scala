@@ -130,19 +130,4 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
         context.abort(t.pos, "hurrah!")
     }
   }
-
-  object ConditionalRule {
-    private val conditionalTerm = termName( "conditional" )
-
-    def unapply( t: Tree ): Option[( Tree, Seq[ CaseDef ] )] = t match {
-        // TODO clean this shit up. Seriously.
-      case Apply(
-             Apply( TypeApply( Select( _, `conditionalTerm` ), condTpe :: ouvTpe :: Nil ), cond :: Nil ),
-             PartialFunction( cases ) :: Nil ) =>
-        Some( resetAttrs( cond.duplicate ) -> cases )
-
-      case _ =>
-        None
-    }
-  }
 }

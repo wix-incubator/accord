@@ -84,51 +84,6 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     }
   }
 
-  // TODO this should probably be elided entirely. Waiting on community feedback
-  val processConditionals: TransformAST = {
-    case ruleBody @ ConditionalRule( cond, cases ) =>
-
-      val condDescription = describeTree( prototype, cond )
-      val rewrittenCases: Seq[ CaseDef ] = cases map {
-        case cq"$ignored1 @ _ => default.apply( $ignored2 )" =>   // Macro Paradise for Scala 2.10.x doesn't support $_
-          // Replace synthetic default case with "always succeed"
-          cq"_ => com.wix.accord.Success: com.wix.accord.Result"
-
-        case caseDef @ CaseDef( _pat, _guard, ValidatorApplication( rule: ValidationRule ) ) =>
-          val ruleDescription = describeTree( prototype, rule.ouv )
-          val guardDescription =
-            if ( _guard.isEmpty ) q"None" else q"Some( ${ describeTree( prototype, _guard ) } )"
-
-          val pat = resetAttrs( _pat.duplicate )
-          val guard = resetAttrs( _guard.duplicate )
-
-          val rewrittenBody: CaseDef =
-            cq"""
-              $pat if $guard =>
-                val description = com.wix.accord.Descriptions.Conditional(
-                  on = $condDescription,
-                  value = $cond,
-                  guard = $guardDescription,
-                  target = $ruleDescription
-                )
-                val validation = ${rule.validation}
-                validation( ${rule.ouv} ) applyDescription description
-            """
-          trace( s"Conditional case rewritten. Original:\n$caseDef\n\nRewritten:\n$rewrittenBody\n\n", caseDef.pos )
-          rewrittenBody
-      }
-
-      val rewrittenValidator =
-        q"""
-          new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
-            def apply( ${ resetAttrs( prototype.duplicate ) } ) =
-              $cond match { case ..$rewrittenCases }
-          }
-        """
-      debug( s"Conditional rule found. Original:\n$ruleBody\n\nRewritten:\n$rewrittenValidator\n\n", ruleBody.pos )
-      rewrittenValidator
-  }
-
   case class ConditionalBranch( cond: Tree, validator: Tree )
   case class ValidationRuleBranch( branches: Seq[ ConditionalBranch ], default: Option[ Tree ] )
 
@@ -229,7 +184,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       rewrite
   }
 
-  val processControlStructures: TransformAST = processBranches orElse processMatches orElse processConditionals
+  val processControlStructures: TransformAST = processBranches orElse processMatches
 
   /** A pattern which rewrites validation rules found in the tree. */
   def rewriteValidationRules( transform: DescriptionTransformation = identity ): TransformAST = {
