@@ -46,27 +46,28 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
   import Descriptions._
   import context.universe._
 
-  private def prettyPrint( tree: Tree ): String = {
-    // Ouch. Taking a leaf from Li Haoyi, see:
-    // https://github.com/lihaoyi/sourcecode/blob/master/sourcecode/shared/src/main/scala/sourcecode/SourceContext.scala
-    val fileContent = new String( tree.pos.source.content )
-    val start = tree.collect { case t => t.pos.start }.min
-    val end = {
-      // For some reason, ouv.pos.isRange doesn't work -- I'm probably missing something, but this is
-      // a decent workaround for now.
-      val rangeEnd = tree.collect { case t => t.pos.end }.max
-      if ( start != rangeEnd )
-        rangeEnd + 1
-      else {
-        // Point position, need to actually parse to figure out the slice size by parsing
-        val parser = newUnitParser( fileContent.substring( start ) )
-        parser.expr()
-        start + parser.in.lastOffset
-      }
-    }
-
-    fileContent.slice( start, end )
-  }
+  private def prettyPrint( tree: Tree ): String = tree.toString
+//  {
+//    // Ouch. Taking a leaf from Li Haoyi, see:
+//    // https://github.com/lihaoyi/sourcecode/blob/master/sourcecode/shared/src/main/scala/sourcecode/SourceContext.scala
+//    val fileContent = new String( tree.pos.source.content )
+//    val start = tree.collect { case t => t.pos.start }.min
+//    val end = {
+//      // For some reason, ouv.pos.isRange doesn't work -- I'm probably missing something, but this is
+//      // a decent workaround for now.
+//      val rangeEnd = tree.collect { case t => t.pos.end }.max
+//      if ( start != rangeEnd )
+//        rangeEnd + 1
+//      else {
+//        // Point position, need to actually parse to figure out the slice size by parsing
+//        val parser = newUnitParser( fileContent.substring( start ) )
+//        parser.expr()
+//        start + parser.in.lastOffset
+//      }
+//    }
+//
+//    fileContent.slice( start, end )
+//  }
 
   /** An extractor for explicitly described expressions. Applies expressions like
     * `p.firstName as "described"`, where the `as` parameter (`"described"` in this case) is the extracted

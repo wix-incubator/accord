@@ -42,7 +42,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     val rewrite =
       q"""
           new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
-            def apply( $prototype ) = {
+            def apply( ${ resetAttrs( prototype.duplicate ) } ) = {
               val validation = ${rule.validation}
               val description = $description
               validation( ${rule.ouv} ) applyDescription description
@@ -94,10 +94,13 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
           // Replace synthetic default case with "always succeed"
           cq"_ => com.wix.accord.Success: com.wix.accord.Result"
 
-        case caseDef @ CaseDef( pat, guard, ValidatorApplication( rule: ValidationRule ) ) =>
+        case caseDef @ CaseDef( _pat, _guard, ValidatorApplication( rule: ValidationRule ) ) =>
           val ruleDescription = describeTree( prototype, rule.ouv )
           val guardDescription =
-            if ( guard.isEmpty ) q"None" else q"Some( ${ describeTree( prototype, guard ) } )"
+            if ( _guard.isEmpty ) q"None" else q"Some( ${ describeTree( prototype, _guard ) } )"
+
+          val pat = resetAttrs( _pat.duplicate )
+          val guard = resetAttrs( _guard.duplicate )
 
           val rewrittenBody: CaseDef =
             cq"""
@@ -118,7 +121,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       val rewrittenValidator =
         q"""
           new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
-            def apply( $prototype ) =
+            def apply( ${ resetAttrs( prototype.duplicate ) } ) =
               $cond match { case ..$rewrittenCases }
           }
         """
@@ -168,8 +171,8 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
                 target = $target
               )
             """ ) }
-          val proto = resetAttrs( prototype.duplicate )     // Not entirely sure why this is necessary
-          val liftedCondition = q"{ $proto => $cond match { case $pat if $guard => true; case _ => false } }"
+          val liftedCondition =
+            q"{ ${ resetAttrs( prototype.duplicate) } => $cond match { case $pat if $guard => true; case _ => false } }"
           q"$liftedCondition -> ${ rewriteValidatorApplication( description )( rule ) }"
       }
       val rewrite =
@@ -196,7 +199,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
       val rewrittenBranches =
         branches.map { b =>
-          val liftedCondition = q"( $prototype => ${ b.cond } )"
+          val liftedCondition = q"( ${ resetAttrs( prototype.duplicate ) } => ${ resetAttrs( b.cond.duplicate ) } )"
           q"$liftedCondition -> ${ rewriteValidatorApplication( describeBranch( b.cond ) )( b.validator ) }"
         }
 

@@ -101,12 +101,24 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
   object PartialFunction {
     def unapply( tree: Tree ): Option[ Seq[ CaseDef ] ] = {
       var l = scala.collection.mutable.ArrayBuffer.empty[ CaseDef ]
-      val traverser = new Traverser {
-        override def traverseCases( cases: List[ CaseDef ] ): Unit =
+
+//      val traverser = new Traverser {
+//        override def traverseCases( cases: List[ CaseDef ] ): Unit =
+//          if ( currentOwner.isMethod && currentOwner.asMethod.name.decodedName.toString == "applyOrElse" ) {
+//            l ++= cases
+//          } else super.traverseCases( cases )
+//      }.traverse( tree )
+
+      // Should actually be a Traverser, but Scala 2.10 doesn't support traversal over CaseDefs
+      val xform = new Transformer {
+        override def transformCaseDefs( trees: List[ CaseDef ] ): List[ CaseDef ] = {
           if ( currentOwner.isMethod && currentOwner.asMethod.name.decodedName.toString == "applyOrElse" ) {
-            l ++= cases
-          } else super.traverseCases( cases )
-      }.traverse( tree )
+            l ++= trees
+          }
+          super.transformCaseDefs( trees )
+        }
+      }.transform( tree )
+
       if ( l.isEmpty ) None else Some( l )
     }
   }
