@@ -46,9 +46,6 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
   import Descriptions._
   import context.universe._
 
-  private def startPos( pos: Position ) = pos.startOrPoint
-  private def endPos( pos: Position ) = pos.endOrPoint
-
   private def prettyPrint( tree: Tree ): String = {
     // Ouch. Taking a leaf from Li Haoyi, see:
     // https://github.com/lihaoyi/sourcecode/blob/master/sourcecode/shared/src/main/scala/sourcecode/SourceContext.scala

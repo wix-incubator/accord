@@ -25,11 +25,12 @@ trait MacroHelper[ C <: Context ] {
 
   import context.universe._
   import org.scalamacros.resetallattrs._
+  import scala.tools.nsc.{Global, ast}
 
-  def termName( symbol: String ): TermName = TermName( symbol )
-  def resetAttrs( tree: Tree ): Tree = context.resetAllAttrs( tree )
+  protected def termName( symbol: String ): TermName = TermName( symbol )
+  protected def resetAttrs( tree: Tree ): Tree = context.resetAllAttrs( tree )
 
-  def rewriteExistentialTypes( tree: Tree ): Tree = {
+  protected def rewriteExistentialTypes( tree: Tree ): Tree = {
     val typeRewrite: PartialFunction[ Tree, Tree ] = {
       // Workaround for https://issues.scala-lang.org/browse/SI-8500. The generated code:
       //
@@ -61,11 +62,13 @@ trait MacroHelper[ C <: Context ] {
 
   type compileTimeOnly = scala.annotation.compileTimeOnly
 
-  def newUnitParser( code: String ) = {
-    val g: scala.tools.nsc.Global =
-      context.asInstanceOf[ reflect.macros.runtime.Context ].global   // TODO is this safe?
+  protected def newUnitParser( code: String ): ast.parser.Parsers#UnitParser = {
+    val g: Global = context.asInstanceOf[ reflect.macros.runtime.Context ].global   // TODO is this safe?
     g.newUnitParser( code, "<Accord>" )
   }
+
+  protected def startPos( pos: Position ) = pos.start
+  protected def endPos( pos: Position ) = pos.end
 }
 
 object MacroHelper {
