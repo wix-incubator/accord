@@ -140,12 +140,12 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       case q"if ( $cond ) { ${ left @ ValidatorApplication(_) }; () } else { ${ right @ ValidatorApplication(_) }; () }" =>
         Some( ValidationRuleBranch( Seq( ConditionalBranch( cond, left ) ), Some( right ) ) )
 
-      case q"if ( $cond ) { ${ opt @ ValidatorApplication(_) }; () } else ${ right }" =>
-        // Scala 2.10-style default case
+      case q"if ( $cond ) { ${ opt @ ValidatorApplication(_) }; () } else ()" =>
+        // Scala 2.10-style non-terminated if
         Some( ValidationRuleBranch( Seq( ConditionalBranch( cond, opt ) ), None ) )
 
       case q"if ( $cond ) { ${ opt @ ValidatorApplication(_) }; () }" =>
-        // Scala 2.11-style default case
+        // Scala 2.11-style non-terminated if
         Some( ValidationRuleBranch( Seq( ConditionalBranch( cond, opt ) ), None ) )
 
       case _ =>
