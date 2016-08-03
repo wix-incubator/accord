@@ -38,13 +38,13 @@ object Root extends Build {
     releasePublishArtifactsAction := publishSigned.value
   )
 
-  def noFatalWarningsOn( task: sbt.TaskKey[_] ) =
+  def noFatalWarningsOn( task: sbt.TaskKey[_] = compile, configuration: sbt.Configuration = Compile ) =
     task match {
       case `compile` =>
-        scalacOptions ~= { _ filterNot { _ == "-Xfatal-warnings" } }
+        scalacOptions in configuration ~= { _ filterNot { _ == "-Xfatal-warnings" } }
 
       case _ =>
-        scalacOptions in ( Compile, task ) :=
+        scalacOptions in ( configuration, task ) :=
           ( scalacOptions in ( Compile, compile ) ).value filterNot { _ == "-Xfatal-warnings" }
     }
 
@@ -60,7 +60,7 @@ object Root extends Build {
       "-unchecked",
       "-Xfatal-warnings"
     ),
-    noFatalWarningsOn( doc )      // Warnings aren't considered fatal on document generation
+    noFatalWarningsOn( task = doc )      // Warnings aren't considered fatal on document generation
   )
 
   lazy val baseSettings =
@@ -107,10 +107,11 @@ object Root extends Build {
       .crossType( CrossType.Pure )
       .in( file( "scalatest" ) )
       .dependsOn( api )
-      .settings( Seq(
+      .settings( baseSettings ++ Seq(
         name := "accord-scalatest",
-        description := "ScalaTest matchers for the Accord validation library"
-      ) ++ baseSettings :_* )
+        description := "ScalaTest matchers for the Accord validation library",
+        noFatalWarningsOn( configuration = Test )
+      ) :_* )
       .jsSettings(
         libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M16-SNAP4"
       )
@@ -132,7 +133,8 @@ object Root extends Build {
           case _ => Seq( "org.specs2" %% "specs2" % "2.3.13" )
         },
         target <<= target { _ / "specs2-2.x" },
-        noSupportFor( "2.12" )
+        noSupportFor( "2.12" ),
+        noFatalWarningsOn( configuration = Test )
       )
     ).dependsOn( apiJVM )
 
@@ -146,7 +148,8 @@ object Root extends Build {
         libraryDependencies <+= scalaVersion {
           case v if v startsWith "2.12" => "org.specs2" %% "specs2-core" % "3.7.3.1"
           case _ => "org.specs2" %% "specs2-core" % "3.6.5"
-        }
+        },
+        noFatalWarningsOn( compile, Test )
       )
     ).dependsOn( apiJVM )
 
@@ -201,7 +204,7 @@ object Root extends Build {
         name := "accord-examples",
         libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "provided" ),
         description := "Sample projects for the Accord validation library.",
-        noFatalWarningsOn( compile )
+        noFatalWarningsOn( configuration = Compile )
       ) )
       .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2_3xJVM % "test->compile", spring3 )
 
