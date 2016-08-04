@@ -158,7 +158,7 @@ object Root extends Build {
         name := "accord-specs2-3.x",
         target <<= target { _ / "specs2-3.x" },
         libraryDependencies <+= scalaVersion {
-          case v if v startsWith "2.12" => "org.specs2" %% "specs2-core" % "3.7.3.1"
+          case v if v startsWith "2.12" => "org.specs2" %% "specs2-core" % "3.8.4"
           case _ => "org.specs2" %% "specs2-core" % "3.6.5"
         },
         noFatalWarningsOn( compile, Test )

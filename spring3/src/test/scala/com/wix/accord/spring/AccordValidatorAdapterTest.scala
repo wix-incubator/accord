@@ -19,7 +19,7 @@ package com.wix.accord.spring
 import com.wix.accord.dsl
 import org.scalatest.{WordSpec, Matchers}
 import org.springframework.validation.{BeanPropertyBindingResult, Errors}
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 import AccordValidatorAdapterTest._
 
@@ -42,8 +42,8 @@ class AccordValidatorAdapterTest extends WordSpec with Matchers {
       adapter.validate( test, errors )
 
       errors.getAllErrors should have size 1
-      errors.getAllErrors.head.getCode shouldEqual SpringAdapterBase.defaultErrorCode
-      errors.getAllErrors.head.getDefaultMessage shouldEqual "f2 got 15, expected 10 or less"
+      errors.getAllErrors.asScala.head.getCode shouldEqual SpringAdapterBase.defaultErrorCode
+      errors.getAllErrors.asScala.head.getDefaultMessage shouldEqual "f2 got 15, expected 10 or less"
     }
 
     "correctly render multiple validation errors" in {
@@ -56,7 +56,7 @@ class AccordValidatorAdapterTest extends WordSpec with Matchers {
       val errors: Errors = new BeanPropertyBindingResult( test, "test" )
       adapter.validate( test, errors )
       errors.getAllErrors should have size 2
-      val returnedMessages = errors.getAllErrors map { _.getDefaultMessage }
+      val returnedMessages = errors.getAllErrors.asScala map { _.getDefaultMessage }
       returnedMessages should contain only( expectedErrorMessages:_* )
     }
   }
