@@ -79,6 +79,12 @@ object Root extends Build {
   def noSupportFor( scalaVersionPrefix: String* ) =
     crossScalaVersions ~= { _ filterNot { version => scalaVersionPrefix exists { version.startsWith } } }
 
+  def providedScalaCompiler =
+    libraryDependencies <++= scalaVersion {
+      case v if v startsWith "2.12" => Seq( "org.scala-lang" % "scala-compiler" % v % "provided" )
+      case _ => Seq.empty
+    }
+
   // Projects --
 
   lazy val api =
@@ -193,16 +199,19 @@ object Root extends Build {
   lazy val coreJS = core.js
 
   lazy val spring3 =
-    Project( id = "spring3", base = file ( "spring3" ), settings = baseSettings )
-      .dependsOn( apiJVM, scalatestJVM % "test->compile", coreJVM % "test->compile" )
+    Project(
+      id = "spring3",
+      base = file ( "spring3" ),
+      settings = baseSettings ++ providedScalaCompiler
+    )
+    .dependsOn( apiJVM, scalatestJVM % "test->compile", coreJVM % "test->compile" )
 
   lazy val examples =
     Project(
       id = "examples",
       base = file( "examples" ),
-      settings = baseSettings ++ noPublish ++ Seq(
+      settings = baseSettings ++ noPublish ++ providedScalaCompiler ++ Seq(
         name := "accord-examples",
-        libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "provided" ),
         description := "Sample projects for the Accord validation library.",
         noFatalWarningsOn( configuration = Compile )
       ) )
