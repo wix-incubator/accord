@@ -138,6 +138,13 @@ trait GeneralPurposeCombinators {
       _ -> s"is an instance of $ct"
     )
 
+  /** A validator that branches at runtime based on the value of the object under validation. Supports an optional
+    * fallback validator.
+    *
+    * @param branches A sequence of branches; each branch consists of a predicate and its intended target.
+    * @param default An optional fallback validator, in case none of the branches apply.
+    * @tparam T The object type this validator operates on.
+    */
   class Conditional[ T ]( branches: Seq[( T => Boolean, Validator[ T ] )], default: Option[ Validator[ T ] ] )
     extends Validator[ T ] {
 
