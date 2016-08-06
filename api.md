@@ -24,7 +24,7 @@ This provides a very flexible API with which to scope and execute validators. Th
 ```scala
 case class Person( name: String, age: Int )
 case object Person {
-  implicit com.wix.accord.dsl._
+  import com.wix.accord.dsl._
 
   // The following validator is automatically included in implicit search scope,
   // so users of the Person class do not have to explicitly import it.
@@ -61,8 +61,8 @@ trait Violation {
   def value: Any                     
   /** The violated constraint, e.g. "got 15, expected 18 or more" */
   def constraint: String
-  /** A textual representation of the expression that failed validation */
-  def description: Option[ String ]
+  /** A description of the expression that failed validation */
+  def description: Description
 }
 
 sealed trait Result
@@ -103,21 +103,19 @@ Accord takes the second approach, and provides two built-in violation types: `Ru
 import com.wix.accord._
 val result = validate( Person( "", 27, Address( "221B Baker Street", "", Some( "" ) ) ) )
 
-// Results in:
-result ==
-  Failure( Set(
-    // First violation:
-    RuleViolation( "", "must not be empty", Some( "name" ) ),
+assert( result == Failure( Set(
+  // First violation:
+  RuleViolation( "", "must not be empty", Descriptions.AccessChain( "name" ) ),
 
-    // Second violation:
-    GroupViolation(
-      Address( "221B Baker Street", "", Some( "" ) ),
-      "is invalid",
-      Some( "address" ),   // The violation applies to the "address" field
-      Set(                 // ... and may include multiple clauses:
-        RuleViolation( "", "must not be empty", Some( "city" ) ),
-        RuleViolation( "", "must not be empty", Some( "zipcode" ) )
-      )
+  // Second violation:
+  GroupViolation(
+    value       = Address( "221B Baker Street", "", Some( "" ) ),
+    constraint  = "is invalid",
+    description = Descriptions.AccessChain( "address" ),
+    children = Set(
+      RuleViolation( "", "must not be empty", Descriptions.AccessChain( "city" ) ),
+      RuleViolation( "", "must not be empty", Descriptions.AccessChain( "zipcode" ) )
     )
-  ) )
+  )
+) ) )
 ```

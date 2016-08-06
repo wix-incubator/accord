@@ -46,31 +46,24 @@ implicit val classValidator = validator[ Classroom ] { c =>
 [Executing](api.html) a validator:
 
 ```
-scala> import com.wix.accord._
+// Import the library
+import com.wix.accord._
 
-scala> val validPerson = Person( "Wernher", "von Braun" )
-validPerson: Person = Person(Wernher,von Braun)
+// Validate an object successfully
+val validPerson = Person( "Wernher", "von Braun" )
+val result: com.wix.accord.Result = validate( validPerson )   // Validator is implicitly resolved
+assert( result == Success )
 
-scala> validate( validPerson )
-res0: com.wix.accord.Result = Success
-
-scala> val invalidPerson = Person( "", "No First Name" )
-invalidPerson: Person = Person(,No First Name)
-
-scala> validate( invalidPerson )
-res1: com.wix.accord.Result = Failure(List(RuleViolation(,must not be empty,firstName)))
-
-scala> val explicitDescription = Person( "No Last Name", "" )
-explicitDescription: Person = Person(No Last Name,)
-
-scala> validate( explicitDescription )
-res2: com.wix.accord.Result = Failure(List(RuleViolation(,must not be empty,last name)))
-
-scala> val invalidClassroom = Classroom( Person( "Alfred", "Aho" ), Seq.empty )
-invalidClassroom: Classroom = Classroom(Person(Alfred,Aho),List())
-
-scala> validate( invalidClassroom )
-res3: com.wix.accord.Result = Failure(List(RuleViolation(List(),has size 0, expected more than 0,students)))
+// Or get a detailed failure back:
+val invalidPerson = Person( "", "No First Name" )
+val failure: com.wix.accord.Result = validate( invalidPerson )
+assert( failure == Failure( Set(                          // One or more violations
+  RuleViolation(                                          // A violation includes:
+    value = "",                                           //   - The invalid value
+    constraint = "must not be empty",                     //   - The constraint being violated
+    description = Descriptions.AccessChain( "firstName" ) //   - A property description
+  )
+) ) )
 ```
 
 <postit>
@@ -83,7 +76,11 @@ res3: com.wix.accord.Result = Failure(List(RuleViolation(List(),has size 0, expe
 Getting Started
 ===============
 
-Accord version {{ site.version.release }} is available on Maven Central Repository. Scala versions 2.10.4+ and 2.11.x are supported. The next milestone is {{ site.version.snapshot }} and is available from the Sonatype snapshots repository.
+<postit>
+  :point_right: &nbsp;&nbsp;<em>Existing users: The <a href="migration-guide.html">migration guide</a> offers instructions and recommendations on migrating to newer versions.</em>
+</postit>
+
+Accord version {{ site.version.release }} is available on Maven Central Repository. Scala versions 2.10.3+, 2.11.1+ and 2.12.0-M5 are supported. The next milestone is {{ site.version.snapshot }} and is available from the Sonatype snapshots repository.
 
 SBT
 ---

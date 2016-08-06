@@ -3,12 +3,12 @@ layout: page
 title: "Defining Validators"
 ---
 
-> :warning: Note: The DSL and combinator library are a work in progress, and are likely to expand and change before a 1.0 release. Breaking changes are always documented in the [release notes](https://github.com/wix/accord/tree/master/notes).
+> :warning: Note: The DSL and combinator library are a work in progress, and are likely to expand and change before a 1.0 release. Breaking changes are usually highlighted in the [release notes](https://github.com/wix/accord/tree/master/notes) adn covered in the [migration guide](migration-guide.html).
 
 
 # Overview
 
-Accord provides a convenient DSL for defining validation rules. To define a validator over some type `T`, import the `com.wix.accord.dsl` package, and invoke the `validator[T]` function (where `T` is your specific type under validation). You can then use the provided sample object to define various rules:
+Accord provides a convenient DSL for defining validation rules. To define a validator over some type `T`, import the `com.wix.accord.dsl` package, and invoke the `validator[ T ]` function (where `T` is your specific type under validation). You can then use the provided sample object to define various rules:
 
 ```scala
 
@@ -31,13 +31,12 @@ Each validation rule has an associated description (accessible via the [Violatio
 
 ```scala
 val result = validate( Person( "", 15 ) )
-result ==
-  Failure( Set(
-    // Note that the description (the last parameter) is automatically
-    // generated from the validation rules:
-    RuleViolation( "", "must not be empty", Some( "name" ) ),
-    RuleViolation( 15, "got 15, expected 18 or more", Some( "age" ) )
-  ) )
+assert( result == Failure( Set(
+  // Note that the description (the last parameter) is automatically
+  // generated from the validation rules:
+  RuleViolation( "", "must not be empty", Descriptions.AccessChain( "name" ) ),
+  RuleViolation( 15, "got 15, expected 18 or more", Descriptions.AccessChain( "age" ) )
+) ) )
 ```
 
 You can also explicitly provide a description with the `as` modifier:
@@ -49,12 +48,70 @@ implicit val personValidator = validator[ Person ] { p =>
 }
 
 val result = validate( Person( "", 15 ) )
-result ==
-  Failure( Set(
-    // Note that the descriptions now match the provided strings:
-    RuleViolation( "", "must not be empty", Some( "Full name" ) ),
-    RuleViolation( 15, "got 15, expected 18 or more", Some( "Age" ) )
-  ) )
+assert( result == Failure( Set(
+  // Note that the descriptions now match the provided strings:
+  RuleViolation( "", "must not be empty", Descriptions.Explicit( "Full name" ) ),
+  RuleViolation( 15, "got 15, expected 18 or more", Descriptions.Explicit( "Age" ) )
+) ) )
+```
+
+## Control Structures
+
+Accord supports branching validation rules out-of-the-box. Often times you may want the evaluation of specific rules to depend on the runtime value of another property; to that end, Accord supports several native Scala control structures, notably `if`s and pattern matching:
+
+```scala
+case class NumericPair( numeric: Int, string: String )
+
+implicit val numericValidator = validator[ NumericPair ] { n =>
+  if ( n.numeric < 0 )
+    n.string should startWith( "-" )
+  else if ( n.numeric == 0 )
+    n.string is equalTo( "0" )
+  else
+    n.string is notEmpty
+}
+
+assert( validate( NumericPair( -5, "-5" ) ) == Success )
+
+// Generated descriptions include detailed information about the resolved branch:
+assert( validate( NumericPair( 0, "zero" ) ) == Failure( Set (
+  RuleViolation( "zero", "does not equal 0",
+    Descriptions.Conditional(
+      on     = Descriptions.Generic( "branch" ), 
+      value  = true,
+      guard  = Some( Descriptions.Generic( "n.numeric == 0" ) ),
+      target = Descriptions.AccessChain( "string" )
+    )
+  )
+) ) )
+```
+
+You can also use pattern matching, including guards and default cases. With pattern matching, the `on` property of the resulting violation includes information on the value being matched:
+
+```scala
+// An equivalent validator using pattern matching:
+implicit val numericValidator = validator[ NumericPair ] { pair =>
+  pair.numeric match {
+    case n if n < 0 => pair.string should startWith( "-" )
+    case 0          => pair.string is equalTo( "0" )
+    case n if n > 0 => pair.string is notEmpty
+  }
+}
+
+assert( validate( NumericPair( -5, "-5" ) ) == Success )
+
+// Note that the "on" property now includes the expression being matched over, and
+// (as there's no condition), the "guard" property is missing:
+assert( validate( NumericPair( 0, "zero" ) ) == Failure( Set (
+  RuleViolation( "zero", "does not equal 0",
+    Descriptions.Conditional(
+      on     = Descriptions.AccessChain( "numeric" ), 
+      value  = 0,
+      guard  = None,
+      target = Descriptions.AccessChain( "string" )
+    )
+  )
+) ) )
 ```
 
 # Combinators
@@ -72,6 +129,10 @@ sample.field is notEqualTo( "value" )
 // Nullability (only applies to reference types)
 sample.field is aNull
 sample.field is notNull
+
+// Types
+sample.field is anInstanceOf[ String ]
+sample.field is notAnInstanceOf[ List[_] ]
 
 // Delegation
 sample.field is valid    					// Implicitly, or
@@ -115,6 +176,9 @@ sample.intField is within( 0 until 10 )           // Exclusive
 * Collections
 
 ```scala
+
+// Existence in a collection
+sample.entityType is in( "person", "address", "classroom" )
 
 // Emptiness
 sample.seq is empty
