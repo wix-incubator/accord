@@ -3,12 +3,12 @@ layout: page
 title: "Defining Validators"
 ---
 
-> :warning: Note: The DSL and combinator library are a work in progress, and are likely to expand and change before a 1.0 release. Breaking changes are usually highlighted in the [release notes](https://github.com/wix/accord/tree/master/notes) adn covered in the [migration guide](migration-guide.html).
+> :warning: Note: The DSL and combinator library are a work in progress, and are likely to expand and change before a 1.0 release. Breaking changes are usually highlighted in the [release notes](https://github.com/wix/accord/tree/master/notes) and covered in the [migration guide](migration-guide.html).
 
 
 # Overview
 
-Accord provides a convenient DSL for defining validation rules. To define a validator over some type `T`, import the `com.wix.accord.dsl` package, and invoke the `validator[ T ]` function (where `T` is your specific type under validation). You can then use the provided sample object to define various rules:
+Accord provides a convenient DSL for defining validation rules. To define a validator over some type `T`, import the `com.wix.accord.dsl` package, and invoke the `validator[T]` function (where `T` is your specific type under validation). You can then use the provided sample object to define various rules:
 
 ```scala
 
@@ -57,7 +57,7 @@ assert( result == Failure( Set(
 
 ## Control Structures
 
-Accord supports branching validation rules out-of-the-box. Often times you may want the evaluation of specific rules to depend on the runtime value of another property; to that end, Accord supports several native Scala control structures, notably `if`s and pattern matching:
+Accord supports branching validation rules out-of-the-box. Often times the evaluation of specific rules depends on the runtime value of another property; to that end, Accord supports several native Scala control structures, notably `if`s and pattern matching:
 
 ```scala
 case class NumericPair( numeric: Int, string: String )
@@ -142,7 +142,6 @@ sample.field is valid( myOwnValidator )		// Explicitly
 * Primitives
 
 ```scala
-
 // Booleans
 sample.booleanField is true
 sample.booleanField is false
@@ -176,7 +175,6 @@ sample.intField is within( 0 until 10 )           // Exclusive
 * Collections
 
 ```scala
-
 // Existence in a collection
 sample.entityType is in( "person", "address", "classroom" )
 
@@ -198,7 +196,6 @@ sample.entities have size >= 8		// You can use "have" in place of "has"
 * Boolean Expressions
 
 ```scala
-
 // Logical AND (not strictly required, since you can just split into separate rules)
 ( person.name is notEmpty ) and ( person.age should be >= 18 )
 
@@ -252,11 +249,11 @@ def oneOf[ T ]( options : T* ): Validator[ T ] =
   new Validator[ T ] {
     def apply( value: T ) = value match {
       case null => 
-        Failure( Set( RuleViolation( null, "is a null", None ) ) )
+        Failure( Set( RuleViolation( null, "is a null", Descriptions.Empty ) ) )
       case _ if options contains value =>
         Success
       case _ =>
-        Failure( Set( RuleViolation( value, "is not one of " + options.mkString( "," ), None ) ) )
+        Failure( Set( RuleViolation( value, "is not one of " + options.mkString( "," ), Descriptions.Empty ) ) )
     }
   }
 ```

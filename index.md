@@ -36,16 +36,15 @@ implicit val classValidator = validator[ Classroom ] { c =>
   c.students.each is valid
   c.students have size > 0
 }
-
+```
 <postit>
   :point_right: &nbsp;&nbsp;<em>See the <a href="dsl.html">DSL user guide</a> for all available features.</em>
 </postit>
 
-```
 
 [Executing](api.html) a validator:
 
-```
+```scala
 // Import the library
 import com.wix.accord._
 
@@ -77,7 +76,7 @@ Getting Started
 ===============
 
 <postit>
-  :point_right: &nbsp;&nbsp;<em>Existing users: The <a href="migration-guide.html">migration guide</a> offers instructions and recommendations on migrating to newer versions.</em>
+  :point_right: &nbsp;&nbsp;<em>The <a href="migration-guide.html">migration guide</a> offers  information and tips on migrating to newer versions.</em>
 </postit>
 
 Accord version {{ site.version.release }} is available on Maven Central Repository. Scala versions 2.10.3+, 2.11.1+ and 2.12.0-M5 are supported. The next milestone is {{ site.version.snapshot }} and is available from the Sonatype snapshots repository.
