@@ -46,7 +46,7 @@ object Descriptions {
     * expression:
     *
     * {{{
-    *   conditional( person.age ) {
+    *   person.age match {
     *     case age if age < 18 => person.guardian is notEmpty
     *     case age if age >= 18 => person.residencyAddress is notEmpty
     *   }
@@ -62,8 +62,7 @@ object Descriptions {
     *                guard = Some( Generic( "age >= 18" ) ),
     *                target = AccessChain( "residencyAddress" ) )
     *
-    * @param on The description of the condition as specified by the parameter to
-    *           [[com.wix.accord.dsl.GenericOps.conditional]].
+    * @param on A description of the property on which validation branches, or `Generic( "Branch" )` if not applicable.
     * @param value The runtime value of the condition for the matching case.
     * @param guard An optional description of the guard specified for the matching case.
     * @param target The description of the validation target for the matching case.
