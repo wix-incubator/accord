@@ -52,7 +52,7 @@ object Root extends Build {
     scalaVersion := "2.11.1",
     crossScalaVersions :=
       Seq( "2.10.3", "2.11.1" ) ++
-      ( if ( javaRuntimeVersion >= 1.8 ) Seq( "2.12.0-M4" ) else Seq.empty ),
+      ( if ( javaRuntimeVersion >= 1.8 ) Seq( "2.12.0-M5" ) else Seq.empty ),
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",
       "-feature",
@@ -99,10 +99,13 @@ object Root extends Build {
           "instances. Feedback, bug reports and improvements are welcome!"
       ) ++ baseSettings :_* )
       .jsSettings(
-        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M16-SNAP4"
+        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0"
       )
       .jvmSettings(
-        libraryDependencies += "org.scalatest" %%% "scalatest" % "2.2.6"
+        libraryDependencies <+= scalaVersion {
+          case v if v startsWith "2.12" => "org.scalatest" %% "scalatest" % "3.0.0"
+          case _ => "org.scalatest" %% "scalatest" % "2.2.6"
+        }
       )
 
   lazy val apiJVM = api.jvm
@@ -119,10 +122,13 @@ object Root extends Build {
         noFatalWarningsOn( configuration = Test )
       ) :_* )
       .jsSettings(
-        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0-M16-SNAP4"
+        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0"
       )
       .jvmSettings(
-        libraryDependencies += "org.scalatest" %%% "scalatest" % "2.2.6"
+        libraryDependencies <+= scalaVersion {
+          case v if v startsWith "2.12" => "org.scalatest" %% "scalatest" % "3.0.0"
+          case _ => "org.scalatest" %% "scalatest" % "2.2.6"
+        }
       )
   lazy val scalatestJVM = scalatest.jvm
   lazy val scalatestJS = scalatest.js
@@ -152,7 +158,7 @@ object Root extends Build {
         name := "accord-specs2-3.x",
         target <<= target { _ / "specs2-3.x" },
         libraryDependencies <+= scalaVersion {
-          case v if v startsWith "2.12" => "org.specs2" %% "specs2-core" % "3.7.3.1"
+          case v if v startsWith "2.12" => "org.specs2" %% "specs2-core" % "3.8.4"
           case _ => "org.specs2" %% "specs2-core" % "3.6.5"
         },
         noFatalWarningsOn( compile, Test )
