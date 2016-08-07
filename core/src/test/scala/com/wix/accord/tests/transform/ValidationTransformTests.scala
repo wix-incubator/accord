@@ -168,6 +168,11 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
           AccessChain( "field" ) -> "has size 3, expected more than 5"
         ) )
     }
+    "be generated for a generic expression" in {
+      val obj = FlatTest( "" )
+      validate( obj )( genericValidator ) should
+        failWith( Generic( "t.field.length * 2" ) -> "got 0, expected more than 0" )
+    }
     "be propagated for an explicitly-described expression" in {
       validate( FlatTest( null ) )( explicitlyDescribedValidator ) should
         failWith( Explicit( "described" ) -> "is a null" )
@@ -232,6 +237,7 @@ object ValidationTransformTests {
       val implicitlyDescribedValueValidator = validator[ String ] { _ is notNull }
       val adaptedValidator = implicitlyDescribedValueValidator compose { ( f: FlatTest ) => f.field }
       val booleanExpressionValidator = validator[ FlatTest ] { t => ( t.field is aNull ) or ( t.field has size > 5 ) }
+      val genericValidator = validator[ FlatTest ] { t => t.field.length * 2 must be > 0 }
 
       case class CompositeTest( member: FlatTest )
       val compositeValidator = {
