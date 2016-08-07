@@ -53,7 +53,7 @@ class DescriptionModelSpec extends FlatSpec with Matchers {
     // indirectly via Result.applyDescription. In the latter case, the innermost description is actually on the right
     // side of the indirection (so a.b.c => c applyDescription b applyDescription a), hence the reverse indirection
     // order.
-    // See issue #66 (https://github.com/wix/accord/issues/66) for an example use caes.
+    // See issue #66 (https://github.com/wix/accord/issues/66) for an example use case.
 
     combine( AccessChain( "a" ), AccessChain( "b" ) ) shouldEqual AccessChain( "b", "a" )
   }
