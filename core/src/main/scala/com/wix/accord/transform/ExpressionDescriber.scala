@@ -46,17 +46,21 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
   import Descriptions._
   import context.universe._
 
+  private val whitespace = "\\s".r
+
   private def prettyPrint( tree: Tree ): String = {
-    // Taking a leaf from Li Haoyi (https://github.com/lihaoyi/sourcecode/blob/master/sourcecode/shared/src/main/scala/sourcecode/SourceContext.scala)
     val fileContent = new String( tree.pos.source.content )
     val start = tree.collect { case t => startPos( t.pos ) }.min
-    val codeSlice = {
-      val raw = fileContent.substring( start )
-      // When describing pattern guards the subsequent lambda "=>" throws off the parser (makes it ambiguous without
-      // external context)
-      val lambda = raw indexOf "=>"
-      if ( lambda < 0 ) raw else raw.substring( 0, lambda )
-    }
+    val end = tree.collect { case t => endPos( t.pos ) }.max
+    val codeSlice =
+      whitespace.findFirstMatchIn( fileContent.substring( end ) ) match {
+        case None => fileContent.substring( start )
+        case Some( tokenEndOffset ) =>
+          // For whatever reason, in some cases the compiler provides a tree position that ends after the first
+          // character of the last token. We'll therefore look up the next token and artificially add the missing
+          // characters to the code slice prior to parsing.
+          fileContent.substring( start, end + tokenEndOffset.end )
+      }
     val parser = newUnitParser( codeSlice )
     parser.expr()
     fileContent.slice( start, start + parser.in.lastOffset )

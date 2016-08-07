@@ -63,11 +63,12 @@ trait MacroHelper[ C <: Context ] {
   type compileTimeOnly = scala.annotation.compileTimeOnly
 
   protected def newUnitParser( code: String ): ast.parser.Parsers#UnitParser = {
-    val g: Global = context.asInstanceOf[ reflect.macros.runtime.Context ].global   // TODO is this safe?
+    val g: Global = context.asInstanceOf[ reflect.macros.runtime.Context ].global
     g.newUnitParser( code, "<Accord>" )
   }
 
   protected def startPos( pos: Position ) = pos.start
+  protected def endPos( pos: Position ) = pos.end
 }
 
 object MacroHelper {

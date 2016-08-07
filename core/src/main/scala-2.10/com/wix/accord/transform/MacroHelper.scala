@@ -28,10 +28,11 @@ trait MacroHelper[ C <: Context ] {
   protected def resetAttrs( tree: Tree ): Tree = context.resetAllAttrs( tree )
   protected def rewriteExistentialTypes( tree: Tree ): Tree = tree
   protected def newUnitParser( code: String ): ast.parser.Parsers#UnitParser = {
-    val g: Global = context.asInstanceOf[ reflect.macros.runtime.Context ].global   // TODO is this safe?
+    val g: Global = context.asInstanceOf[ reflect.macros.runtime.Context ].global
     g.newUnitParser( code )
   }
   protected def startPos( pos: Position ) = pos.startOrPoint
+  protected def endPos( pos: Position ) = pos.endOrPoint - 1  // Adjust for difference from 2.11 up
 }
 
 object MacroHelper {
