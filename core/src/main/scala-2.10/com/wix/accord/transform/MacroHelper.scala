@@ -32,7 +32,6 @@ trait MacroHelper[ C <: Context ] {
     g.newUnitParser( code )
   }
   protected def startPos( pos: Position ) = pos.startOrPoint
-  protected def endPos( pos: Position ) = pos.endOrPoint
 }
 
 object MacroHelper {

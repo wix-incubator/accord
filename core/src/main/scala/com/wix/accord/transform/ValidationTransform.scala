@@ -117,7 +117,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
   val processMatches: TransformAST = {
     case t @ Match( rawCond, cases ) if cases forall isWrappedValidationRule =>
-      val cond = resetAttrs( rawCond.duplicate )            // Not entirely sure why this is necessary
+      val cond = resetAttrs( rawCond.duplicate )
       val rewrittenBranches = cases collect {
         case CaseDef( pat, guard, q"{ $rule; () }" ) =>
           val guardDescription = if ( guard.isEmpty ) q"scala.None" else q"scala.Some( ${describeTree( prototype, guard )} )"

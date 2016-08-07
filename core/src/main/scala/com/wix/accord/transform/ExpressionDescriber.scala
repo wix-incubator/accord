@@ -47,25 +47,19 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
   import context.universe._
 
   private def prettyPrint( tree: Tree ): String = {
-    // Ouch. Taking a leaf from Li Haoyi, see:
-    // https://github.com/lihaoyi/sourcecode/blob/master/sourcecode/shared/src/main/scala/sourcecode/SourceContext.scala
+    // Taking a leaf from Li Haoyi (https://github.com/lihaoyi/sourcecode/blob/master/sourcecode/shared/src/main/scala/sourcecode/SourceContext.scala)
     val fileContent = new String( tree.pos.source.content )
     val start = tree.collect { case t => startPos( t.pos ) }.min
-    val end = {
-      // For some reason, ouv.pos.isRange doesn't work -- I'm probably missing something, but this is
-      // a decent workaround for now.
-      val rangeEnd = tree.collect { case t => endPos( t.pos ) }.max
-      if ( start != rangeEnd )
-        rangeEnd + 1
-      else {
-        // Point position, need to actually parse to figure out the slice size by parsing
-        val parser = newUnitParser( fileContent.substring( start ) )
-        parser.expr()
-        start + parser.in.lastOffset
-      }
+    val codeSlice = {
+      val raw = fileContent.substring( start )
+      // When describing pattern guards the subsequent lambda "=>" throws off the parser (makes it ambiguous without
+      // external context)
+      val lambda = raw indexOf "=>"
+      if ( lambda < 0 ) raw else raw.substring( 0, lambda )
     }
-
-    fileContent.slice( start, end )
+    val parser = newUnitParser( codeSlice )
+    parser.expr()
+    fileContent.slice( start, start + parser.in.lastOffset )
   }
 
   /** An extractor for explicitly described expressions. Applies expressions like

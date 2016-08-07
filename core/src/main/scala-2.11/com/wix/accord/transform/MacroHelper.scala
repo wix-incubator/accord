@@ -68,7 +68,6 @@ trait MacroHelper[ C <: Context ] {
   }
 
   protected def startPos( pos: Position ) = pos.start
-  protected def endPos( pos: Position ) = pos.end
 }
 
 object MacroHelper {
