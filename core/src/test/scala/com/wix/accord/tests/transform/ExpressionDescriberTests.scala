@@ -51,6 +51,11 @@ class ExpressionDescriberTests extends WordSpec with Matchers {
       val description = ExpressionDescriber describe { ( t: Test ) => t.field1.length * 180 }
       description shouldEqual Generic( "t.field1.length * 180" )
     }
+    "properly render a function call" in {
+      def test( s: String ) = ???
+      val description = ExpressionDescriber describe { ( t: Test ) => test( t.field1 ) }
+      description shouldEqual Generic( "test( t.field1 )" )
+    }
     "render a self-reference description when the sample object itself is used anonymously" in pending
 //    {
 //      TODO find a way to encode such a function, or add yet another helper macro

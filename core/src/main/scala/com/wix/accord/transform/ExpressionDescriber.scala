@@ -46,21 +46,24 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
   import Descriptions._
   import context.universe._
 
-  private val whitespace = "\\s".r
+  private val tokenLookup = "(\\s+\\)?)+".r
 
   private def prettyPrint( tree: Tree ): String = {
     val fileContent = new String( tree.pos.source.content )
     val start = tree.collect { case t => startPos( t.pos ) }.min
-    val end = tree.collect { case t => endPos( t.pos ) }.max
+    val end = Math.max( start, tree.collect { case t => endPos( t.pos ) }.max ) + 1
     val codeSlice =
-      whitespace.findFirstMatchIn( fileContent.substring( end ) ) match {
-        case None => fileContent.substring( start )
+      tokenLookup.findFirstMatchIn( fileContent.substring( end ) ) match {
+        case None =>
+          fileContent.substring( start )
+
         case Some( tokenEndOffset ) =>
           // For whatever reason, in some cases the compiler provides a tree position that ends after the first
           // character of the last token. We'll therefore look up the next token and artificially add the missing
-          // characters to the code slice prior to parsing.
+          // characters to the code slice prior to parsing, taking parentheses into account.
           fileContent.substring( start, end + tokenEndOffset.end )
       }
+
     val parser = newUnitParser( codeSlice )
     parser.expr()
     fileContent.slice( start, start + parser.in.lastOffset )
