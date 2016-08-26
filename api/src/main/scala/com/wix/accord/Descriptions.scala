@@ -102,6 +102,6 @@ object Descriptions {
     case SelfReference => "value"
     case Conditional( on, value, None, target ) => s"${render( target )} [where ${render( on )}=$value]"
     case Conditional( on, value, Some( guard ), target ) =>
-      s"${render( target )} [where ${render( on )}=$value and $guard]"
+      s"${render( target )} [where ${render( on )}=$value and ${render( guard )}]"
   }
 }
