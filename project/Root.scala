@@ -8,7 +8,8 @@ import com.typesafe.sbt.SbtPgp.autoImport.PgpKeys._
 
 object Root extends Build {
 
-  val javaRuntimeVersion = System.getProperty( "java.vm.specification.version" ).toDouble
+`  lazy val javaRuntimeVersion = settingKey[ Double ]( "The JVM runtime version (e.g. 1.8)" )
+  lazy val supportsScala2_12 = settingKey[ Boolean ]( "Whether or not a particular module supports Scala 2.12.x" )
 
   lazy val publishSettings = Seq(
     publishTo := {
@@ -50,9 +51,13 @@ object Root extends Build {
 
   lazy val compileOptions = Seq(
     scalaVersion := "2.11.1",
-    crossScalaVersions :=
-      Seq( "2.10.3", "2.11.1" ) ++
-      ( if ( javaRuntimeVersion >= 1.8 ) Seq( "2.12.0-M5" ) else Seq.empty ),
+    crossScalaVersions := Seq( "2.10.3", "2.11.1" ),
+    javaRuntimeVersion := System.getProperty( "java.vm.specification.version" ).toDouble,
+    supportsScala2_12 := true,
+    crossScalaVersions <++= ( javaRuntimeVersion, supportsScala2_12 ) {
+      case ( v, true ) if v >= 1.8 => Seq( "2.12.0-M5" )
+      case _ => Seq.empty
+    },
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",
       "-feature",
@@ -75,9 +80,6 @@ object Root extends Build {
     )
 
   lazy val noPublish = Seq( publish := {}, publishLocal := {}, publishArtifact := false )
-
-  def noSupportFor( scalaVersionPrefix: String* ) =
-    crossScalaVersions ~= { _ filterNot { version => scalaVersionPrefix exists { version.startsWith } } }
 
   def providedScalaCompiler =
     libraryDependencies <++= scalaVersion {
@@ -145,7 +147,7 @@ object Root extends Build {
           case _ => Seq( "org.specs2" %% "specs2" % "2.3.13" )
         },
         target <<= target { _ / "specs2-2.x" },
-        noSupportFor( "2.12" ),
+        supportsScala2_12 := false,
         noFatalWarningsOn( configuration = Test )
       )
     ).dependsOn( apiJVM )
