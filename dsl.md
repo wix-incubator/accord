@@ -101,7 +101,7 @@ implicit val numericValidator = validator[ NumericPair ] { pair =>
 assert( validate( NumericPair( -5, "-5" ) ) == Success )
 
 // Note that the "on" property now includes the expression being matched over, and
-// (as there's no condition), the "guard" property is missing:
+// (as there's no condition), the "guard" property is empty:
 assert( validate( NumericPair( 0, "zero" ) ) == Failure( Set (
   RuleViolation( "zero", "does not equal 0",
     Descriptions.Conditional(
@@ -135,8 +135,8 @@ sample.field is anInstanceOf[ String ]
 sample.field is notAnInstanceOf[ List[_] ]
 
 // Delegation
-sample.field is valid    					// Implicitly, or
-sample.field is valid( myOwnValidator )		// Explicitly
+sample.field is valid                     // Implicitly, or
+sample.field is valid( myOwnValidator )   // Explicitly
 ```
 
 * Primitives
@@ -178,19 +178,18 @@ sample.intField is within( 0 until 10 )           // Exclusive
 // Existence in a collection
 sample.entityType is in( "person", "address", "classroom" )
 
-// Emptiness
+// Emptiness (any type with a boolean "isEmpty" property, including string)
 sample.seq is empty
 sample.seq is notEmpty
-// This applies to any type that has a boolean "isEmpty" property, such as string)
 
 // The "each" modifier applies the validation to all members of a collection:
 sample.seq.each should be >= 10
-sample.option.each should be >= 10                // Allows None or Some(15)
+sample.option.each should be >= 10   // Allows None or Some(15)
 
 // Size (applies to any type with an integer "size" property)
 // See "Numerics" above for additional operations
 sample.seq has size >= 8
-sample.entities have size >= 8		// You can use "have" in place of "has"
+sample.entities have size >= 8       // You can use "have" in place of "has"
 ```
 
 * Boolean Expressions

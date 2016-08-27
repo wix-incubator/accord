@@ -13,12 +13,19 @@ Accord is a validation library written in and for Scala. Compared to [JSR 303](h
 * __Self-contained__: Accord is macro-based but completely self-contained, and consequently only relies on the Scala runtime and reflection libraries.
 * __Integrated__: Other than providing its own DSL and matcher library, Accord is designed to easily integrate with the larger Scala ecosystem, and provides out-of-the-box support for [Scala.js](http://www.scala-js.org), as well as integration modules for [Spring Validation](spring3.html), [Specs<sup>2</sup>](specs2.html) and [ScalaTest](scalatest.html).
 
-Accord is developed and used at <a href="http://www.wix.com"><img src="images/wix_logo.png" width="42" height="11" alt="Wix.com"></img></a> and distributed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0), which basically means you can use and modify it freely. Feedback, bug reports and improvements are welcome!
+Accord is developed and used at <a href="http://www.wix.com"><img src="images/wix_logo.png" width="42" height="11" alt="Wix.com"></a> and distributed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0), which basically means you can use and modify it freely. Feedback, bug reports and improvements are welcome!
 
-Example
-=======
+By Example
+==========
 
-[Defining](dsl.html) a validator:
+<postit>
+  :point_right: &nbsp;&nbsp;<em>See the <a href="dsl.html">DSL user guide</a> for the full set of features.</em>
+  <br>
+  :point_right: &nbsp;&nbsp;<em>See the <a href="api.html">API user guide</a> for details of how descriptions are generated and used.</em>
+</postit>
+
+
+Defining a validator is quite straightforward:
 
 ```scala
 import com.wix.accord.dsl._    // Import the validator DSL
@@ -37,12 +44,8 @@ implicit val classValidator = validator[ Classroom ] { c =>
   c.students have size > 0
 }
 ```
-<postit>
-  :point_right: &nbsp;&nbsp;<em>See the <a href="dsl.html">DSL user guide</a> for all available features.</em>
-</postit>
 
-
-[Executing](api.html) a validator:
+Executing the validator is equally straightforwad:
 
 ```scala
 // Import the library
@@ -65,18 +68,13 @@ assert( failure == Failure( Set(                          // One or more violati
 ) ) )
 ```
 
-<postit>
-  :point_right: &nbsp;&nbsp;<em>See the <a href="api.html">API user guide</a> for details of how descriptions are generated.</em>
-</postit>
-
-
 <a name="getting-started"></a>
 
 Getting Started
 ===============
 
 <postit>
-  :point_right: &nbsp;&nbsp;<em>The <a href="migration-guide.html">migration guide</a> offers  information and tips on migrating to newer versions.</em>
+  :point_right: &nbsp;&nbsp;<em>The <a href="migration-guide.html">migration guide</a> highlights API changes in new versions.</em>
 </postit>
 
 Accord version {{ site.version.release }} is available on Maven Central Repository. Scala versions 2.10.3+, 2.11.1+ and 2.12.0-M5 are supported. The next milestone is {{ site.version.snapshot }} and is available from the Sonatype snapshots repository.
