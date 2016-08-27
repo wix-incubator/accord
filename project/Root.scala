@@ -8,7 +8,7 @@ import com.typesafe.sbt.SbtPgp.autoImport.PgpKeys._
 
 object Root extends Build {
 
-`  lazy val javaRuntimeVersion = settingKey[ Double ]( "The JVM runtime version (e.g. 1.8)" )
+  lazy val javaRuntimeVersion = settingKey[ Double ]( "The JVM runtime version (e.g. 1.8)" )
   lazy val supportsScala2_12 = settingKey[ Boolean ]( "Whether or not a particular module supports Scala 2.12.x" )
 
   lazy val publishSettings = Seq(
