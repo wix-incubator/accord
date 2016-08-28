@@ -100,22 +100,23 @@ Sometimes merely asserting a validation failure is not enough. Accord also lets 
 "The Person validator" should "render a correct violation for a Person with an empty first name" {
   val sample = Person( "", "Last name" )
   val result = validate( sample )
-  result should failWith( "firstName" -> "must not be empty" )
+  result should failWith( AccessChain( "firstName" ) -> "must not be empty" )
 }
 ```
 
-Behind the scenes, the `failWith` helper takes one or more matchers on violations, and wraps them to provide a single matcher on `Result`. The `"firstName" -> "must not be empty"` syntax actually uses an implicit conversion to construct a `RuleViolationMatcher`; the full syntax enables you to explicitly match on any part of the violation:
+Behind the scenes, the `failWith` helper takes one or more matchers on violations, and wraps them to provide a single matcher on `Result`. The `AccessChain( "firstName" ) -> "must not be empty"` syntax actually uses an implicit conversion to construct a `RuleViolationMatcher`; the full syntax enables you to explicitly match on any part of the violation:
 
 ```scala
-val matchByValue       = RuleViolationMatcher( value       = ""                  )
-val matchByDescription = RuleViolationMatcher( description = "firstName"         )
-val matchByConstraint  = RuleViolationMatcher( constraint  = "must not be empty" )
+val byValue       = RuleViolationMatcher( value       = ""                         )
+val byDescription = RuleViolationMatcher( description = AccessChain( "firstName" ) )
+val byConstraint  = RuleViolationMatcher( constraint  = "must not be empty"        )
 
 // You can specify any combination of these requirements, so the following is
-// equivalent to the "firstName" -> "must not be empty" syntax:
+// equivalent to the AccessChain( "firstName" ) -> "must not be empty" syntax:
 val expectedViolation = RuleViolationMatcher(
-  description = "firstName",
-  constraint = "must not be empty" )
+  description = AccessChain( "firstName" ),
+  constraint = "must not be empty"
+)
 ```
 
 ## Testing group violations
@@ -126,9 +127,9 @@ Group violations are relatively rare, and are used to specify that multiple rule
 "The Classroom validator" should "fail a classroom with an invalid teacher" in {
   val sample = Classroom( Person( "", "" ), Seq( Person( "Alfred", "Aho" ) ) )
   val result = validate( sample )
-  result should failWith( group( "teacher", "is invalid",
-    "firstName" -> "must not be empty",
-    "lastName" -> "must not be empty"
+  result should failWith( group( AccessChain( "teacher" ), "is invalid",
+    AccessChain( "firstName" ) -> "must not be empty",
+    AccessChain( "lastName" ) -> "must not be empty"
   ) )
 }
 ```
@@ -137,12 +138,19 @@ As with rule violations, the `group` helper simply provides a more concise API t
 
 ```scala
 val expectedViolation = GroupViolationMatcher(
-  description = "teacher",
+  description = AccessChain( "teacher" ),
   constraint = "is invalid",
   violations = Seq(
-    RuleViolation( description = "firstName", constraint = "must not be empty" ),
-    RuleViolation( description = "lastName",  constraint = "must not be empty" ),
-  ) )
+    RuleViolation(
+      description = AccessChain( "firstName" ), 
+      constraint = "must not be empty" 
+    ),
+    RuleViolation(
+      description = AccessChain( "lastName" ),
+      constraint = "must not be empty" 
+    )
+  )
+)
 result should failWith( expectedViolation )
 ```
 

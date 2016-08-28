@@ -5,41 +5,26 @@ title: "Integration with Specs²"
 
 # Getting started
 
+> :warning: Note: Accord supports Specs² 3.x and up; Scala.js is not currently supported.
+
 Accord provides [Specs²](http://www.scalatest.org/) matchers on validation results; the intended use case is to be able to write a test spec for your domain model and its associated validation rules. To enable Specs² integration, add a dependency on the `accord-specs2` module:
 
 ## Using sbt
 
-> :warning: The artifact names are likely change with the next minor release.
-
 Add the following to your build.sbt or to the settings in your Scala build configuration:
 
 ```scala
-// When using Specs² 2.x:
 libraryDependencies += "com.wix" %% "accord-specs2" % "{{ site.version.release }}" % "test"
-
-// When using Specs² 3.x:
-libraryDependencies += "com.wix" %% "accord-specs2-3-x" % "{{ site.version.release }}" % "test"
 ```
 
 ## Using Maven
 
-> :warning: The artifact names are likely change with the next minor release.
-
 Add the following to your POM:
 
 ```xml
-<!-- When using Specs² 2.x: -->
 <dependency>
     <groupId>com.wix</groupId>
     <artifactId>accord-specs2_${scala.tools.version}</artifactId>
-    <version>{{ site.version.release }}</version>
-    <scope>test</scope>
-</dependency>
-
-<!-- When using Specs² 3.x: -->
-<dependency>
-    <groupId>com.wix</groupId>
-    <artifactId>accord-specs2-3-x_${scala.tools.version}</artifactId>
     <version>{{ site.version.release }}</version>
     <scope>test</scope>
 </dependency>
@@ -118,23 +103,24 @@ Sometimes merely asserting a validation failure is not enough. Accord also lets 
   "render a correct violation for a Person with an empty first name" {
     val sample = Person( "", "Last name" )
     val result = validate( sample )
-    result should failWith( "firstName" -> "must not be empty" )
+    result should failWith( AccessChain( "firstName" ) -> "must not be empty" )
   }
 }
 ```
 
-Behind the scenes, the `failWith` helper takes one or more matchers on violations, and wraps them to provide a single matcher on `Result`. The `"firstName" -> "must not be empty"` syntax actually uses an implicit conversion to construct a `RuleViolationMatcher`; the full syntax enables you to explicitly match on any part of the violation:
+Behind the scenes, the `failWith` helper takes one or more matchers on violations, and wraps them to provide a single matcher on `Result`. The `AccessChain( "firstName" ) -> "must not be empty"` syntax actually uses an implicit conversion to construct a `RuleViolationMatcher`; the full syntax enables you to explicitly match on any part of the violation:
 
 ```scala
-val matchByValue       = RuleViolationMatcher( value       = ""                  )
-val matchByDescription = RuleViolationMatcher( description = "firstName"         )
-val matchByConstraint  = RuleViolationMatcher( constraint  = "must not be empty" )
+val byValue       = RuleViolationMatcher( value       = ""                         )
+val byDescription = RuleViolationMatcher( description = AccessChain( "firstName" ) )
+val byConstraint  = RuleViolationMatcher( constraint  = "must not be empty"        )
 
 // You can specify any combination of these requirements, so the following is
-// equivalent to the "firstName" -> "must not be empty" syntax:
+// equivalent to the AccessChain( "firstName" ) -> "must not be empty" syntax:
 val expectedViolation = RuleViolationMatcher(
-  description = "firstName",
-  constraint = "must not be empty" )
+  description = AccessChain( "firstName" ),
+  constraint = "must not be empty"
+)
 ```
 
 ## Testing group violations
@@ -146,9 +132,9 @@ Group violations are relatively rare, and are used to specify that multiple rule
   "fail a classroom with an invalid teacher" in {
     val sample = Classroom( Person( "", "" ), Seq( Person( "Alfred", "Aho" ) ) )
     val result = validate( sample )
-    result should failWith( group( "teacher", "is invalid",
-      "firstName" -> "must not be empty",
-      "lastName" -> "must not be empty"
+    result should failWith( group( AccessChain( "teacher" ), "is invalid",
+      AccessChain( "firstName" ) -> "must not be empty",
+      AccessChain( "lastName" ) -> "must not be empty"
     ) )
   }
 }
@@ -158,11 +144,18 @@ As with rule violations, the `group` helper simply provides a more concise API t
 
 ```scala
 val expectedViolation = GroupViolationMatcher(
-  description = "teacher",
+  description = AccessChain( "teacher" ),
   constraint = "is invalid",
   violations = Seq(
-    RuleViolation( description = "firstName", constraint = "must not be empty" ),
-    RuleViolation( description = "lastName",  constraint = "must not be empty" ),
-  ) )
+    RuleViolation( 
+      description = AccessChain( "firstName" ), 
+      constraint = "must not be empty" 
+    ),
+    RuleViolation( 
+      description = AccessChain( "lastName" ),
+      constraint = "must not be empty"
+    )
+  ) 
+)
 result should failWith( expectedViolation )
 ```
