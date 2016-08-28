@@ -24,12 +24,12 @@ Roadmap
 
 Accord is still fairly rudimentary, and there's plenty of improvements to be made:
 
-* The [0.6 milestone](https://github.com/wix/accord/milestones/0.6) lists the planned improvements for the next release.
-* Future plans:
+* The [0.7 milestone](https://github.com/wix/accord/milestones/0.7) lists the planned improvements for the next release.
+* Some future plans/ideas:
+    * Performance benchmarks
     * Elide DSL implicit invocations from resulting tree for better performance and smaller code
     * Add syntax for custom violation message overrides (e.g. `p.firstName is notEmpty as "no first name!"`)
     * Support custom violation types (e.g. `p.firstName is notEmpty as MyServerError( code = -3 )`)
-    * Add a validation result rendering framework
     * Full-blown i18n support ([need feedback](https://github.com/wix/accord/issues/21) on this)
 
 Ideas and feature requests welcome! You can join the fun on our [Gitter channel](https://gitter.im/wix/accord), report an [issue](https://github.com/wix/accord/issues/) or contact the [maintainer](https://github.com/holograph) directly. 
