@@ -9,7 +9,6 @@ import com.typesafe.sbt.SbtPgp.autoImport.PgpKeys._
 object Root extends Build {
 
   lazy val javaRuntimeVersion = settingKey[ Double ]( "The JVM runtime version (e.g. 1.8)" )
-  lazy val supportsScala2_12 = settingKey[ Boolean ]( "Whether or not a particular module supports Scala 2.12.x" )
 
   lazy val publishSettings = Seq(
     publishTo := {
@@ -51,13 +50,11 @@ object Root extends Build {
 
   lazy val compileOptions = Seq(
     scalaVersion := "2.11.1",
-    crossScalaVersions := Seq( "2.10.3", "2.11.1" ),
     javaRuntimeVersion := System.getProperty( "java.vm.specification.version" ).toDouble,
-    supportsScala2_12 := true,
-    crossScalaVersions <++= ( javaRuntimeVersion, supportsScala2_12 ) {
-      case ( v, true ) if v >= 1.8 => Seq( "2.12.0-M5" )
-      case _ => Seq.empty
-    },
+    crossScalaVersions := ( javaRuntimeVersion.value match {
+      case v if v >= 1.8 => Seq( "2.10.3", "2.11.1", "2.12.0-M5" )
+      case _             => Seq( "2.10.3", "2.11.1" )
+    } ),
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",
       "-feature",
@@ -135,30 +132,12 @@ object Root extends Build {
   lazy val scalatestJVM = scalatest.jvm
   lazy val scalatestJS = scalatest.js
 
-  lazy val specs2_2xJVM =
+  lazy val specs2 =
     Project(
-      id = "specs2_2x",
+      id = "specs2",
       base = file( "specs2" ),
       settings = baseSettings ++ Seq(
         name := "accord-specs2",
-        libraryDependencies <++= scalaVersion {
-          // HACK for some reason this gets resolved even with sbt-doge and crossScalaVersion excluding 2.12
-          case v if v startsWith "2.12" => Seq.empty
-          case _ => Seq( "org.specs2" %% "specs2" % "2.3.13" )
-        },
-        target <<= target { _ / "specs2-2.x" },
-        supportsScala2_12 := false,
-        noFatalWarningsOn( configuration = Test )
-      )
-    ).dependsOn( apiJVM )
-
-  lazy val specs2_3xJVM =
-    Project(
-      id = "specs2_3x",
-      base = file( "specs2" ),
-      settings = baseSettings ++ Seq(
-        name := "accord-specs2-3.x",
-        target <<= target { _ / "specs2-3.x" },
         libraryDependencies <+= scalaVersion {
           case v if v startsWith "2.12" => "org.specs2" %% "specs2-core" % "3.8.4"
           case _ => "org.specs2" %% "specs2-core" % "3.6.5"
@@ -223,7 +202,7 @@ object Root extends Build {
         description := "Sample projects for the Accord validation library.",
         noFatalWarningsOn( configuration = Compile )
       ) )
-      .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2_3xJVM % "test->compile", spring3 )
+      .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2 % "test->compile", spring3 )
 
 
   // Root --
@@ -234,6 +213,5 @@ object Root extends Build {
       base = file( "." ),
       settings = baseSettings ++ noPublish
     )
-    .aggregate(
-      apiJVM, apiJS, coreJVM, coreJS, scalatestJVM, scalatestJS, specs2_2xJVM, specs2_3xJVM, spring3, examples )
+    .aggregate( apiJVM, apiJS, coreJVM, coreJS, scalatestJVM, scalatestJS, specs2, spring3, examples )
 }

@@ -9,6 +9,7 @@ Version 0.6 introduces a complete overhaul of the way property descriptions are 
 * [#57](https://github.com/wix/accord/issues/57) Feature: Detecting position in collection combinator;
 * [#48](https://github.com/wix/accord/issues/48) Feature: Automate publishing of snapshot artifacts on TravisCI;
 * [#32](https://github.com/wix/accord/issues/32) Feature: Add set-style "is one of" combinator;
+* Dropped support for Specs² 2.x;
 * Upgraded to Scala.js 0.6.11 (required for Scala 2.12 support).
 
 As always, bug reports, pull requests and other ideas are welcome -- [join the discussion](https://gitter.im/wix/accord?utm_source=share-link&utm_medium=link&utm_campaign=share-link) on Gitter!
