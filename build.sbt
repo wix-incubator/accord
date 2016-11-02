@@ -44,7 +44,7 @@ lazy val compileOptions = Seq(
   scalaVersion := "2.11.1",
   javaRuntimeVersion := System.getProperty( "java.vm.specification.version" ).toDouble,
   crossScalaVersions := ( javaRuntimeVersion.value match {
-    case v if v >= 1.8 => Seq( "2.10.3", "2.11.1", "2.12.0-M5" )
+    case v if v >= 1.8 => Seq( "2.10.3", "2.11.1", "2.12.0" )
     case _             => Seq( "2.10.3", "2.11.1" )
   } ),
   scalacOptions ++= Seq(
@@ -205,4 +205,4 @@ lazy val root =
     base = file( "." ),
     settings = baseSettings ++ noPublish
   )
-  .aggregate( apiJVM, apiJS, coreJVM, coreJS, scalatestJVM, scalatestJS, specs2, spring3, examples )
+  .aggregate( apiJVM, apiJS, coreJVM, coreJS, scalatestJVM, scalatestJS /*, specs2*/, spring3/*, examples*/ )
