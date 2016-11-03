@@ -131,7 +131,7 @@ lazy val specs2 =
     settings = baseSettings ++ Seq(
       name := "accord-specs2",
       libraryDependencies <+= scalaVersion {
-        case v if v startsWith "2.12" => "org.specs2" %% "specs2-core" % "3.8.4"
+        case v if v startsWith "2.12" => "org.specs2" %% "specs2-core" % "3.8.6"
         case _ => "org.specs2" %% "specs2-core" % "3.6.5"
       },
       noFatalWarningsOn( compile, Test )
@@ -205,4 +205,4 @@ lazy val root =
     base = file( "." ),
     settings = baseSettings ++ noPublish
   )
-  .aggregate( apiJVM, apiJS, coreJVM, coreJS, scalatestJVM, scalatestJS /*, specs2*/, spring3/*, examples*/ )
+  .aggregate( apiJVM, apiJS, coreJVM, coreJS, scalatestJVM, scalatestJS, specs2, spring3, examples )
