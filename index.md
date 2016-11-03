@@ -77,7 +77,7 @@ Getting Started
   :point_right: &nbsp;&nbsp;<em>The <a href="migration-guide.html">migration guide</a> highlights API changes in new versions.</em>
 </postit>
 
-Accord version {{ site.version.release }} is available on Maven Central Repository. Scala versions 2.10.3+, 2.11.1+ and 2.12.0-M5 are supported. The next milestone is {{ site.version.snapshot }} and is available from the Sonatype snapshots repository.
+Accord version {{ site.version.release }} is available on Maven Central Repository. Scala versions 2.10.3+, 2.11.1+ and 2.12.0+ are supported. The next milestone is {{ site.version.snapshot }} and is available from the Sonatype snapshots repository.
 
 SBT
 ---
