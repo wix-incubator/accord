@@ -11,18 +11,19 @@ lazy val publishSettings = Seq(
       Some( "releases" at nexus + "service/local/staging/deploy/maven2" )
   },
   publishMavenStyle := true,
+  credentials in Scaladex += Credentials( Path.userHome / ".ivy2" / ".scaladex.credentials" ),
   pomExtra in ThisBuild :=
     <scm>
       <url>git@github.com:wix/accord.git</url>
       <connection>scm:git@github.com:wix/accord.git</connection>
     </scm>
-      <developers>
-        <developer>
-          <id>Holograph</id>
-          <name>Tomer Gabel</name>
-          <url>http://www.tomergabel.com</url>
-        </developer>
-      </developers>
+    <developers>
+      <developer>
+        <id>Holograph</id>
+        <name>Tomer Gabel</name>
+        <url>http://www.tomergabel.com</url>
+      </developer>
+    </developers>
 )
 
 lazy val releaseSettings = Seq(
