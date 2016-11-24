@@ -21,8 +21,6 @@ import org.scalatest.{Matchers, WordSpec}
 import com.wix.accord._
 import com.wix.accord.scalatest.ResultMatchers
 
-
-
 class ValidationTransformTests extends WordSpec with Matchers with ResultMatchers {
   import ValidationTransformTests._
 
@@ -218,6 +216,20 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       val result = validate( sample )( explicitDescriptionWithRuntimeRewriteValidator )
       result should failWith( Indexed( 1L, Explicit( "described" ) ) -> "must not be empty" )
     }
+
+    "propagate correctly across access chains" in {
+      val sample = IndirectionToCollection( TestContainer( Seq( "" ) ) )
+      val result = validate( sample )( indirectionToCollectionValidator )
+      result should failWith( Indexed( 0, AccessChain( "container", "coll" ) ) )
+    }
+
+    "support interleaved indices within access chains" in {
+      val sample = CollectionOfIndirections( Seq( TestElement( "" ) ) )
+      val result = validate( sample )( collectionOfIndirectionsValidator )
+      //      result should failWith( AccessChain( Indexed( 0L, Property( "field" ) ) ), Property( "property" ) ) )
+
+      result shouldBe aFailure
+    }
   }
 
   "Validation block transformation" should {
@@ -272,6 +284,17 @@ object ValidationTransformTests {
       val explicitDescriptionWithRuntimeRewriteValidator =
         validator[ RuntimeDescribedTest ] { rdt => ( rdt.field as "described" ).each is notEmpty }
 
+
+      case class TestElement( property: String )
+      case class TestContainer( coll: Seq[ String ] )
+      case class IndirectionToCollection( container: TestContainer )
+      case class CollectionOfIndirections( field: Seq[ TestElement ] )
+
+      val aValidElement = validator[ TestElement ] { c => c.property is notEmpty }
+      val indirectionToCollectionValidator =
+        validator[ IndirectionToCollection ] { itc => itc.container.coll.each is notEmpty }
+      val collectionOfIndirectionsValidator =
+        validator[ CollectionOfIndirections ] { coi => coi.field.each is aValidElement }
     }
   }
 
