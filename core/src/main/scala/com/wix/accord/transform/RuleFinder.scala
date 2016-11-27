@@ -94,7 +94,7 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
         // e.g. "(f1 is notEmpty) or (f2 is notEmpty)".
         Some( BooleanExpression( expr ) )
 
-      case q"{ ${ ValidatorApplication( va ) }; () }" =>
+      case Block( ValidatorApplication( va ) :: Nil, q"()" ) =>    // Scala 2.10 quasiquotes screw this up!
         // In some scenarios (e.g. a code block with a validator application as its last statement) the Scala
         // compiler wraps it with a Unit-typed anonymous block.
         Some( va )

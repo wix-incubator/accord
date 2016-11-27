@@ -92,10 +92,12 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       case single @ ValidatorApplication(_) =>
         Some( Seq( single ) )
 
-      case q"{ ..$rules; () }" if rules forall ValidatorApplication.isValid =>
+      // Scala 2.10 quasiquotes fail to match on pure blocks!
+
+      case Block( rules, q"()" ) if rules forall ValidatorApplication.isValid =>
         Some( rules )
 
-      case q"{ ..$rules; $terminal }" if rules.forall( ValidatorApplication.isValid ) && ValidatorApplication.isValid( terminal ) =>
+      case Block( rules, terminal ) if rules.forall( ValidatorApplication.isValid ) && ValidatorApplication.isValid( terminal ) =>
         Some( rules :+ terminal )
 
       case _ => None
@@ -107,12 +109,12 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       case q"if ( $cond ) ${ ValidatorApplicationBlock( left ) } else ${ Branch( right ) }" =>
         Some( right.copy( branches = ConditionalBranch( cond, left ) +: right.branches ) )
 
-      case q"if ( $cond ) ${ ValidatorApplicationBlock( left ) } else ${ right @ ValidatorApplicationBlock(_) }" =>
-        Some( ValidationRuleBranch( Seq( ConditionalBranch( cond, left ) ), Some( right ) ) )
-
       case q"if ( $cond ) ${ ValidatorApplicationBlock( rules ) } else ()" =>
         // Scala 2.10-style non-terminated if
         Some( ValidationRuleBranch( Seq( ConditionalBranch( cond, rules ) ), None ) )
+
+      case q"if ( $cond ) ${ ValidatorApplicationBlock( left ) } else ${ right @ ValidatorApplicationBlock(_) }" =>
+        Some( ValidationRuleBranch( Seq( ConditionalBranch( cond, left ) ), Some( right ) ) )
 
       case q"if ( $cond ) ${ ValidatorApplicationBlock( rules ) }" =>
         // Scala 2.11-style non-terminated if
@@ -127,7 +129,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     case t @ Match( rawCond, cases ) =>
       val cond = resetAttrs( rawCond.duplicate )
       val rewrittenBranches = cases collect {
-        case CaseDef( pat, guard, ValidatorApplicationBlock( rules ) ) =>
+        case c @ CaseDef( pat, guard, ValidatorApplicationBlock( rules ) ) =>
           val guardDescription = if ( guard.isEmpty ) q"scala.None" else q"scala.Some( ${describeTree( prototype, guard )} )"
           val condDescription = describeTree( prototype, cond )
           val description: DescriptionTransformation = { target => context.Expr[ Description ](
@@ -159,10 +161,6 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
         q"new com.wix.accord.combinators.Conditional[ ${ weakTypeOf[ T ] } ]( Seq( ..$rewrittenBranches ), None )"
       trace( s"After pattern match rewrite:\n$rewrite", pos = t.pos )
       rewrite
-
-
-    case t @ Match( rawCond, cases ) =>
-      context.abort(t.pos, "what the fucking fuck?\n\n\n\n\n\n\n\n\n\n\n\n" + t.toString + "\n\n\n\n\n\n\n\n\n\n\n")
   }
 
   val processBranches: TransformAST = {
