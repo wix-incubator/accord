@@ -123,18 +123,11 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     }
   }
 
-  def isWrappedValidationRule( caseDef: CaseDef ): Boolean =
-    caseDef.body match {
-      case q"{ $rule; () }" if ValidationRule.isValidationRule( rule ) => true
-      case q"()" => true  // Default case
-      case _ => false
-    }
-
   val processMatches: TransformAST = {
-    case t @ Match( rawCond, cases ) if cases forall isWrappedValidationRule =>
+    case t @ Match( rawCond, cases ) =>
       val cond = resetAttrs( rawCond.duplicate )
       val rewrittenBranches = cases collect {
-        case CaseDef( pat, guard, q"{ $rule; () }" ) =>
+        case CaseDef( pat, guard, ValidatorApplicationBlock( rules ) ) =>
           val guardDescription = if ( guard.isEmpty ) q"scala.None" else q"scala.Some( ${describeTree( prototype, guard )} )"
           val condDescription = describeTree( prototype, cond )
           val description: DescriptionTransformation = { target => context.Expr[ Description ](
@@ -146,14 +139,30 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
                 target = $target
               )
             """ ) }
+
+          val rewriteOne = rewriteValidatorApplication( description )
+          val aggregate = rules match {
+            case Nil =>
+              context.abort( t.pos, "Unexpected rule count (safety net; should never happen)" )
+            case head +: Nil =>
+              rewriteOne( head )
+            case _ =>
+              val rewrittenRules = rules map rewriteOne
+              q"new com.wix.accord.combinators.And[ ${ weakTypeOf[ T ] } ]( ..$rewrittenRules )"
+          }
+
           val liftedCondition =
             q"{ ${ resetAttrs( prototype.duplicate) } => $cond match { case $pat if $guard => true; case _ => false } }"
-          q"$liftedCondition -> ${ rewriteValidatorApplication( description )( rule ) }"
+          q"$liftedCondition -> $aggregate"
       }
       val rewrite =
         q"new com.wix.accord.combinators.Conditional[ ${ weakTypeOf[ T ] } ]( Seq( ..$rewrittenBranches ), None )"
       trace( s"After pattern match rewrite:\n$rewrite", pos = t.pos )
       rewrite
+
+
+    case t @ Match( rawCond, cases ) =>
+      context.abort(t.pos, "what the fucking fuck?\n\n\n\n\n\n\n\n\n\n\n\n" + t.toString + "\n\n\n\n\n\n\n\n\n\n\n")
   }
 
   val processBranches: TransformAST = {
