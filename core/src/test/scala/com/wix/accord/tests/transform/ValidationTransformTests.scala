@@ -117,13 +117,13 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     }
     "support multiple validation rules" in {
       val valid1 = ControlStructureTest( 1, "12345" )
-      val valid2 = ControlStructureTest( 2, "2" )
+      val valid2 = ControlStructureTest( 2, "20" )
       val invalid1 = ControlStructureTest( 1, "wrong" )
       val invalid2 = ControlStructureTest( 1, "" )
-      simplePatternMatch( valid1 ) shouldBe aSuccess
-      simplePatternMatch( invalid1 ) shouldBe aFailure
-      simplePatternMatch( valid2 ) shouldBe aSuccess
-      simplePatternMatch( invalid2 ) shouldBe aFailure
+      patternMatchWithMultipleRules( valid1 ) shouldBe aSuccess
+      patternMatchWithMultipleRules( invalid1 ) shouldBe aFailure
+      patternMatchWithMultipleRules( valid2 ) shouldBe aSuccess
+      patternMatchWithMultipleRules( invalid2 ) shouldBe aFailure
     }
     "correctly describe a case on failure" in {
       val invalid = ControlStructureTest( 1, "wrong" )
