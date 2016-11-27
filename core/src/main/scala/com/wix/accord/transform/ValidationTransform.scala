@@ -84,24 +84,39 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     }
   }
 
-  case class ConditionalBranch( cond: Tree, validator: Tree )
+  case class ConditionalBranch( cond: Tree, rules: Seq[ Tree ] )
   case class ValidationRuleBranch( branches: Seq[ ConditionalBranch ], default: Option[ Tree ] )
+
+  object ValidatorApplicationBlock {
+    def unapply( t: Tree ): Option[ Seq[ Tree ] ] = t match {
+      case single @ ValidatorApplication(_) =>
+        Some( Seq( single ) )
+
+      case q"{ ..$rules; () }" if rules forall ValidatorApplication.isValid =>
+        Some( rules )
+
+      case q"{ ..$rules; $terminal }" if rules.forall( ValidatorApplication.isValid ) && ValidatorApplication.isValid( terminal ) =>
+        Some( rules :+ terminal )
+
+      case _ => None
+    }
+  }
 
   object Branch {
     def unapply( t: Tree ): Option[ ValidationRuleBranch ] = t match {
-      case q"if ( $cond ) { ${ left @ ValidatorApplication(_) }; () } else ${ Branch( right ) }" =>
+      case q"if ( $cond ) ${ ValidatorApplicationBlock( left ) } else ${ Branch( right ) }" =>
         Some( right.copy( branches = ConditionalBranch( cond, left ) +: right.branches ) )
 
-      case q"if ( $cond ) { ${ left @ ValidatorApplication(_) }; () } else { ${ right @ ValidatorApplication(_) }; () }" =>
+      case q"if ( $cond ) ${ ValidatorApplicationBlock( left ) } else ${ right @ ValidatorApplicationBlock(_) }" =>
         Some( ValidationRuleBranch( Seq( ConditionalBranch( cond, left ) ), Some( right ) ) )
 
-      case q"if ( $cond ) { ${ opt @ ValidatorApplication(_) }; () } else ()" =>
+      case q"if ( $cond ) ${ ValidatorApplicationBlock( rules ) } else ()" =>
         // Scala 2.10-style non-terminated if
-        Some( ValidationRuleBranch( Seq( ConditionalBranch( cond, opt ) ), None ) )
+        Some( ValidationRuleBranch( Seq( ConditionalBranch( cond, rules ) ), None ) )
 
-      case q"if ( $cond ) { ${ opt @ ValidatorApplication(_) }; () }" =>
+      case q"if ( $cond ) ${ ValidatorApplicationBlock( rules ) }" =>
         // Scala 2.11-style non-terminated if
-        Some( ValidationRuleBranch( Seq( ConditionalBranch( cond, opt ) ), None ) )
+        Some( ValidationRuleBranch( Seq( ConditionalBranch( cond, rules ) ), None ) )
 
       case _ =>
         None
@@ -160,7 +175,17 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       val rewrittenBranches =
         branches.map { b =>
           val liftedCondition = q"( ${ resetAttrs( prototype.duplicate ) } => ${ resetAttrs( b.cond.duplicate ) } )"
-          q"$liftedCondition -> ${ rewriteValidatorApplication( describeBranch( b.cond ) )( b.validator ) }"
+          val rewriteOne = rewriteValidatorApplication( describeBranch( b.cond ) )
+          val aggregate = b.rules match {
+            case Nil =>
+              context.abort( t.pos, "Unexpected rule count (safety net; should never happen)" )
+            case head +: Nil =>
+              rewriteOne( head )
+            case rules =>
+              val rewrittenRules = rules map rewriteOne
+              q"new com.wix.accord.combinators.And[ ${ weakTypeOf[ T ] } ]( ..$rewrittenRules )"
+          }
+          q"$liftedCondition -> $aggregate"
         }
 
       val rewrittenDefault =
@@ -198,7 +223,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       liftBooleanOps( transformByPattern( tree )( rewriteValidationRules( transform ) ) )
   }
 
-  def rewriteValidatorApplication( transform: DescriptionTransformation = identity ) =
+  def rewriteValidatorApplication( transform: DescriptionTransformation = identity ): TransformAST =
     rewriteValidationRules( transform ) orElse processBooleanExpressions( transform )
 
   /** Returns the specified validation block, transformed into a single monolithic validator.

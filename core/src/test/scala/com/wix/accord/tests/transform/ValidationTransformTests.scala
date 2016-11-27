@@ -282,9 +282,10 @@ object ValidationTransformTests {
         cst.field2 should startWith( "-" )
     }
     val ifWithMultipleRules = validator [ ControlStructureTest ] { cst =>
-      if ( cst.field1 < 0 )
+      if ( cst.field1 < 0 ) {
         cst.field2 is notEmpty
         cst.field2 should startWith( "-" )
+      }
     }
     val ifWithBothBranches = validator[ ControlStructureTest ] { cst =>
       if ( cst.field1 < 0 )

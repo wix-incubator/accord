@@ -94,8 +94,15 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
         // e.g. "(f1 is notEmpty) or (f2 is notEmpty)".
         Some( BooleanExpression( expr ) )
 
+      case q"{ ${ ValidatorApplication( va ) }; () }" =>
+        // In some scenarios (e.g. a code block with a validator application as its last statement) the Scala
+        // compiler wraps it with a Unit-typed anonymous block.
+        Some( va )
+
       case _ => None
     }
+
+    def isValid( expr: Tree ) = unapply( expr ).isDefined
   }
 
   object PartialFunction {
