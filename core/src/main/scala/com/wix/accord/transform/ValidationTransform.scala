@@ -129,7 +129,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
     case t @ Match( rawCond, cases ) =>
       val cond = resetAttrs( rawCond.duplicate )
       val rewrittenBranches = cases collect {
-        case c @ CaseDef( pat, guard, ValidatorApplicationBlock( rules ) ) =>
+        case CaseDef( pat, guard, ValidatorApplicationBlock( rules ) ) =>
           val guardDescription = if ( guard.isEmpty ) q"scala.None" else q"scala.Some( ${describeTree( prototype, guard )} )"
           val condDescription = describeTree( prototype, cond )
           val description: DescriptionTransformation = { target => context.Expr[ Description ](
