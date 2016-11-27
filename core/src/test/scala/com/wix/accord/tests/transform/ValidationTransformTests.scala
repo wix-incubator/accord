@@ -52,6 +52,13 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       ifWithNoElse( falseBranch ) shouldBe aSuccess
     }
 
+    "correctly handle multiple rules in a branch" in {
+      val falseBranch = ControlStructureTest( 5, "" )
+      val trueBranchInvalid = ControlStructureTest( -5, "" )
+      ifWithMultipleRules( falseBranch ) shouldBe aSuccess
+      ifWithMultipleRules( trueBranchInvalid ) shouldBe aFailure
+   }
+
     // TODO a proper Conditional matcher builder, then:
     // TODO split into separate tests for each property
     "describe the true branch correctly" in {
@@ -103,6 +110,16 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       val invalid1 = ControlStructureTest( 1, "wrong" )
       val valid2 = ControlStructureTest( 2, "2" )
       val invalid2 = ControlStructureTest( 2, "wrong" )
+      simplePatternMatch( valid1 ) shouldBe aSuccess
+      simplePatternMatch( invalid1 ) shouldBe aFailure
+      simplePatternMatch( valid2 ) shouldBe aSuccess
+      simplePatternMatch( invalid2 ) shouldBe aFailure
+    }
+    "support multiple validation rules" in {
+      val valid1 = ControlStructureTest( 1, "12345" )
+      val valid2 = ControlStructureTest( 2, "2" )
+      val invalid1 = ControlStructureTest( 1, "wrong" )
+      val invalid2 = ControlStructureTest( 1, "" )
       simplePatternMatch( valid1 ) shouldBe aSuccess
       simplePatternMatch( invalid1 ) shouldBe aFailure
       simplePatternMatch( valid2 ) shouldBe aSuccess
@@ -264,6 +281,11 @@ object ValidationTransformTests {
       if ( cst.field1 < 0 )
         cst.field2 should startWith( "-" )
     }
+    val ifWithMultipleRules = validator [ ControlStructureTest ] { cst =>
+      if ( cst.field1 < 0 )
+        cst.field2 is notEmpty
+        cst.field2 should startWith( "-" )
+    }
     val ifWithBothBranches = validator[ ControlStructureTest ] { cst =>
       if ( cst.field1 < 0 )
         cst.field2 should startWith( "-" )
@@ -282,6 +304,13 @@ object ValidationTransformTests {
       cst.field1 match {
         case 1 => cst.field2 is equalTo( "1" )
         case 2 => cst.field2 is equalTo( "2" )
+      }
+    }
+    val patternMatchWithMultipleRules = validator[ ControlStructureTest ] { cst =>
+      cst.field1 match {
+        case 1 =>
+          cst.field2 is notEmpty
+          cst.field2 should startWith( "1" )
       }
     }
     val patternMatchWithEmptyDefault = validator[ ControlStructureTest ] { cst =>
