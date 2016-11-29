@@ -50,8 +50,8 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
 
   private def prettyPrint( tree: Tree ): String = {
     val fileContent = new String( tree.pos.source.content )
-    val start = tree.collect { case t => startPos( t.pos ) }.min
-    val end = Math.max( start, tree.collect { case t => endPos( t.pos ) }.max ) + 1
+    val start = tree.collect { case t if !t.isEmpty => startPos( t.pos ) }.min
+    val end = Math.max( start, tree.collect { case t if !t.isEmpty => endPos( t.pos ) }.max ) + 1
     val codeSlice =
       tokenLookup.findFirstMatchIn( fileContent.substring( end ) ) match {
         case None =>

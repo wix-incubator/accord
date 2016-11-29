@@ -56,6 +56,11 @@ class ExpressionDescriberTests extends WordSpec with Matchers {
       val description = ExpressionDescriber describe { ( t: Test ) => test( t.field1 ) }
       description shouldEqual Generic( "test( t.field1 )" )
     }
+    "successfully handle empty compiler-generated subtrees" in {
+      // The Scala compiler (2.11.x at any rate) generates an empty subtree for the following
+      // expression; an empty tree has no position, which is the root cause of #89.
+      "com.wix.accord.transform.ExpressionDescriber describe { ( t: Test ) => t.field1.map( _.toUpper ) }" should compile
+    }
     "render a self-reference description when the sample object itself is used anonymously" in pending
 //    {
 //      TODO find a way to encode such a function, or add yet another helper macro
