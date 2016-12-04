@@ -37,9 +37,9 @@ object Descriptions {
 
   /**
     * Denotes an indirection chain. For example, the expression `field.subfield.subsubfield` would result in
-    * a description like `AccessChain( "field", "subfield", "subsubfield" )`.
+    * a description like `AccessChain( Generic( "field" ), Generic( "subfield" ), Generic( "subsubfield" ) )`.
     */
-  case class AccessChain( elements: String* ) extends Description
+  case class AccessChain( elements: Description* ) extends Description
 
   /**
     * Denotes that the desirable validation strategy depends on a runtime condition. For example, the following

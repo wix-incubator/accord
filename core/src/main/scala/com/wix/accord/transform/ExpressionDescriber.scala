@@ -31,7 +31,8 @@ import scala.language.experimental.macros
   * A given expression can be transformed with [[com.wix.accord.transform.ExpressionDescriber.describeTree]]
   * based on the following rules:
   *  - Selectors over the function prototype are rewritten to [[com.wix.accord.Descriptions.AccessChain AccessChains]];
-  *    for example, `{ p: Person => p.firstName }` gets rewritten to a tree representing `AccessChain( "firstName" )`
+  *    for example, `{ p: Person => p.firstName }` gets rewritten to a tree representing
+  *    `AccessChain( Generic( "firstName" ) )`
   *  - Explicitly described expressions (via [[com.wix.accord.dsl.Descriptor]]) are rewritten to
   *    [[com.wix.accord.Descriptions.Explicit Explicit]] descriptions, for example
   *    `{ p: Person => p.firstName as "first name" }` gets rewritten to a tree representing `Explicit( "first name" )`
@@ -116,7 +117,7 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
         description
 
       case PrototypeSelectorChain( elements @ _* ) =>
-        def renderName( n: Name ) = n.decodedName.toString
+        def renderName( n: Name ) = q"com.wix.accord.Descriptions.Generic( ${ n.decodedName.toString } )"
         context.Expr[ Description ]( q"com.wix.accord.Descriptions.AccessChain( ..${ elements map renderName } )" )
 
       case Ident( PrototypeName ) =>

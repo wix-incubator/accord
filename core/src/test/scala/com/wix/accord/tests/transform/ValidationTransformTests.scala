@@ -65,7 +65,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
         on = Generic( "branch" ),
         value = true,
         guard = Some( Generic( "cst.field1 < 0" ) ),
-        target = AccessChain( "field2" )
+        target = AccessChain( Generic( "field2" ) )
       ) )
     }
 
@@ -75,7 +75,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
         on = Generic( "branch" ),
         value = false,
         guard = Some( Generic( "<else>" ) ),
-        target = AccessChain( "field2" )
+        target = AccessChain( Generic( "field2" ) )
       ) )
     }
 
@@ -85,7 +85,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
         on = Generic( "branch" ),
         value = true,
         guard = Some( Generic( "cst.field1 == 0" ) ),
-        target = AccessChain( "field2" )
+        target = AccessChain( Generic( "field2" ) )
       ) )
     }
 
@@ -95,7 +95,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
         on = Generic( "branch" ),
         value = false,
         guard = Some( Generic( "<else>" ) ),
-        target = AccessChain( "field2" )
+        target = AccessChain( Generic( "field2" ) )
       ) )
     }
   }
@@ -126,19 +126,19 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     "correctly describe a case on failure" in {
       val invalid = ControlStructureTest( 1, "wrong" )
       simplePatternMatch( invalid ) should failWith( Conditional(
-        on = AccessChain( "field1" ),
+        on = AccessChain( Generic( "field1" ) ),
         value = 1,
         guard = None,
-        target = AccessChain( "field2" )  // TODO elide from test once we have a proper matcher in place
+        target = AccessChain( Generic( "field2" ) )  // TODO elide from test once we have a proper matcher in place
       ) )
     }
     "correctly describe a guard on failure" in {
       val invalid = ControlStructureTest( -1, "wrong" )
       patternMatchWithGuard( invalid ) should failWith( Conditional(
-        on = AccessChain( "field1" ),
+        on = AccessChain( Generic( "field1" ) ),
         value = -1,
         guard = Some( Generic( "n < 0" ) ),
-        target = AccessChain( "field2" )
+        target = AccessChain( Generic( "field2" ) )
       ) )
     }
     "treat an empty case as an implicit success" in {
@@ -158,29 +158,31 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
 
     "be generated for a fully-qualified field selector" in {
       validate( FlatTest( null ) )( implicitlyDescribedNamedValidator ) should
-        failWith( AccessChain( "field" ) -> "is a null" )
+        failWith( AccessChain( Generic( "field" ) ) -> "is a null" )
     }
     "be generated for an anonymously-qualified field selector" in {
       validate( FlatTest( null ) )( implicitlyDescribedAnonymousValidator ) should
-        failWith( AccessChain( "field" ) -> "is a null" )
+        failWith( AccessChain( Generic( "field" ) ) -> "is a null" )
     }
     "be generated for an anonymous value reference" in {
       validate( null )( implicitlyDescribedValueValidator ) should failWith( SelfReference -> "is a null" )
     }
     "be generated for a fully-qualified selector with multiple indirections" in {
       val obj = CompositeTest( FlatTest( null ) )
-      validate( obj )( namedIndirectValidator ) should failWith( AccessChain( "member", "field" ) -> "is a null" )
+      validate( obj )( namedIndirectValidator ) should
+        failWith( AccessChain( Generic( "member" ), Generic( "field" ) ) -> "is a null" )
     }
     "be generated for an anonymously-qualified selector with multiple indirections" in {
       val obj = CompositeTest( FlatTest( null ) )
-      validate( obj )( anonymousIndirectValidator ) should failWith( AccessChain( "member", "field" ) -> "is a null" )
+      validate( obj )( anonymousIndirectValidator ) should
+        failWith( AccessChain( Generic( "member" ), Generic( "field" ) ) -> "is a null" )
     }
     "be generated for a multiple-clause boolean expression" in {
       val obj = FlatTest( "123" )
       validate( obj )( booleanExpressionValidator ) should failWith(
         group( null: Description, "doesn't meet any of the requirements",
-          AccessChain( "field" ) -> "is not a null",
-          AccessChain( "field" ) -> "has size 3, expected more than 5"
+          AccessChain( Generic( "field" ) ) -> "is not a null",
+          AccessChain( Generic( "field" ) ) -> "has size 3, expected more than 5"
         ) )
     }
     "be generated for a generic expression" in {
@@ -194,11 +196,15 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     }
     "be propagated for a composite validator" in {
       val obj = CompositeTest( FlatTest( null ) )
-      validate( obj )( compositeValidator ) should
-        failWith( group( AccessChain( "member" ), "is invalid", AccessChain( "field" ) -> "is a null" ) )
+      validate( obj )( compositeValidator ) should failWith( group(
+        AccessChain( Generic( "member" ) ),
+        "is invalid",
+        AccessChain( Generic( "field" ) ) -> "is a null"
+      ) )
     }
     "be propagated for an adapted validator" in {
-      validate( FlatTest( null ) )( adaptedValidator ) should failWith( AccessChain( "field" ) -> "is a null" )
+      validate( FlatTest( null ) )( adaptedValidator ) should
+        failWith( AccessChain( Generic( "field" ) ) -> "is a null" )
     }
   }
 
@@ -208,7 +214,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     "propagate correctly when the object under validation is implicitly described" in {
       val sample = RuntimeDescribedTest( Seq( "valid", "" ) )
       val result = validate( sample )( implicitDescriptionWithRuntimeRewriteValidator )
-      result should failWith( Indexed( 1L, AccessChain( "field" ) ) -> "must not be empty" )
+      result should failWith( Indexed( 1L, AccessChain( Generic( "field" ) ) ) -> "must not be empty" )
     }
 
     "propagate correctly when the object under validation is explicitly described with \"as\"" in {
@@ -217,18 +223,10 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       result should failWith( Indexed( 1L, Explicit( "described" ) ) -> "must not be empty" )
     }
 
-    "propagate correctly across access chains" in {
-      val sample = IndirectionToCollection( TestContainer( Seq( "" ) ) )
-      val result = validate( sample )( indirectionToCollectionValidator )
-      result should failWith( Indexed( 0, AccessChain( "container", "coll" ) ) )
-    }
-
     "support interleaved indices within access chains" in {
       val sample = CollectionOfIndirections( Seq( TestElement( "" ) ) )
       val result = validate( sample )( collectionOfIndirectionsValidator )
-      //      result should failWith( AccessChain( Indexed( 0L, Property( "field" ) ) ), Property( "property" ) ) )
-
-      result shouldBe aFailure
+      result should failWith( AccessChain( Indexed( 0L, Generic( "field" ) ), Generic( "property" ) ) )
     }
   }
 
@@ -286,13 +284,9 @@ object ValidationTransformTests {
 
 
       case class TestElement( property: String )
-      case class TestContainer( coll: Seq[ String ] )
-      case class IndirectionToCollection( container: TestContainer )
       case class CollectionOfIndirections( field: Seq[ TestElement ] )
 
       val aValidElement = validator[ TestElement ] { c => c.property is notEmpty }
-      val indirectionToCollectionValidator =
-        validator[ IndirectionToCollection ] { itc => itc.container.coll.each is notEmpty }
       val collectionOfIndirectionsValidator =
         validator[ CollectionOfIndirections ] { coi => coi.field.each is aValidElement }
     }

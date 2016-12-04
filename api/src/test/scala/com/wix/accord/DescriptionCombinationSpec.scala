@@ -71,7 +71,9 @@ class DescriptionCombinationSpec extends FlatSpec with Matchers {
     // order.
     // See issue #66 (https://github.com/wix/accord/issues/66) for an example use case.
 
-    combine( AccessChain( "a" ), AccessChain( "b" ) ) shouldEqual AccessChain( "b", "a" )
+    val a = Generic( "a" )
+    val b = Generic( "b" )
+    combine( AccessChain( a ), AccessChain( b ) ) shouldEqual AccessChain( b, a )
   }
 
   "Explicit description" should "combine with nothing" in {
