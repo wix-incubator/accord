@@ -24,7 +24,7 @@ class DescriptionCombinationSpec extends FlatSpec with Matchers {
   private val indexed = Indexed( 1, Empty )
   private val explicit = Explicit( "test" )
   private val generic = Generic( "test" )
-  private val accessChain = AccessChain( "a", "b", "c" )
+  private val accessChain = AccessChain( Generic( "a" ), Generic( "b" ), Generic( "c" ) )
 
   "Any combination of Empty" should "return the other description as-is" in {
     combine( Empty, Empty ) shouldEqual Empty
@@ -62,6 +62,15 @@ class DescriptionCombinationSpec extends FlatSpec with Matchers {
     combine( explicit, SelfReference ) shouldEqual explicit
     combine( generic, SelfReference ) shouldEqual generic
     combine( accessChain, SelfReference ) shouldEqual accessChain
+  }
+
+  "Combining a non-empty description with an AccessChain" should "produce a new AccessChain indirecting over the description" in {
+    val ind = Generic( "indirection" )
+    val nonEmptyIndex = Indexed( 1, Generic( "coll" ) )
+
+    combine( explicit, AccessChain( ind ) ) shouldEqual AccessChain( explicit, ind )
+    combine( generic, AccessChain( ind ) ) shouldEqual AccessChain( generic, ind )
+    combine( nonEmptyIndex, AccessChain( ind ) ) shouldEqual AccessChain( nonEmptyIndex, ind )
   }
 
   "Combining an AccessChain with another AccessChain" should "produce a new AccessChain indirecting right-to-left" in {
