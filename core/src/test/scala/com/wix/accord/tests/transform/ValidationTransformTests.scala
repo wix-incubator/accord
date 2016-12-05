@@ -226,7 +226,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     "support interleaved indices within access chains" in {
       val sample = CollectionOfIndirections( Seq( TestElement( "" ) ) )
       val result = validate( sample )( collectionOfIndirectionsValidator )
-      result should failWith( AccessChain( Indexed( 0L, Generic( "field" ) ), Generic( "property" ) ) )
+      result should failWith( AccessChain( Indexed( 0L, AccessChain( Generic( "field" ) ) ), Generic( "property" ) ) )
     }
   }
 

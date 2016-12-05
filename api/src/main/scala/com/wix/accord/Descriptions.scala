@@ -19,11 +19,13 @@ package com.wix.accord
 object Descriptions {
   /** Root trait whose various cases describe a single Object Under Validation (OUV). */
   sealed trait Description
+
   /**
     * An empty (i.e. unknown) description. This is the default state of any violation prior to applying additional
     * information via [[com.wix.accord.Descriptions.combine]].
     */
   case object Empty extends Description
+
   /** Denotes an index access (e.g. accessing the nth element of an array). */
   case class Indexed( index: Long, of: Description = Empty ) extends Description
   /** Denotes an explicit textual description, typically provided via the DSL `as` keyword. */
@@ -78,15 +80,14 @@ object Descriptions {
   // Description algebra --
 
   val combine: ( ( Description, Description ) => Description ) = {
-    case ( lhs, Empty ) => lhs
     case ( Empty, rhs ) => rhs
-
-    case ( lhs, Indexed( index, Empty ) ) => Indexed( index, lhs )
+    case ( SelfReference, rhs: AccessChain ) => rhs
     case ( Indexed( index, Empty ), rhs ) => Indexed( index, rhs )
-
-    case ( lhs, SelfReference ) => lhs
-    case ( SelfReference, rhs ) => rhs
-
+    case ( lhs: Explicit, AccessChain( ind @ _* ) ) => AccessChain( ind :+ lhs :_* )
+    case ( lhs: Generic, AccessChain( ind @ _* ) ) => AccessChain( ind :+ lhs :_* )
+    case ( lhs @ Indexed( _, of ), AccessChain( ind @ _* ) ) if of != Empty => AccessChain( ind :+ lhs :_* )
+    case ( AccessChain( rhs @ _* ), ind @ Indexed( _, Empty ) ) => AccessChain( ind +: rhs : _* )
+    case ( AccessChain( ind @ Indexed( _, Empty ), tail @ _* ), rhs ) => AccessChain( ind.copy( of = rhs ) +: tail :_* )
     case ( AccessChain( inner @ _* ), AccessChain( outer @ _* ) ) => AccessChain( outer ++ inner :_* )
 
     case ( lhs, rhs ) =>
@@ -98,7 +99,7 @@ object Descriptions {
     case Indexed( index, of ) => s"${render( of )} [at index $index]"
     case Explicit( s ) => s
     case Generic( s ) => s
-    case AccessChain( elements @ _* ) => elements.mkString( "." )
+    case AccessChain( elements @ _* ) => elements.map( render ).mkString( "." )
     case SelfReference => "value"
     case Conditional( on, value, None, target ) => s"${render( target )} [where ${render( on )}=$value]"
     case Conditional( on, value, Some( guard ), target ) =>
