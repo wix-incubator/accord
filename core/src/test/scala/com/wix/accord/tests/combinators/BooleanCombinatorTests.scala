@@ -16,7 +16,8 @@
 
 package com.wix.accord.tests.combinators
 
-import com.wix.accord.combinators.{And, Or, Fail, IsFalse, IsTrue, NilValidator}
+import com.wix.accord.combinators.{And, Fail, IsFalse, IsTrue, NilValidator, Or}
+import com.wix.accord.scalatest.CombinatorTestSpec
 
 class BooleanCombinatorTests extends CombinatorTestSpec {
 

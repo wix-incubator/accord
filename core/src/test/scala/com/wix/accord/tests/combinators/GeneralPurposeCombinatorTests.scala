@@ -18,6 +18,7 @@ package com.wix.accord.tests.combinators
 
 import com.wix.accord.combinators._
 import com.wix.accord.BaseValidator
+import com.wix.accord.scalatest.CombinatorTestSpec
 
 class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
 
