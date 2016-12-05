@@ -16,8 +16,9 @@
 
 package com.wix.accord.tests.dsl
 
+import com.wix.accord.Descriptions.{AccessChain, Generic}
 import com.wix.accord.scalatest.ResultMatchers
-import org.scalatest.{WordSpec, Matchers}
+import org.scalatest.{Matchers, WordSpec}
 import com.wix.accord.Validator
 
 class OptionOpsTests extends WordSpec with Matchers with ResultMatchers {
@@ -40,7 +41,7 @@ class OptionOpsTests extends WordSpec with Matchers with ResultMatchers {
     }
     "elide position indicator in description" in {
       val result = Some( "some string" ) validatedWith eachValidator
-      result should failWith( RuleViolationMatcher( legacyDescription = "o" ) )
+      result should failWith( AccessChain( Generic( "o" ) ) )
     }
   }
 

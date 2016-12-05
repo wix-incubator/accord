@@ -13,10 +13,13 @@ object Aggregates {
         if ( coll == null ) Validator.nullFailure
         else {
           var index = 0
-
           var aggregate: Result = Success
+
           coll foreach { element =>
-            val result = validator apply element applyDescription ( if ( includeIndices ) Indexed( index ) else Empty )
+            val result = if ( includeIndices )
+              validator apply element applyDescription Indexed( index, Empty )
+            else
+              validator apply element
             aggregate = aggregate and result
             index = index + 1
           }

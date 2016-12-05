@@ -34,7 +34,8 @@ class DescriptionRenderingSpec extends FlatSpec with Matchers {
   }
 
   "Rendering an access chain" should "result in a Scala-style indirection chain with dot separation" in {
-    render( AccessChain( "a", "b", "c" ) ) shouldEqual "a.b.c"
+    val chain = AccessChain( Generic( "a" ), Generic( "b" ), Generic( "c" ) )
+    render( chain ) shouldEqual chain.elements.map( Descriptions.render ).mkString( "." )
   }
 
   "Rendering a self-reference" should "result in the string \"value\"" in {

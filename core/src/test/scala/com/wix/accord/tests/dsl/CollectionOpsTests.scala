@@ -16,7 +16,7 @@
 
 package com.wix.accord.tests.dsl
 
-import com.wix.accord.Descriptions.{Generic, Indexed}
+import com.wix.accord.Descriptions.{Empty, Generic, Indexed}
 import com.wix.accord._
 import com.wix.accord.scalatest.ResultMatchers
 import org.scalatest.{Inside, Matchers, WordSpec}
@@ -127,8 +127,7 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
       result shouldBe aSuccess
     }
 
-    val baseDescription = Generic( "failure" )
-    def violationFor( elem: ArbitraryType ) = RuleViolation( elem, "fake constraint", baseDescription )
+    def violationFor( elem: ArbitraryType ) = RuleViolation( elem, "fake constraint", Empty )
     def failureFor( elem: ArbitraryType ) = Failure( Set( violationFor( elem ) ) )
     def matcherFor( elem: ArbitraryType ) = RuleViolationMatcher( value = elem, constraint = "fake constraint" )
 
@@ -162,19 +161,19 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
           case _ => Success
         }
 
-      result should failWith( RuleViolationMatcher( value = coll( 2 ), description = Indexed( 2, baseDescription ) ) )
+      result should failWith( RuleViolationMatcher( value = coll( 2 ), description = Indexed( 2, Empty ) ) )
     }
 
     "not include positional information for options" in {
       val coll = Option( ArbitraryType.apply )
       val result = visitEach( coll ) { failureFor(_) }
-      result should failWith( RuleViolationMatcher( description = baseDescription ) )
+      result should failWith( Empty )
     }
 
     "not include positional information for sets" in {
       val coll = Set( ArbitraryType.apply )
       val result = visitEach( coll ) { failureFor(_) }
-      result should failWith( RuleViolationMatcher( description = baseDescription ) )
+      result should failWith( Empty )
     }
   }
 }

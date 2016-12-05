@@ -24,7 +24,7 @@ class DescriptionCombinationSpec extends FlatSpec with Matchers {
   private val indexed = Indexed( 1, Empty )
   private val explicit = Explicit( "test" )
   private val generic = Generic( "test" )
-  private val accessChain = AccessChain( "a", "b", "c" )
+  private val accessChain = AccessChain( Generic( "a" ), Generic( "b" ), Generic( "c" ) )
 
   "Any combination of Empty" should "return the other description as-is" in {
     combine( Empty, Empty ) shouldEqual Empty
@@ -33,35 +33,49 @@ class DescriptionCombinationSpec extends FlatSpec with Matchers {
     combine( Empty, generic ) shouldEqual generic
     combine( Empty, accessChain ) shouldEqual accessChain
     combine( Empty, SelfReference ) shouldEqual SelfReference
-    combine( Empty, Empty ) shouldEqual Empty
-    combine( indexed, Empty ) shouldEqual indexed
-    combine( explicit, Empty ) shouldEqual explicit
-    combine( generic, Empty ) shouldEqual generic
-    combine( accessChain, Empty ) shouldEqual accessChain
-    combine( SelfReference, Empty ) shouldEqual SelfReference
   }
 
-  "Any combination of Indexed (of Empty)" should "replace the Empty inner description with the specified one" in {
+  "Combining an open Indexed (of==Empty) with any description" should
+    "materialize a non-empty Indexed description" in {
     combine( indexed, indexed ) shouldEqual Indexed( 1, indexed )
     combine( indexed, explicit ) shouldEqual Indexed( 1, explicit )
     combine( indexed, generic ) shouldEqual Indexed( 1, generic )
     combine( indexed, accessChain ) shouldEqual Indexed( 1, accessChain )
     combine( indexed, SelfReference ) shouldEqual Indexed( 1, SelfReference )
-    combine( indexed, indexed ) shouldEqual Indexed( 1, indexed )
-    combine( explicit, indexed ) shouldEqual Indexed( 1, explicit )
-    combine( generic, indexed ) shouldEqual Indexed( 1, generic )
-    combine( accessChain, indexed ) shouldEqual Indexed( 1, accessChain )
-    combine( SelfReference, indexed ) shouldEqual Indexed( 1, SelfReference )
   }
 
-  "Any combination of SelfReference" should "return the other description as-is" in {
-    combine( SelfReference, explicit ) shouldEqual explicit
-    combine( SelfReference, generic ) shouldEqual generic
+  "Combining a non-empty description with an AccessChain" should "add the description to the tail of the chain" in {
+    val ind = Generic( "indirection" )
+    val nonEmptyIndex = Indexed( 1, Generic( "coll" ) )
+
+    combine( explicit, AccessChain( ind ) ) shouldEqual AccessChain( ind, explicit )
+    combine( generic, AccessChain( ind ) ) shouldEqual AccessChain( ind, generic )
+    combine( nonEmptyIndex, AccessChain( ind ) ) shouldEqual AccessChain( ind, nonEmptyIndex )
+  }
+
+  "Combining SelfReference with an AccessChain" should "return the AccessChain as-is" in {
     combine( SelfReference, accessChain ) shouldEqual accessChain
-    combine( SelfReference, SelfReference ) shouldEqual SelfReference
-    combine( explicit, SelfReference ) shouldEqual explicit
-    combine( generic, SelfReference ) shouldEqual generic
-    combine( accessChain, SelfReference ) shouldEqual accessChain
+  }
+
+  "Explicit description" should "fail to combine with any other description" in {
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( explicit, Empty ) }
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( explicit, explicit ) }
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( explicit, generic ) }
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( explicit, SelfReference ) }
+  }
+
+  "Generic description" should "fail to combine with any other description" in {
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( generic, Empty ) }
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( generic, explicit ) }
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( generic, generic ) }
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( generic, SelfReference ) }
+  }
+
+  "SelfReference" should "fail to combine with any other description" in {
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( SelfReference, Empty ) }
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( SelfReference, explicit ) }
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( SelfReference, generic ) }
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( SelfReference, SelfReference ) }
   }
 
   "Combining an AccessChain with another AccessChain" should "produce a new AccessChain indirecting right-to-left" in {
@@ -71,11 +85,39 @@ class DescriptionCombinationSpec extends FlatSpec with Matchers {
     // order.
     // See issue #66 (https://github.com/wix/accord/issues/66) for an example use case.
 
-    combine( AccessChain( "a" ), AccessChain( "b" ) ) shouldEqual AccessChain( "b", "a" )
+    val a = Generic( "a" )
+    val b = Generic( "b" )
+    combine( AccessChain( a ), AccessChain( b ) ) shouldEqual AccessChain( b, a )
   }
 
-  "Explicit description" should "combine with nothing" in {
-    an[ IllegalArgumentException ] shouldBe thrownBy { combine( explicit, generic ) }
-    an[ IllegalArgumentException ] shouldBe thrownBy { combine( explicit, explicit ) }
+  // Following three examples are designed to deal with issue #86 without introducing additional complexity to the
+  // domain model. I'm not entirely happy with this solution (it feels unclean) but it'll get us through the immediate
+  // future while we gain better understanding of the desirable domain model.
+
+  "Combining an AccessChain with an open Indexed" should "produce a new AccessChain with an open Indexed at head" in {
+    val a = Generic( "a" )
+    combine( AccessChain( a ), indexed ) shouldEqual AccessChain( indexed, a )
+  }
+  
+  "An AccessChain with an open Indexed at head" should 
+    "combine with any description to produce a new AccessChain with a materialized Index at head" in {
+    val a = Generic( "a" )
+    val lhs = AccessChain( indexed, a )
+
+    combine( lhs, Empty ) shouldEqual AccessChain( indexed.copy( of = Empty ), a )
+    combine( lhs, explicit ) shouldEqual AccessChain( indexed.copy( of = explicit ), a )
+    combine( lhs, generic ) shouldEqual AccessChain( indexed.copy( of = generic ), a )
+    combine( lhs, accessChain ) shouldEqual AccessChain( indexed.copy( of = accessChain ), a )
+    combine( lhs, SelfReference ) shouldEqual AccessChain( indexed.copy( of = SelfReference ), a )
+  }
+
+  "An AccessChain without an open Indexed at head" should "fail to combine with any other description" in {
+    val a = Generic( "a" )
+    val lhs = AccessChain( a )
+
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( lhs, Empty ) }
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( lhs, explicit ) }
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( lhs, generic ) }
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( lhs, SelfReference ) }
   }
 }

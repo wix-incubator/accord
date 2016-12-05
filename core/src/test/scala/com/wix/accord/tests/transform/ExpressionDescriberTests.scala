@@ -29,11 +29,11 @@ class ExpressionDescriberTests extends WordSpec with Matchers {
   "A single-parameter function literal" should {
     "render an access chain description for a property getter" in {
       val description = ExpressionDescriber describe { ( t: Test ) => t.field1 }
-      description shouldEqual AccessChain( "field1" )
+      description shouldEqual AccessChain( Generic( "field1" ) )
     }
     "render an access chain description for multiple indirections via property getters" in {
       val description = ExpressionDescriber describe { ( t: Test ) => t.nested.field }
-      description shouldEqual AccessChain( "nested", "field" )
+      description shouldEqual AccessChain( Generic( "nested" ), Generic( "field" ) )
     }
     "render an explicit description when \"as\" is used" in {
       val description = ExpressionDescriber describe { ( t: Test ) => t.field2 as "explicit" }
