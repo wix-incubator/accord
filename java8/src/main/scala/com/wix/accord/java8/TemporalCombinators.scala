@@ -22,9 +22,25 @@ import com.wix.accord.NullSafeValidator
 import com.wix.accord.ViolationBuilder._
 
 trait TemporalCombinators {
-  class Before[ T <: Temporal with Comparable[ T ] ]( right: T )
+
+  // Annoying conversion infrastructure --
+  // The following is safe because Temporal implementations must implement Comparable (per JavaDocs)
+  private implicit class TemporalComparison[ T <: Temporal ]( left: T ) {
+    def compareTo( right: T ): Int = left.asInstanceOf[ Comparable[ T ] ].compareTo( right )
+  }
+  implicit def temporalOrdering[ T <: Temporal ]: Ordering[ T ] =
+    Ordering.fromLessThan { case ( l, r ) => l.asInstanceOf[ Comparable[ T ] ].compareTo( r ) < 0 }
+
+
+  // Combinators --
+
+  class Before[ T <: Temporal ]( right: T )
     extends NullSafeValidator[ T ]( _.compareTo( right ) < 0, _ -> s"must be before ${ right.toString }" )
 
-  class After[ T <: Temporal with Comparable[ T ] ]( right: T )
+  class After[ T <: Temporal ]( right: T )
     extends NullSafeValidator[ T ]( _.compareTo( right ) > 0, _ -> s"must be after ${ right.toString }" )
+
+  def before[ T <: Temporal ]( right: T ) = new Before( right )
+  def after[ T <: Temporal ]( right: T ) = new After( right )
+
 }

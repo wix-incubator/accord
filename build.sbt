@@ -161,7 +161,7 @@ lazy val java8 =
   crossProject
   .crossType( CrossType.Pure )
   .in( file( "java8" ) )
-  .dependsOn( api, scalatest % "test->compile" )
+  .dependsOn( api, core, scalatest % "test->compile" )
   .settings( Seq(
     name := "accord-java8",
     description := "Adds native Accord combinators for Java 8 features"
