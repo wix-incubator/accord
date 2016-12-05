@@ -16,9 +16,10 @@
 
 package com.wix.accord.java8
 
-import java.time.{LocalDateTime, ZoneOffset}
-import java.time.temporal.{ChronoUnit, Temporal}
+import java.time.{Duration, LocalDateTime, ZoneOffset}
+import java.time.temporal.{ChronoUnit, Temporal, TemporalUnit}
 
+import com.wix.accord.{Result, Validator}
 import com.wix.accord.scalatest.CombinatorTestSpec
 
 class TemporalCombinatorTests extends CombinatorTestSpec {
@@ -35,7 +36,7 @@ class TemporalCombinatorTests extends CombinatorTestSpec {
       val left = LocalDateTime.now()
       val right = left.minus( 1L, ChronoUnit.DAYS )
       val validator = new Before( right )
-      validator( left ) should failWith( s"must be before ${ right.toString }" )
+      validator( left ) should failWith( s"must be before $right" )
     }
   }
 
@@ -51,17 +52,85 @@ class TemporalCombinatorTests extends CombinatorTestSpec {
       val left = LocalDateTime.now()
       val right = left.plus( 1L, ChronoUnit.DAYS )
       val validator = new After( right )
-      validator( left ) should failWith( s"must be after ${ right.toString }" )
+      validator( left ) should failWith( s"must be after $right" )
     }
   }
 
-//  "Within combinator" should {
-//    "successfully validate a temporal that represents an instant within tolerance of the specified temporal" in {
-//      val left = LocalDateTime.now()
-//      val validator = new Within( right, 1L, ChronoUnit.DAYS )
-//      validator( left ) should be( aSuccess )
-//    }
-//  }
+  // Stub to make test compile
+  class Within[ T <: Temporal ] private( of: T, duration: Duration, friendlyDuration: => String )
+    extends Validator[ T ] {
+
+    def this( of: T, count: Long, unit: TemporalUnit ) =
+      this( of, unit.getDuration.multipliedBy( count ), s"$count ${ unit.toString.toLowerCase }" )
+
+    def this( of: T, duration: Duration ) =
+      this( of, duration, ??? )
+
+    // TODO handle durations cleanly
+    /*
+    http://stackoverflow.com/questions/266825/how-to-format-a-duration-in-java-e-g-format-hmmss
+
+     private static final DateTimeFormatter dtf = new DateTimeFormatterBuilder()
+            .optionalStart()//second
+            .optionalStart()//minute
+            .optionalStart()//hour
+            .optionalStart()//day
+            .optionalStart()//month
+            .optionalStart()//year
+            .appendValue(ChronoField.YEAR).appendLiteral(" Years ").optionalEnd()
+            .appendValue(ChronoField.MONTH_OF_YEAR).appendLiteral(" Months ").optionalEnd()
+            .appendValue(ChronoField.DAY_OF_MONTH).appendLiteral(" Days ").optionalEnd()
+            .appendValue(ChronoField.HOUR_OF_DAY).appendLiteral(" Hours ").optionalEnd()
+            .appendValue(ChronoField.MINUTE_OF_HOUR).appendLiteral(" Minutes ").optionalEnd()
+            .appendValue(ChronoField.SECOND_OF_MINUTE).appendLiteral(" Seconds").optionalEnd()
+            .toFormatter();
+
+}
+     */
+
+    override def apply( v1: T ): Result = ???
+  }
+
+
+  "Within combinator based on time units" should {
+    "successfully validate a temporal that represents an instant within the specified tolerance" in {
+      val now = LocalDateTime.now()
+      val anHourAgo = now.minus( 1L, ChronoUnit.HOURS )
+      val anHourHence = now.plus( 1L, ChronoUnit.HOURS )
+      val validator = new Within( now, 1L, ChronoUnit.DAYS )
+      validator( anHourAgo ) should be( aSuccess )
+      validator( anHourHence ) should be( aSuccess )
+    }
+
+    "render a correct rule violation" in {
+      val now = LocalDateTime.now()
+      val aWeekAgo = now.minus( 1L, ChronoUnit.WEEKS )
+      val aWeekHence = now.plus( 1L, ChronoUnit.WEEKS )
+      val validator = new Within( now, 1L, ChronoUnit.DAYS )
+      validator( aWeekAgo ) should failWith( s"must be within 1 days of $now" )
+      validator( aWeekHence ) should failWith( s"must be within 1 days of $now" )
+    }
+  }
+
+  "Within combinator based on duration" should {
+    "successfully validate a temporal that represents an instant within the specified tolerance" in {
+      val now = LocalDateTime.now()
+      val anHourAgo = now.minus( 1L, ChronoUnit.HOURS )
+      val anHourHence = now.plus( 1L, ChronoUnit.HOURS )
+      val validator = new Within( now, Duration.ofDays( 1 ) )
+      validator( anHourAgo ) should be( aSuccess )
+      validator( anHourHence ) should be( aSuccess )
+    }
+
+    "render a correct rule violation" in {
+      val now = LocalDateTime.now()
+      val aWeekAgo = now.minus( 1L, ChronoUnit.WEEKS )
+      val aWeekHence = now.plus( 1L, ChronoUnit.WEEKS )
+      val validator = new Within( now, Duration.ofDays( 1 ) )
+      validator( aWeekAgo ) should failWith( s"must be within 1 days of $now" )
+      validator( aWeekHence ) should failWith( s"must be within 1 days of $now" )
+    }
+  }
 
   "Default combinator library" should {
     import TemporalCombinatorTests._
