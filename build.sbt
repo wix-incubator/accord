@@ -157,6 +157,31 @@ lazy val core =
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
 
+lazy val java8 =
+  crossProject
+  .crossType( CrossType.Pure )
+  .in( file( "java8" ) )
+  .dependsOn( api, scalatest % "test->compile" )
+  .settings( Seq(
+    name := "accord-java8",
+    description := "Adds native Accord combinators for Java 8 features"
+  ) ++ baseSettings :_* )
+lazy val java8JVM = java8.jvm
+lazy val java8JS = java8.js
+
+lazy val joda =
+  crossProject
+    .crossType( CrossType.Pure )
+    .in( file( "joda" ) )
+    .dependsOn( api, scalatest % "test->compile" )
+    .settings( Seq(
+      name := "accord-joda",
+      libraryDependencies += "joda-time" % "joda-time" % "2.9.6",
+      description := "Adds native Accord combinators for Joda-Time"
+    ) ++ baseSettings :_* )
+lazy val jodaJVM = joda.jvm
+lazy val jodaJS = joda.js
+
 lazy val spring3 =
   Project(
     id = "spring3",
@@ -185,4 +210,9 @@ lazy val root =
     base = file( "." ),
     settings = baseSettings ++ noPublish
   )
-  .aggregate( apiJVM, apiJS, coreJVM, coreJS, scalatestJVM, scalatestJS, specs2, spring3, examples )
+  .aggregate(
+    apiJVM, apiJS, coreJVM, coreJS,                 // Core modules
+    scalatestJVM, scalatestJS, specs2, spring3,     // Testing support
+    java8JVM, java8JS, jodaJVM, jodaJS,             // Optional modules
+    examples                                        // Extras
+  )
