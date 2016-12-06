@@ -20,6 +20,8 @@ import scala.reflect.ClassTag
 import com.wix.accord.Validator
 import java.lang.reflect.{ParameterizedType, Method}
 
+import scala.collection.concurrent.TrieMap
+
 /** A resolver that takes a class and returns its respective [[com.wix.accord.Validator]]. */
 trait AccordValidatorResolver {
 
@@ -29,11 +31,11 @@ trait AccordValidatorResolver {
     * @return [[scala.Some]] validator of type `T`, or [[scala.None]] if no suitable validator could be resolved.
     */
   def lookupValidator[ T : ClassTag ]: Option[ Validator[ T ] ]
+
 }
 
 /** A resolver that looks up validator definitions in the companion object of the class under validation. */
 class CompanionObjectAccordValidatorResolver extends AccordValidatorResolver {
-  // TODO memoize companion lookup
 
   /** Takes a class and returns its companion object, if available.
     *
@@ -76,4 +78,25 @@ class CompanionObjectAccordValidatorResolver extends AccordValidatorResolver {
       }
     }
   }
+
 }
+
+/** A mixin trait that adds memoization of validator resolving results to implementations of
+  * [[com.wix.accord.spring.AccordValidatorResolver]]. */
+trait AccordValidatorResolverCache extends AccordValidatorResolver {
+
+  private val memoizedLookups = TrieMap.empty[ Class[_], Option[ Validator[_] ] ]
+
+  abstract override def lookupValidator[ T : ClassTag ]: Option[ Validator[ T ] ] = {
+    val clazz = implicitly[ ClassTag[ T ] ].runtimeClass
+    memoizedLookups.getOrElseUpdate(clazz, super.lookupValidator[ T ]).map {
+      _.asInstanceOf[ Validator[ T ] ]
+    }
+  }
+
+}
+
+/** A resolver that looks up validator definitions in the companion object of the class under validation
+  * and does it only once per class by preserving the result of each invocation. */
+class CachingCompanionObjectAccordValidatorResolver
+  extends CompanionObjectAccordValidatorResolver with AccordValidatorResolverCache

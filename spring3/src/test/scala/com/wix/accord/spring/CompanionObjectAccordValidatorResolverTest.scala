@@ -20,16 +20,15 @@ import com.wix.accord._
 import org.scalatest.{WordSpec, Matchers}
 import com.wix.accord.scalatest.ResultMatchers
 
-class CompanionObjectAccordValidatorResolverTest extends WordSpec with Matchers with ResultMatchers {
+trait CompanionObjectValidatorResolverBehaviors extends Matchers with ResultMatchers {
+  this: WordSpec =>
 
   import CompanionObjectAccordValidatorResolverTest._
 
-  "CompanionObjectAccordResolver" should {
-
-    def resolver = new CompanionObjectAccordValidatorResolver
+  def companionObjectValidatorResolver(newResolver: => AccordValidatorResolver) = {
 
     "successfully resolve a validator when available on a test class companion" in {
-      val resolved = resolver.lookupValidator[ Test1 ]
+      val resolved = newResolver.lookupValidator[ Test1 ]
       resolved should not be empty
 
       // Quick sanity tests to make sure the resolved validator is functional
@@ -41,11 +40,26 @@ class CompanionObjectAccordValidatorResolverTest extends WordSpec with Matchers 
     }
 
     "return None when no validator is available on the test class companion" in {
-      val resolved = resolver.lookupValidator[ Test2 ]
+      val resolved = newResolver.lookupValidator[ Test2 ]
+      resolved shouldBe empty
+    }
+
+    "return None when the test class has no companion object" in {
+      val resolved = newResolver.lookupValidator[ Test3 ]
       resolved shouldBe empty
     }
   }
+}
 
+class CompanionObjectAccordValidatorResolverTest extends WordSpec with CompanionObjectValidatorResolverBehaviors {
+
+  "CompanionObjectAccordValidatorResolver" should {
+    behave like companionObjectValidatorResolver(new CompanionObjectAccordValidatorResolver)
+  }
+
+  "CachingCompanionObjectAccordValidatorResolver" should {
+    behave like companionObjectValidatorResolver(new CachingCompanionObjectAccordValidatorResolver)
+  }
 }
 
 object CompanionObjectAccordValidatorResolverTest {
@@ -58,5 +72,7 @@ object CompanionObjectAccordValidatorResolverTest {
 
   case class Test2( x: String )
   case object Test2
+
+  class Test3( x: String )
 }
 
