@@ -21,7 +21,7 @@ class AccordValidatorResolverCacheTest extends WordSpec with Matchers {
     "return the validator when it is defined" in {
       val resolver = newResolver
       resolver.setLookupResult(validator1)
-      resolver.lookupValidator[ Class1 ] should contain(validator1)
+      resolver.lookupValidator[ Class1 ] shouldBe Some(validator1)
     }
 
     "consistently resolve validators for different classes" in {
@@ -33,8 +33,8 @@ class AccordValidatorResolverCacheTest extends WordSpec with Matchers {
       resolver.setLookupResult(validator2)
       resolver.lookupValidator[ Class2 ]
 
-      resolver.lookupValidator[ Class1 ] should contain(validator1)
-      resolver.lookupValidator[ Class2 ] should contain(validator2)
+      resolver.lookupValidator[ Class1 ] shouldBe Some(validator1)
+      resolver.lookupValidator[ Class2 ] shouldBe Some(validator2)
     }
 
     "perform validator lookup for the same class only once" in {
