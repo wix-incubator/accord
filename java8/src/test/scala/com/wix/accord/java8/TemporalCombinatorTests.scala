@@ -56,42 +56,6 @@ class TemporalCombinatorTests extends CombinatorTestSpec {
     }
   }
 
-  // Stub to make test compile
-  class Within[ T <: Temporal ] private( of: T, duration: Duration, friendlyDuration: => String )
-    extends Validator[ T ] {
-
-    def this( of: T, count: Long, unit: TemporalUnit ) =
-      this( of, unit.getDuration.multipliedBy( count ), s"$count ${ unit.toString.toLowerCase }" )
-
-    def this( of: T, duration: Duration ) =
-      this( of, duration, ??? )
-
-    // TODO handle durations cleanly
-    /*
-    http://stackoverflow.com/questions/266825/how-to-format-a-duration-in-java-e-g-format-hmmss
-
-     private static final DateTimeFormatter dtf = new DateTimeFormatterBuilder()
-            .optionalStart()//second
-            .optionalStart()//minute
-            .optionalStart()//hour
-            .optionalStart()//day
-            .optionalStart()//month
-            .optionalStart()//year
-            .appendValue(ChronoField.YEAR).appendLiteral(" Years ").optionalEnd()
-            .appendValue(ChronoField.MONTH_OF_YEAR).appendLiteral(" Months ").optionalEnd()
-            .appendValue(ChronoField.DAY_OF_MONTH).appendLiteral(" Days ").optionalEnd()
-            .appendValue(ChronoField.HOUR_OF_DAY).appendLiteral(" Hours ").optionalEnd()
-            .appendValue(ChronoField.MINUTE_OF_HOUR).appendLiteral(" Minutes ").optionalEnd()
-            .appendValue(ChronoField.SECOND_OF_MINUTE).appendLiteral(" Seconds").optionalEnd()
-            .toFormatter();
-
-}
-     */
-
-    override def apply( v1: T ): Result = ???
-  }
-
-
   "Within combinator based on time units" should {
     "successfully validate a temporal that represents an instant within the specified tolerance" in {
       val now = LocalDateTime.now()

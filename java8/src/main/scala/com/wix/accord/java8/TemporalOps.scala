@@ -14,6 +14,11 @@
   limitations under the License.
  */
 
-package com.wix.accord
+package com.wix.accord.java8
 
-package object java8 extends TemporalCombinators with TemporalOps
+import java.time.temporal.Temporal
+
+trait TemporalOps {
+  def before[ T <: Temporal ]( right: T ) = new Before( right )
+  def after[ T <: Temporal ]( right: T ) = new After( right )
+}
