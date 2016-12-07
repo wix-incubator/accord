@@ -89,7 +89,7 @@ trait AccordValidatorResolverCache extends AccordValidatorResolver {
 
   abstract override def lookupValidator[ T : ClassTag ]: Option[ Validator[ T ] ] = {
     val clazz = implicitly[ ClassTag[ T ] ].runtimeClass
-    memoizedLookups.getOrElseUpdate(clazz, super.lookupValidator[ T ]).map {
+    memoizedLookups.getOrElseUpdate( clazz, super.lookupValidator[ T ] ).map {
       _.asInstanceOf[ Validator[ T ] ]
     }
   }

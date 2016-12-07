@@ -25,7 +25,7 @@ trait CompanionObjectValidatorResolverBehaviors extends Matchers with ResultMatc
 
   import CompanionObjectAccordValidatorResolverTest._
 
-  def companionObjectValidatorResolver(newResolver: => AccordValidatorResolver) = {
+  def companionObjectValidatorResolver( newResolver: => AccordValidatorResolver ) = {
 
     "successfully resolve a validator when available on a test class companion" in {
       val resolved = newResolver.lookupValidator[ Test1 ]
@@ -54,11 +54,11 @@ trait CompanionObjectValidatorResolverBehaviors extends Matchers with ResultMatc
 class CompanionObjectAccordValidatorResolverTest extends WordSpec with CompanionObjectValidatorResolverBehaviors {
 
   "CompanionObjectAccordValidatorResolver" should {
-    behave like companionObjectValidatorResolver(new CompanionObjectAccordValidatorResolver)
+    behave like companionObjectValidatorResolver( new CompanionObjectAccordValidatorResolver )
   }
 
   "CachingCompanionObjectAccordValidatorResolver" should {
-    behave like companionObjectValidatorResolver(new CachingCompanionObjectAccordValidatorResolver)
+    behave like companionObjectValidatorResolver( new CachingCompanionObjectAccordValidatorResolver )
   }
 }
 

@@ -20,21 +20,21 @@ class AccordValidatorResolverCacheTest extends WordSpec with Matchers {
 
     "return the validator when it is defined" in {
       val resolver = newResolver
-      resolver.setLookupResult(validator1)
-      resolver.lookupValidator[ Class1 ] shouldBe Some(validator1)
+      resolver.setLookupResult( validator1 )
+      resolver.lookupValidator[ Class1 ] shouldBe Some( validator1 )
     }
 
     "consistently resolve validators for different classes" in {
       val resolver = newResolver
 
-      resolver.setLookupResult(validator1)
+      resolver.setLookupResult( validator1 )
       resolver.lookupValidator[ Class1 ]
 
-      resolver.setLookupResult(validator2)
+      resolver.setLookupResult( validator2 )
       resolver.lookupValidator[ Class2 ]
 
-      resolver.lookupValidator[ Class1 ] shouldBe Some(validator1)
-      resolver.lookupValidator[ Class2 ] shouldBe Some(validator2)
+      resolver.lookupValidator[ Class1 ] shouldBe Some( validator1 )
+      resolver.lookupValidator[ Class2 ] shouldBe Some( validator2 )
     }
 
     "perform validator lookup for the same class only once" in {
@@ -55,13 +55,11 @@ object AccordValidatorResolverCacheTest {
 
     override def lookupValidator[ T : ClassTag ]: Option[ Validator [ T ] ] = {
       invocationCounter += 1
-      lookupResult.map {
-        _.asInstanceOf[ Validator[ T ] ]
-      }
+      lookupResult.map { _.asInstanceOf[ Validator[ T ] ] }
     }
 
-    def setLookupResult(result: Validator[_]) = {
-      lookupResult = Some(result)
+    def setLookupResult( result: Validator[_] ) = {
+      lookupResult = Some( result )
     }
 
     def invocationCount = invocationCounter
