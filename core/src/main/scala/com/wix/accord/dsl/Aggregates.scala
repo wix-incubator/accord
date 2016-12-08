@@ -21,6 +21,16 @@ import com.wix.accord.{Result, Success, Validator}
 
 object Aggregates {
 
+  /**
+    * Returns a new validator that applies the specified element validation rule to all elements of a collection.
+    *
+    * @param includeIndices A flag indicating whether or not to include index information in generated violations.
+    * @param validator A validator for each element of the collection.
+    * @param ev Evidence that `Coll` is, or can be converted into, a collection.
+    * @tparam Coll The type of the collection this aggregate operators over.
+    * @tparam Element The type of an element within `Coll`.
+    * @return A validator that executes `validator` against all elements of a collection and aggregates the result.
+    */
   def all[ Coll, Element ]( includeIndices: Boolean = true )
                           ( validator: Validator[ Element ] )
                           ( implicit ev: Coll => Traversable[ Element ] ): Validator[ Coll ] =

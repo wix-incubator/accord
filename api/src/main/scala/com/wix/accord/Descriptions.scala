@@ -28,12 +28,13 @@ object Descriptions {
 
   /** Denotes an index access (e.g. accessing the nth element of an array). */
   case class Indexed( index: Long, of: Description = Empty ) extends Description
+
   /** Denotes an explicit textual description, typically provided via the DSL `as` keyword. */
   case class Explicit( description: String ) extends Description
 
   /**
     * Denotes a generic textual description, typically a piece of code, where a better description could
-    * not be generated.
+    * not be generated (for example: the field name as part of an [[com.wix.accord.Descriptions.AccessChain]]).
     */
   case class Generic( description: String ) extends Description
 
