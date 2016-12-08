@@ -109,16 +109,16 @@ val result = validate( Person( "", 27, Address( "221B Baker Street", "", Some( "
 
 assert( result == Failure( Set(
   // First violation:
-  RuleViolation( "", "must not be empty", Descriptions.AccessChain( "name" ) ),
+  RuleViolation( "", "must not be empty", Descriptions.AccessChain( Generic( "name" ) ) ),
 
   // Second violation:
   GroupViolation(
     value       = Address( "221B Baker Street", "", Some( "" ) ),
     constraint  = "is invalid",
-    description = Descriptions.AccessChain( "address" ),
+    description = Descriptions.AccessChain( Generic( "address" ) ),
     children = Set(
-      RuleViolation( "", "must not be empty", Descriptions.AccessChain( "city" ) ),
-      RuleViolation( "", "must not be empty", Descriptions.AccessChain( "zipcode" ) )
+      RuleViolation( "", "must not be empty", Descriptions.AccessChain( Generic( "city" ) ) ),
+      RuleViolation( "", "must not be empty", Descriptions.AccessChain( Generic( "zipcode" ) ) 
     )
   )
 ) ) )
@@ -129,16 +129,16 @@ assert( result == Failure( Set(
 
 Accord automatically generates descriptions for each validation rule based on the expression left of `is`. Since a rule can validate any arbitrary Scala expression, Accord features a fine-grained [description model](https://github.com/wix/accord/blob/v{{ site.version.release }}/api/src/main/scala/com/wix/accord/Descriptions.scala). That in turn is exposed through a violation's `description` property.
 
-|-------------+---------------------------------------------------------------------------------------+
-| Class       | Description                                                                           |
-|-------------+---------------------------------------------------------------------------------------+
-| Empty       | An empty description (not seen in normal operation)                                   |
-| Explicit    | An explicitly described validation rule                                               |
-| AccessChain | Member access with possible indirections. This is the most commonly found description |
-| Generic     | A fallback description for when Accord can't make sense of the expression             |
-| Indexed     | Indicates indexed access, such as into a sequence                                     |
-| Conditional | Denotes that the desirable validation strategy depends on a runtime condition         |
-|-------------|---------------------------------------------------------------------------------------+
+|-------------+--------------------------------------------------------------------------------------------------+
+| Class       | Description                                                                                      |
+|-------------+--------------------------------------------------------------------------------------------------+
+| Empty       | An empty description (not seen in normal operation)                                              |
+| Explicit    | An explicitly described validation rule                                                          |
+| AccessChain | Member access with possible indirections. This is the most commonly found description            |
+| Generic     | A textual description when Accord can't break the expression down further (e.g. property getter) |
+| Indexed     | Indicates indexed access, such as into a sequence                                                |
+| Conditional | Denotes that the desirable validation strategy depends on a runtime condition                    |
+|-------------|--------------------------------------------------------------------------------------------------+
 
 With this model, Accord automatically produces detailed information about the exact object that violated a particular rule, for example:
 
@@ -192,7 +192,7 @@ assert( accessChain == Failure( Set(
   RuleViolation(
     value = -4.0,
     constraint = "got -4.0, expected 0.0 or more",
-    description = Descriptions.AccessChain( "heightInMeters" )
+    description = Descriptions.AccessChain( Generic( "heightInMeters" ) )
   )
 ) ) )
 

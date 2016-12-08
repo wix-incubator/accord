@@ -34,8 +34,8 @@ val result = validate( Person( "", 15 ) )
 assert( result == Failure( Set(
   // Note that the description (the last parameter) is automatically
   // generated from the validation rules:
-  RuleViolation( "", "must not be empty", Descriptions.AccessChain( "name" ) ),
-  RuleViolation( 15, "got 15, expected 18 or more", Descriptions.AccessChain( "age" ) )
+  RuleViolation( "", "must not be empty", Descriptions.AccessChain( Generic( "name" ) ) ),
+  RuleViolation( 15, "got 15, expected 18 or more", Descriptions.AccessChain( Generic( "age" ) ) )
 ) ) )
 ```
 
@@ -80,7 +80,7 @@ assert( validate( NumericPair( 0, "zero" ) ) == Failure( Set (
       on     = Descriptions.Generic( "branch" ), 
       value  = true,
       guard  = Some( Descriptions.Generic( "n.numeric == 0" ) ),
-      target = Descriptions.AccessChain( "string" )
+      target = Descriptions.AccessChain( Generic( "string" ) )
     )
   )
 ) ) )
@@ -105,10 +105,10 @@ assert( validate( NumericPair( -5, "-5" ) ) == Success )
 assert( validate( NumericPair( 0, "zero" ) ) == Failure( Set (
   RuleViolation( "zero", "does not equal 0",
     Descriptions.Conditional(
-      on     = Descriptions.AccessChain( "numeric" ), 
+      on     = Descriptions.AccessChain( Generic( "numeric" ) ),
       value  = 0,
       guard  = None,
-      target = Descriptions.AccessChain( "string" )
+      target = Descriptions.AccessChain( Generic( "string" ) )
     )
   )
 ) ) )

@@ -90,6 +90,13 @@ libraryDependencies += "com.wix" %% "accord-core" % "{{ site.version.release }}"
 
 // Scala.js projects:
 libraryDependencies += "com.wix" %%% "accord-core" % "{{ site.version.release }}"
+
+// As a result of a Scala compiler bug, in rare cases you may get "missing or invalid
+// dependency detected while loading class file" errors. Until a fix is released
+// this can be worked around by adding the following your build script.
+// (See issue #84 at https://github.com/wix/accord/issues/84)
+libraryDependencies +=
+ "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
 ```
 
 If you want to evaluate the upcoming snapshot release, add the Sonatype snapshot repository to your resolvers; typically this means adding the following to your `build.sbt` file:
@@ -115,6 +122,17 @@ Accord is published to the Maven Central Repository, so you simply have to add t
     <groupId>com.wix</groupId>
     <artifactId>accord-core_${scala.tools.version}</artifactId>
     <version>{{ site.version.release }}</version>
+  </dependency>
+  <!--
+    As a result of a Scala compiler bug, in rare cases you may get "missing or
+    invalid dependency detected while loading class file" errors. Until a fix is
+    released this can be worked around by adding the following your build script.
+    (See issue #84 at https://github.com/wix/accord/issues/84)
+  -->
+  <dependency>
+    <groupId>org.scala-lang.org</groupId>
+    <artifactId>scala-compiler</article>
+    <version>${scala.version}</version>
   </dependency>
 </dependencies>
 ```

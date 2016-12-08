@@ -31,9 +31,9 @@ Two elements are required to integrate Accord with Spring:
 
 ## Validator Resolver
 
-Because Accord is intended to be used in Scala code directly, it does not provide any out-of-the-box facilities for registering validators with an IoC container. The Spring integration layer adds the concept of a _validator resolver_, which is essentially responsible for answering the question: given a type `T`, what is `Validator[T]`? This is normally handled by the implicit parameter requirement of the Accord `validate` API.
+Because Accord is intended to be used in Scala code directly, it does not provide any out-of-the-box facilities for registering validators with an IoC container; in pure Scala, this is normally handled by the implicit parameter requirement of the Accord `validate` API. The Spring integration layer adds the concept of a _validator resolver_, which is responsible for answering the question: given a type `T`, what is `Validator[T]`? 
 
-A resolver extends the trait `AccordValidatorResolver`; currently the only implementation available out-of-the-box is the default `CompanionObjectAccordValidatorResolver`, which for any class `T` tries to find a suitable validator in the companion object for `T`. For example:
+A resolver extends the [AccordValidatorResolver trait](https://github.com/wix/accord/blob/v{{ site.version.release }}/spring3/src/main/scala/com/wix/accord/spring/AccordValidatorResolver.scala). The default resolver implementation is `CachingCompanionObjectAccordValidatorResolver`, which attempts to find a suitable validator in the companion object of any given class:
 
 ```scala
 object ExampleModel {
@@ -49,7 +49,10 @@ object ExampleModel {
 }
 ```
 
-In this case, the `Test1` validator will be correctly resolved. but the `Test2` validator will not be found because it does not reside in the `Test2` companion object.
+In this case, the `Test1` validator will be correctly resolved, but the `Test2` validator will not be found because it does not reside in the `Test2` companion object.
+
+> :warning: Note: The default implementation also caches negative lookups; if you're loading your validators dynamically, you may prefer the `CompanionObjectAccordValidatorResolver` which eschews caching entirely.
+
 
 ## Validator Factory
 
@@ -58,7 +61,7 @@ Spring Validation [mandates](http://docs.spring.io/spring/docs/current/spring-fr
 In practice, to enable Spring integration for Accord, you only need to register two beans: your resolver of choice and the validator factory. If you already have a validator factory bean set up per the Spring Validation documentation, you only have to change the `org.springframework.validation.beanvalidation.LocalValidatorFactoryBean` bean class to `com.wix.accord.spring.AccordEnabledLocalValidationFactory` and you're good to go, as in this example:
 
 ```xml
-<bean id="accordValidatorResolver" class="com.wix.accord.spring.CompanionObjectAccordValidatorResolver" />
+<bean id="accordValidatorResolver" class="com.wix.accord.spring.CachingCompanionObjectAccordValidatorResolver" />
 <bean id="validator" class="com.wix.accord.spring.AccordEnabledLocalValidationFactory" />
 ```
 

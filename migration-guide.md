@@ -46,25 +46,3 @@ libraryDependencies += "com.wix" %% "accord-specs2-3-x" % "0.5" % "test"
 // After 0.6:
 libraryDependencies += "com.wix" %% "accord-specs2" % "0.6" % "test"
 ```
-
-### Other Notes
-
-With the experimental Scala 2.12 support, users must add a compile-time-only dependency on `scala-compiler`. With SBT this is as simple as:
-
-```scala
-libraryDependencies <+= 
-  scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "provided" )
-```
-
-With Maven this is similarly easy:
-
-```xml
-<dependencies>
-  <dependency>
-    <groupId>org.scala-lang</groupId>
-    <artifactId>scala-compiler</artifactId>
-    <version>${scala.version}</version>
-  </dependency>
-</dependencies>
-```
-
