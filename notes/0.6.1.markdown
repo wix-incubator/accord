@@ -12,7 +12,7 @@ Version 0.6.1 is a point release with important fixes and improvements:
 API notes:
 
 * 0.6.1 includes a minor but potentially breaking change to the new description model introduced in 0.6, please refer to [#86](https://github.com/wix/accord/issues/86) for details.
-* The new Spring resolver cache is recommended but strictly opt-in. Please refer to (Spring integration)[http://wix.github.io/accord/spring3.html] for details.
+* The new Spring resolver cache is recommended but strictly opt-in. Please refer to [Spring integration](http://wix.github.io/accord/spring3.html) for details.
 
 As always, bug reports, pull requests and other ideas are welcome -- [join the discussion](https://gitter.im/wix/accord?utm_source=share-link&utm_medium=link&utm_campaign=share-link) on Gitter!
 
