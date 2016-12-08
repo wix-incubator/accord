@@ -1,0 +1,12 @@
+![Accord](https://raw.githubusercontent.com/wix/accord/master/assets/accord-logo-light.png?raw=1)
+
+Version 0.6.1 mostly contains fixes and improvements:
+
+* [#89](https://github.com/wix/accord/issues/89) Bug: java.lang.UnsupportedOperationException: Position.start on NoPosition when trying to use map
+* [#86](https://github.com/wix/accord/issues/86) Bug: Getting indexed description when composing validators
+* [#81](https://github.com/wix/accord/issues/81) Bug: localDate.each(_.isAfter(LocalDate.now()) is true) does not work
+* [#77](https://github.com/wix/accord/issues/77) Infrastructure: Switch to .sbt-style build setup
+* Infrastructure: Publish to Scaladex
+
+As always, bug reports, pull requests and other ideas are welcome -- [join the discussion](https://gitter.im/wix/accord?utm_source=share-link&utm_medium=link&utm_campaign=share-link) on Gitter!
+
