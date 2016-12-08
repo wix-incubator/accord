@@ -45,9 +45,4 @@ trait TemporalCombinators {
     extends NullSafeValidator[ T ](
       t => of.minus( duration ).compareTo( t ) <= 0 && of.plus( duration ).compareTo( t ) >= 0,
       _ -> s"must be within $friendlyDuration of $of" )
-
-  object Within {
-    def apply[ T <: Temporal ]( of: T, count: Long, unit: TemporalUnit ) =
-      new Within( of, unit.getDuration.multipliedBy( count ), s"$count ${ unit.toString.toLowerCase }" )
-  }
 }

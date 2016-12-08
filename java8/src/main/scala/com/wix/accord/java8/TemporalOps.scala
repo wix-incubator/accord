@@ -16,9 +16,23 @@
 
 package com.wix.accord.java8
 
-import java.time.temporal.Temporal
+import java.time.Duration
+import java.time.temporal.{Temporal, TemporalUnit}
 
 trait TemporalOps {
   def before[ T <: Temporal ]( right: T ) = new Before( right )
   def after[ T <: Temporal ]( right: T ) = new After( right )
+
+  class WithinBuilder[ T <: Temporal ] private[ TemporalOps ]( duration: Duration, friendlyDuration: => String ) {
+    def of( target: T ): Within[ T ] = new Within( target, duration, friendlyDuration )
+  }
+
+  def within[ T <: Temporal ]( count: Long, timeUnit: TemporalUnit ): WithinBuilder[ T ] =
+    new WithinBuilder[ T ]( timeUnit.getDuration.multipliedBy( count ), s"$count ${ timeUnit.toString.toLowerCase }" )
+
+  def within[ T <: Temporal ]( duration: Duration, friendlyDuration: => String ): WithinBuilder[ T ] =
+    new WithinBuilder[ T ]( duration, friendlyDuration )
+
+  def within[ T <: Temporal ]( duration: Duration ): WithinBuilder[ T ] =
+    within( duration, duration.toString )
 }

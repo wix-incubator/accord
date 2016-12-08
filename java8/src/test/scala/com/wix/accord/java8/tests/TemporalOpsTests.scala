@@ -14,14 +14,14 @@
   limitations under the License.
  */
 
-package com.wix.accord.java8
+package com.wix.accord.java8.tests
 
-
-import com.wix.accord.java8._
 import org.scalatest.{Matchers, WordSpec}
 
-import TemporalOpsTests._
 class TemporalOpsTests extends WordSpec with Matchers {
+
+  import com.wix.accord.java8.{Before, After, Within}
+  import TemporalOpsTests._
 
   "The expression \"is before\"" should {
     "produce a Before combinator" in {
@@ -34,12 +34,24 @@ class TemporalOpsTests extends WordSpec with Matchers {
       afterValidator shouldBe an[ After[_] ]
     }
   }
+
+  "The expression \"is within(...) of target\"" should {
+    "produce a Within combinator for time unit parameters" in {
+      withinTimeUnitValidator shouldBe a[ Within[_] ]
+    }
+
+    "produce a Within combinator for duration parameters" in {
+      withinDurationValidator shouldBe a[ Within[_] ]
+    }
+  }
 }
 
 object TemporalOpsTests {
-  import com.wix.accord.dsl._
   import java.time.LocalDateTime
   import java.time.temporal.{ChronoUnit, Temporal}
+
+  import com.wix.accord.dsl._
+  import com.wix.accord.java8._
 
   val now: Temporal = LocalDateTime.now()
   val lastWeek: Temporal = now.minus( 1L, ChronoUnit.WEEKS )
@@ -47,6 +59,6 @@ object TemporalOpsTests {
 
   val beforeValidator = lastWeek is before( now )
   val afterValidator = tomorrow is after( now )
-//  val withinTimeUnitValidator = tomorrow is within( 1L, ChronoUnit.WEEKS ) of now
-//  val withinDurationValidator = tomorrow is within( Duration.ofDays( 7L ) ) of now
+  val withinTimeUnitValidator = tomorrow is within( 1L, ChronoUnit.WEEKS ) of now
+  val withinDurationValidator = tomorrow is within( Duration.ofDays( 7L ) ) of now
 }

@@ -14,7 +14,7 @@
   limitations under the License.
  */
 
-package com.wix.accord.java8
+package com.wix.accord.java8.tests
 
 import java.time.temporal.{ChronoUnit, Temporal}
 import java.time.{Duration, LocalDateTime, ZoneOffset}
@@ -23,6 +23,7 @@ import com.wix.accord.Validator
 import com.wix.accord.scalatest.CombinatorTestSpec
 
 class TemporalCombinatorTests extends CombinatorTestSpec {
+  import com.wix.accord.java8.{Before, After, Within}
 
   "Before combinator" should {
     "successfully validate a temporal that represents an instant before the specified temporal" in {
@@ -56,27 +57,7 @@ class TemporalCombinatorTests extends CombinatorTestSpec {
     }
   }
 
-  "Within combinator based on time units" should {
-    "successfully validate a temporal that represents an instant within the specified tolerance" in {
-      val now = LocalDateTime.now()
-      val anHourAgo = now.minus( 1L, ChronoUnit.HOURS )
-      val anHourHence = now.plus( 1L, ChronoUnit.HOURS )
-      val validator = Within( now, 1L, ChronoUnit.DAYS )
-      validator( anHourAgo ) should be( aSuccess )
-      validator( anHourHence ) should be( aSuccess )
-    }
-
-    "render a correct rule violation" in {
-      val now = LocalDateTime.now()
-      val aWeekAgo = now.minus( 1L, ChronoUnit.WEEKS )
-      val aWeekHence = now.plus( 1L, ChronoUnit.WEEKS )
-      val validator = Within( now, 1L, ChronoUnit.DAYS )
-      validator( aWeekAgo ) should failWith( s"must be within 1 days of $now" )
-      validator( aWeekHence ) should failWith( s"must be within 1 days of $now" )
-    }
-  }
-
-  "Within combinator based on duration" should {
+  "Within combinator" should {
     "successfully validate a temporal that represents an instant within the specified tolerance" in {
       val now = LocalDateTime.now()
       val anHourAgo = now.minus( 1L, ChronoUnit.HOURS )
@@ -127,6 +108,7 @@ object TemporalCombinatorTests {
   val lastYear: Temporal = now.minus( 1L, ChronoUnit.YEARS )
 
   import com.wix.accord.dsl._
+  import com.wix.accord.java8._
 
   val atEpoch: Validator[ Temporal ] = validator[ Temporal ] { t => t is equalTo( epoch ) }
   val notAtEpoch: Validator[ Temporal ] = validator[ Temporal ] { t => t is notEqualTo( epoch ) }
