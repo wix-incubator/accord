@@ -166,8 +166,14 @@ lazy val java8 =
     name := "accord-java8",
     description := "Adds native Accord combinators for Java 8 features"
   ) ++ baseSettings :_* )
+  .jsSettings(
+    // This library is still not complete (e.g. LocalDateTime isn't implemented); Scala.js support
+    // for this module is consequently currently disabled.
+    libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.0"
+  )
+
 lazy val java8JVM = java8.jvm
-lazy val java8JS = java8.js
+//lazy val java8JS = java8.js
 
 lazy val joda =
   crossProject
@@ -213,6 +219,6 @@ lazy val root =
   .aggregate(
     apiJVM, apiJS, coreJVM, coreJS,                 // Core modules
     scalatestJVM, scalatestJS, specs2, spring3,     // Testing support
-    java8JVM, java8JS, jodaJVM, jodaJS,             // Optional modules
+    java8JVM, /*java8JS,*/ jodaJVM, jodaJS,         // Optional modules
     examples                                        // Extras
   )
