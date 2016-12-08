@@ -66,7 +66,7 @@ object AccordEnabledLocalValidationFactoryTest {
 
   @Configuration
   class SpringValidationConfiguration {
-    @Bean def resolver: AccordValidatorResolver = new CompanionObjectAccordValidatorResolver
+    @Bean def resolver: AccordValidatorResolver = new CachingCompanionObjectAccordValidatorResolver
     @Bean def validator = new AccordEnabledLocalValidationFactory
   }
 }
