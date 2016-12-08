@@ -16,6 +16,7 @@
 
 package com.wix.accord.java8.tests
 
+
 import org.scalatest.{Matchers, WordSpec}
 
 class TemporalOpsTests extends WordSpec with Matchers {
@@ -47,7 +48,7 @@ class TemporalOpsTests extends WordSpec with Matchers {
 }
 
 object TemporalOpsTests {
-  import java.time.LocalDateTime
+  import java.time.{LocalDateTime, Duration}
   import java.time.temporal.{ChronoUnit, Temporal}
 
   import com.wix.accord.dsl._
@@ -59,6 +60,6 @@ object TemporalOpsTests {
 
   val beforeValidator = lastWeek is before( now )
   val afterValidator = tomorrow is after( now )
-  val withinTimeUnitValidator = tomorrow is within( 1L, ChronoUnit.WEEKS ) of now
-  val withinDurationValidator = tomorrow is within( Duration.ofDays( 7L ) ) of now
+  val withinTimeUnitValidator = tomorrow is within( 1L, ChronoUnit.WEEKS ).of( now )
+  val withinDurationValidator = tomorrow is within( Duration.ofDays( 7L ) ).of( now )
 }
