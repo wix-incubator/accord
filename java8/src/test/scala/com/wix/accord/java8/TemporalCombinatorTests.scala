@@ -16,10 +16,10 @@
 
 package com.wix.accord.java8
 
+import java.time.temporal.{ChronoUnit, Temporal}
 import java.time.{Duration, LocalDateTime, ZoneOffset}
-import java.time.temporal.{ChronoUnit, Temporal, TemporalUnit}
 
-import com.wix.accord.{Result, Validator}
+import com.wix.accord.Validator
 import com.wix.accord.scalatest.CombinatorTestSpec
 
 class TemporalCombinatorTests extends CombinatorTestSpec {
@@ -61,7 +61,7 @@ class TemporalCombinatorTests extends CombinatorTestSpec {
       val now = LocalDateTime.now()
       val anHourAgo = now.minus( 1L, ChronoUnit.HOURS )
       val anHourHence = now.plus( 1L, ChronoUnit.HOURS )
-      val validator = new Within( now, 1L, ChronoUnit.DAYS )
+      val validator = Within( now, 1L, ChronoUnit.DAYS )
       validator( anHourAgo ) should be( aSuccess )
       validator( anHourHence ) should be( aSuccess )
     }
@@ -70,7 +70,7 @@ class TemporalCombinatorTests extends CombinatorTestSpec {
       val now = LocalDateTime.now()
       val aWeekAgo = now.minus( 1L, ChronoUnit.WEEKS )
       val aWeekHence = now.plus( 1L, ChronoUnit.WEEKS )
-      val validator = new Within( now, 1L, ChronoUnit.DAYS )
+      val validator = Within( now, 1L, ChronoUnit.DAYS )
       validator( aWeekAgo ) should failWith( s"must be within 1 days of $now" )
       validator( aWeekHence ) should failWith( s"must be within 1 days of $now" )
     }
@@ -81,7 +81,7 @@ class TemporalCombinatorTests extends CombinatorTestSpec {
       val now = LocalDateTime.now()
       val anHourAgo = now.minus( 1L, ChronoUnit.HOURS )
       val anHourHence = now.plus( 1L, ChronoUnit.HOURS )
-      val validator = new Within( now, Duration.ofDays( 1 ) )
+      val validator = new Within( now, Duration.ofDays( 1 ), "1 days" )
       validator( anHourAgo ) should be( aSuccess )
       validator( anHourHence ) should be( aSuccess )
     }
@@ -90,7 +90,7 @@ class TemporalCombinatorTests extends CombinatorTestSpec {
       val now = LocalDateTime.now()
       val aWeekAgo = now.minus( 1L, ChronoUnit.WEEKS )
       val aWeekHence = now.plus( 1L, ChronoUnit.WEEKS )
-      val validator = new Within( now, Duration.ofDays( 1 ) )
+      val validator = new Within( now, Duration.ofDays( 1 ), "1 days" )
       validator( aWeekAgo ) should failWith( s"must be within 1 days of $now" )
       validator( aWeekHence ) should failWith( s"must be within 1 days of $now" )
     }
@@ -128,8 +128,8 @@ object TemporalCombinatorTests {
 
   import com.wix.accord.dsl._
 
-  val atEpoch = validator[ Temporal ] { t => t is equalTo( epoch ) }
-  val notAtEpoch = validator[ Temporal ] { t => t is notEqualTo( epoch ) }
-  val duringLastYear = validator[ Temporal ] { t => t is between( lastYear, now ) }
+  val atEpoch: Validator[ Temporal ] = validator[ Temporal ] { t => t is equalTo( epoch ) }
+  val notAtEpoch: Validator[ Temporal ] = validator[ Temporal ] { t => t is notEqualTo( epoch ) }
+  val duringLastYear: Validator[ Temporal ] = validator[ Temporal ] { t => t is between( lastYear, now ) }
 }
 

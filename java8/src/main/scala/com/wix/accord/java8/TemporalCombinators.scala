@@ -41,16 +41,13 @@ trait TemporalCombinators {
   class After[ T <: Temporal ]( right: T )
     extends NullSafeValidator[ T ]( _.compareTo( right ) > 0, _ -> s"must be after ${ right.toString }" )
 
-  class Within[ T <: Temporal ] private( of: T, duration: Duration, friendlyDuration: => String )
+  class Within[ T <: Temporal ]( of: T, duration: Duration, friendlyDuration: => String )
     extends NullSafeValidator[ T ](
       t => of.minus( duration ).compareTo( t ) <= 0 && of.plus( duration ).compareTo( t ) >= 0,
       _ -> s"must be within $friendlyDuration of $of" )
-  {
-    def this( of: T, count: Long, unit: TemporalUnit ) =
-      this( of, unit.getDuration.multipliedBy( count ), s"$count ${ unit.toString.toLowerCase }" )
 
-    def this( of: T, duration: Duration ) =
-      this( of, duration, new TemporalDuration( duration ).toString )
+  object Within {
+    def apply[ T <: Temporal ]( of: T, count: Long, unit: TemporalUnit ) =
+      new Within( of, unit.getDuration.multipliedBy( count ), s"$count ${ unit.toString.toLowerCase }" )
   }
-
 }
