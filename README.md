@@ -1,5 +1,5 @@
 
-[![Build Status](https://travis-ci.org/wix/accord.svg?branch=master)](https://travis-ci.org/wix/accord) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/wix/accord?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Maven Central](https://img.shields.io/maven-central/v/com.wix/accord-core_2.11.svg?maxAge=2592000)](http://search.maven.org/#search|gav|1|g:com.wix%20AND%20a:accord*)
+[![Build Status](https://travis-ci.org/wix/accord.svg?branch=master)](https://travis-ci.org/wix/accord) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/wix/accord?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Maven Central](https://img.shields.io/maven-central/v/com.wix/accord-core_2.11.svg?maxAge=3600)](http://search.maven.org/#search|gav|1|g:com.wix%20AND%20a:accord*)
 
 
 Overview
