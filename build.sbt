@@ -91,12 +91,12 @@ lazy val api =
           "instances. Feedback, bug reports and improvements are welcome!"
     ) ++ baseSettings :_* )
   .jsSettings(
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0"
+    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0" % "test"
   )
   .jvmSettings(
     libraryDependencies <+= scalaVersion {
-      case v if v startsWith "2.12" => "org.scalatest" %% "scalatest" % "3.0.0"
-      case _ => "org.scalatest" %% "scalatest" % "2.2.6"
+      case v if v startsWith "2.12" => "org.scalatest" %% "scalatest" % "3.0.0" % "test"
+      case _ => "org.scalatest" %% "scalatest" % "2.2.6" % "test"
     }
   )
 
