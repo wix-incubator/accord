@@ -71,11 +71,9 @@ lazy val baseSettings =
 
 lazy val noPublish = Seq( publish := {}, publishLocal := {}, publishArtifact := false )
 
+// Necessary to work around scala/scala-dev#275 (see wix/accord#84)
 def providedScalaCompiler =
-  libraryDependencies <++= scalaVersion {
-    case v if v startsWith "2.12" => Seq( "org.scala-lang" % "scala-compiler" % v % "provided" )
-    case _ => Seq.empty
-  }
+  libraryDependencies <+= scalaVersion { "org.scala-lang" % "scala-compiler" % _ % "provided" }
 
 // Projects --
 
