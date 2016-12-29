@@ -92,8 +92,6 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       case single @ ValidatorApplication(_) =>
         Some( Seq( single ) )
 
-      // Scala 2.10 quasiquotes fail to match on pure blocks!
-
       case Block( rules, q"()" ) if rules forall ValidatorApplication.isValid =>
         Some( rules )
 
@@ -109,15 +107,10 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       case q"if ( $cond ) ${ ValidatorApplicationBlock( left ) } else ${ Branch( right ) }" =>
         Some( right.copy( branches = ConditionalBranch( cond, left ) +: right.branches ) )
 
-      case q"if ( $cond ) ${ ValidatorApplicationBlock( rules ) } else ()" =>
-        // Scala 2.10-style non-terminated if
-        Some( ValidationRuleBranch( Seq( ConditionalBranch( cond, rules ) ), None ) )
-
       case q"if ( $cond ) ${ ValidatorApplicationBlock( left ) } else ${ right @ ValidatorApplicationBlock(_) }" =>
         Some( ValidationRuleBranch( Seq( ConditionalBranch( cond, left ) ), Some( right ) ) )
 
       case q"if ( $cond ) ${ ValidatorApplicationBlock( rules ) }" =>
-        // Scala 2.11-style non-terminated if
         Some( ValidationRuleBranch( Seq( ConditionalBranch( cond, rules ) ), None ) )
 
       case _ =>
