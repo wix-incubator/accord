@@ -159,18 +159,18 @@ lazy val coreJS = core.js
 
 lazy val java8 =
   crossProject
-  .crossType( CrossType.Pure )
-  .in( file( "java8" ) )
-  .dependsOn( api, core, scalatest % "test->compile" )
-  .settings( Seq(
-    name := "accord-java8",
-    description := "Adds native Accord combinators for Java 8 features"
-  ) ++ baseSettings :_* )
-  .jsSettings(
-    // This library is still not complete (e.g. LocalDateTime isn't implemented); Scala.js support
-    // for this module is consequently currently disabled.
-    libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.0"
-  )
+    .crossType( CrossType.Pure )
+    .in( file( "java8" ) )
+    .dependsOn( api, core, scalatest % "test->compile" )
+    .settings( Seq(
+      name := "accord-java8",
+      description := "Adds native Accord combinators for Java 8 features"
+    ) ++ baseSettings ++ providedScalaCompiler :_* )
+    .jsSettings(
+      // This library is still not complete (e.g. LocalDateTime isn't implemented); Scala.js support
+      // for this module is consequently currently disabled.
+      libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.0"
+    )
 
 lazy val java8JVM = java8.jvm
 //lazy val java8JS = java8.js

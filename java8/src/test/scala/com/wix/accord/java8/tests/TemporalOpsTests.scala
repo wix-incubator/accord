@@ -17,6 +17,9 @@
 package com.wix.accord.java8.tests
 
 
+import java.time.temporal.ChronoUnit
+import java.time.{LocalDateTime, ZoneOffset}
+
 import org.scalatest.{Matchers, WordSpec}
 
 class TemporalOpsTests extends WordSpec with Matchers {
@@ -36,13 +39,34 @@ class TemporalOpsTests extends WordSpec with Matchers {
     }
   }
 
-  "The expression \"is within(...) of target\"" should {
+  "The expression \"is within(...).of( target )\"" should {
     "produce a Within combinator for time unit parameters" in {
       withinTimeUnitValidator shouldBe a[ Within[_] ]
     }
 
     "produce a Within combinator for duration parameters" in {
       withinDurationValidator shouldBe a[ Within[_] ]
+    }
+  }
+
+  "Default combinator library" should {
+    "handle temporal equality via generic equality" in {
+      val otherEpoch = LocalDateTime.ofEpochSecond( 0L, 0, ZoneOffset.UTC )
+      atEpoch( otherEpoch ) should be( aSuccess )
+      atEpoch( now ) should be( aFailure )
+    }
+
+    "handle temporal inequality via generic equality" in {
+      notAtEpoch( epoch ) should be( aFailure )
+      notAtEpoch( now ) should be( aSuccess )
+    }
+
+    "handle temporal comparison via OrderingOps" in {
+      val lastWeek = now.minus( 1L, ChronoUnit.WEEKS )
+      val nextWeek = now.plus( 1L, ChronoUnit.WEEKS )
+      duringLastYear( epoch ) should be( aFailure )
+      duringLastYear( lastWeek ) should be( aSuccess )
+      duringLastYear( nextWeek ) should be( aFailure )
     }
   }
 }
@@ -54,12 +78,18 @@ object TemporalOpsTests {
   import com.wix.accord.dsl._
   import com.wix.accord.java8._
 
+  val epoch: Temporal = LocalDateTime.parse( "1970-01-01T00:00:00" )
   val now: Temporal = LocalDateTime.now()
   val lastWeek: Temporal = now.minus( 1L, ChronoUnit.WEEKS )
+  val lastYear: Temporal = now.minus( 1L, ChronoUnit.YEARS )
   val tomorrow: Temporal = now.plus( 1L, ChronoUnit.DAYS )
 
   val beforeValidator = lastWeek is before( now )
   val afterValidator = tomorrow is after( now )
   val withinTimeUnitValidator = tomorrow is within( 1L, ChronoUnit.WEEKS ).of( now )
   val withinDurationValidator = tomorrow is within( Duration.ofDays( 7L ) ).of( now )
+
+  val atEpoch: Validator[ Temporal ] = validator[ Temporal ] { t => t is equalTo( epoch ) }
+  val notAtEpoch: Validator[ Temporal ] = validator[ Temporal ] { t => t is notEqualTo( epoch ) }
+  val duringLastYear: Validator[ Temporal ] = validator[ Temporal ] { t => t is between( lastYear, now ) }
 }
