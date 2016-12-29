@@ -60,14 +60,14 @@ lazy val compileOptions = Seq(
 
 lazy val baseSettings =
   publishSettings ++
-    releaseSettings ++
-    compileOptions ++
-    sbtdoge.CrossPerProjectPlugin.projectSettings ++
-    Seq(
-      organization := "com.wix",
-      homepage := Some( url( "https://github.com/wix/accord" ) ),
-      licenses := Seq( "Apache-2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) )
-    )
+  releaseSettings ++
+  compileOptions ++
+  sbtdoge.CrossPerProjectPlugin.projectSettings ++
+  Seq(
+    organization := "com.wix",
+    homepage := Some( url( "https://github.com/wix/accord" ) ),
+    licenses := Seq( "Apache-2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) )
+  )
 
 lazy val noPublish = Seq( publish := {}, publishLocal := {}, publishArtifact := false )
 
@@ -85,8 +85,8 @@ lazy val api =
       name := "accord-api",
       description :=
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
-          "dead-simple and self-contained story for defining validation rules and executing them on object " +
-          "instances. Feedback, bug reports and improvements are welcome!"
+        "dead-simple and self-contained story for defining validation rules and executing them on object " +
+        "instances. Feedback, bug reports and improvements are welcome!"
     ) ++ baseSettings :_* )
   .jsSettings(
     libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0" % "test"
@@ -170,8 +170,8 @@ lazy val core =
 
       description :=
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
-          "dead-simple and self-contained story for defining validation rules and executing them on object " +
-          "instances. Feedback, bug reports and improvements are welcome!"
+        "dead-simple and self-contained story for defining validation rules and executing them on object " +
+        "instances. Feedback, bug reports and improvements are welcome!"
     ) ++ baseSettings :_* )
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
