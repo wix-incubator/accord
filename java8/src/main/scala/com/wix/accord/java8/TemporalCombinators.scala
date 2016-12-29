@@ -22,25 +22,53 @@ import java.time.temporal.{Temporal, TemporalUnit}
 import com.wix.accord.{NullSafeValidator, Result, Validator}
 import com.wix.accord.ViolationBuilder._
 
+/** Combinators that operate specifically on [[java.time.temporal.Temporal temporals]] (and subclasses thereof). */
 trait TemporalCombinators {
 
-  // Annoying conversion infrastructure --
-  // The following is safe because Temporal implementations must implement Comparable (per JavaDocs)
+  /** Implements [[scala.math.Ordering Ordering]] over [[java.time.temporal.Temporal Temporal]] and its
+    * subclasses.
+    *
+    * Implementation note: this assumes `T` implements [[java.lang.Comparable Comparable]], which per
+    * the JavaDoc for [[java.time.temporal.Temporal]] should always be the case.
+    *
+    * @tparam T The specific temporal type for which to construct an [[scala.math.Ordering Ordering]].
+    */
+  implicit def temporalOrdering[ T <: Temporal ]: Ordering[ T ] =
+    new Ordering[ T ] { override def compare( x: T, y: T ): Int = x.asInstanceOf[ Comparable[ T ] ].compareTo( y ) }
+
+  // Convenience extension
   private implicit class TemporalComparison[ T <: Temporal ]( left: T ) {
     def compareTo( right: T ): Int = left.asInstanceOf[ Comparable[ T ] ].compareTo( right )
   }
-  implicit def temporalOrdering[ T <: Temporal ]: Ordering[ T ] =
-    Ordering.fromLessThan { case ( l, r ) => l.asInstanceOf[ Comparable[ T ] ].compareTo( r ) < 0 }
 
-
-  // Combinators --
-
+  /** A validator that succeeds only for values that come strictly before the specified bound.
+    *
+    * @param bound The bound against which values are validated.
+    * @tparam T The specific temporal type this validator operates on.
+    */
   class Before[ T <: Temporal ]( right: T )
-    extends NullSafeValidator[ T ]( _.compareTo( right ) < 0, _ -> s"must be before ${ right.toString }" )
+    extends NullSafeValidator[ T ]( _.compareTo( right ) < 0, _ -> s"must be before $right" )
 
+  /** A validator that succeeds only for values that come strictly after before the specified bound.
+    *
+    * @param bound The bound against which values are validated.
+    * @tparam T The specific temporal type this validator operates on.
+    */
   class After[ T <: Temporal ]( right: T )
-    extends NullSafeValidator[ T ]( _.compareTo( right ) > 0, _ -> s"must be after ${ right.toString }" )
+    extends NullSafeValidator[ T ]( _.compareTo( right ) > 0, _ -> s"must be after $right" )
 
+  /** A validator that succeeds only for values that are within (i.e. before or after) a duration of the specified
+    * temporal (for example, "within a month of this person's birth date").
+    *
+    * This is essentially equivalent to `(value >= of - duration) && (value <= of + duration)`.
+    *
+    * @param of The desired temporal.
+    * @param duration The allowed tolerance.
+    * @param friendlyDuration A textual representation of the specified duration ([[java.time.Duration durations]]
+    *                         are rendered to ISO-8601 representations by default, which is likely not the desirable
+    *                         outcome).
+    * @tparam T The specific temporal type this validator operates on.
+    */
   class Within[ T <: Temporal ]( of: T, duration: Duration, friendlyDuration: => String )
     extends NullSafeValidator[ T ](
       t => of.minus( duration ).compareTo( t ) <= 0 && of.plus( duration ).compareTo( t ) >= 0,

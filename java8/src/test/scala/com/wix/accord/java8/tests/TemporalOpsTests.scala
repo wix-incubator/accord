@@ -19,10 +19,11 @@ package com.wix.accord.java8.tests
 
 import java.time.temporal.ChronoUnit
 import java.time.{LocalDateTime, ZoneOffset}
+import com.wix.accord.scalatest.ResultMatchers
 
 import org.scalatest.{Matchers, WordSpec}
 
-class TemporalOpsTests extends WordSpec with Matchers {
+class TemporalOpsTests extends WordSpec with Matchers with ResultMatchers {
 
   import com.wix.accord.java8.{Before, After, Within}
   import TemporalOpsTests._
@@ -89,7 +90,7 @@ object TemporalOpsTests {
   val withinTimeUnitValidator = tomorrow is within( 1L, ChronoUnit.WEEKS ).of( now )
   val withinDurationValidator = tomorrow is within( Duration.ofDays( 7L ) ).of( now )
 
-  val atEpoch: Validator[ Temporal ] = validator[ Temporal ] { t => t is equalTo( epoch ) }
-  val notAtEpoch: Validator[ Temporal ] = validator[ Temporal ] { t => t is notEqualTo( epoch ) }
-  val duringLastYear: Validator[ Temporal ] = validator[ Temporal ] { t => t is between( lastYear, now ) }
+  val atEpoch = validator[ Temporal ] { t => t is equalTo( epoch ) }
+  val notAtEpoch = validator[ Temporal ] { t => t is notEqualTo( epoch ) }
+  val duringLastYear = validator[ Temporal ] { t => t is between( lastYear, now ) }
 }
