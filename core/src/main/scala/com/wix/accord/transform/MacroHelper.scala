@@ -16,7 +16,7 @@
 
 package com.wix.accord.transform
 
-import MacroHelper._
+import com.wix.accord.transform.MacroHelper._
 trait MacroHelper[ C <: Context ] {
   self: PatternHelper[ C ] =>
 
@@ -25,6 +25,7 @@ trait MacroHelper[ C <: Context ] {
 
   import context.universe._
   import org.scalamacros.resetallattrs._
+
   import scala.tools.nsc.{Global, ast}
 
   protected def termName( symbol: String ): TermName = TermName( symbol )

@@ -45,8 +45,8 @@ lazy val compileOptions = Seq(
   scalaVersion := "2.11.1",
   javaRuntimeVersion := System.getProperty( "java.vm.specification.version" ).toDouble,
   crossScalaVersions := ( javaRuntimeVersion.value match {
-    case v if v >= 1.8 => Seq( "2.10.3", "2.11.1", "2.12.0" )
-    case _             => Seq( "2.10.3", "2.11.1" )
+    case v if v >= 1.8 => Seq( "2.11.1", "2.12.0" )
+    case _             => Seq( "2.11.1" )
   } ),
   scalacOptions ++= Seq(
     "-language:reflectiveCalls",
@@ -137,18 +137,6 @@ lazy val specs2 =
     )
   ).dependsOn( apiJVM )
 
-lazy val macroDependencies =
-  scalaVersion {
-    case v if v startsWith "2.10" =>
-      Seq(
-        compilerPlugin( "org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full ),
-        "org.scalamacros" %% "quasiquotes" % "2.0.1" intransitive()
-      )
-
-    case _ =>
-      Seq( "org.scalamacros" %% "resetallattrs" % "1.0.0" )
-  }
-
 lazy val core =
   crossProject
     .crossType( CrossType.Pure )
@@ -157,16 +145,9 @@ lazy val core =
     .settings( Seq(
       name := "accord-core",
 
-      libraryDependencies <++= macroDependencies,
+      libraryDependencies += "org.scalamacros" %% "resetallattrs" % "1.0.0",
       libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-reflect" % _ % "provided" ),
       libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "provided" ),
-
-      unmanagedSourceDirectories in Compile <+= ( scalaVersion, baseDirectory ) {
-        case ( v, base ) if v startsWith "2.10" => base.getParentFile / "src/main/scala-2.10"
-        case ( v, base ) if v startsWith "2.11" => base.getParentFile / "src/main/scala-2.11"
-        case ( v, base ) if v startsWith "2.12" => base.getParentFile / "src/main/scala-2.11"
-        case ( v, _ ) => throw new IllegalStateException( s"Unsupported Scala version $v" )
-      },
 
       description :=
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +

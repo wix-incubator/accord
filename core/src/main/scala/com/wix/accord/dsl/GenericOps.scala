@@ -18,8 +18,8 @@ package com.wix.accord.dsl
 
 import com.wix.accord.Validator
 import com.wix.accord.combinators._
-import com.wix.accord.dsl.Compatibility.compileTimeOnly
 import scala.reflect.ClassTag
+import scala.annotation.compileTimeOnly
 
 /** Provides a DSL for untyped validators. */
 trait GenericOps {
