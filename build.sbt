@@ -179,10 +179,13 @@ lazy val joda =
   crossProject
     .crossType( CrossType.Pure )
     .in( file( "joda" ) )
-    .dependsOn( api, scalatest % "test->compile" )
+    .dependsOn( api, core, scalatest % "test->compile" )
     .settings( Seq(
       name := "accord-joda",
-      libraryDependencies += "joda-time" % "joda-time" % "2.9.6",
+      libraryDependencies ++= Seq(
+        "joda-time" % "joda-time" % "2.9.7",
+        "org.joda" % "joda-convert" % "1.8.1"  // Required for rendering constraints
+      ),
       description := "Adds native Accord combinators for Joda-Time"
     ) ++ baseSettings :_* )
 lazy val jodaJVM = joda.jvm

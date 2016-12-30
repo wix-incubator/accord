@@ -14,56 +14,44 @@
   limitations under the License.
  */
 
-package com.wix.accord.java8
-
-import java.time.Duration
-import java.time.temporal.{Temporal, TemporalUnit}
+package com.wix.accord.joda
 
 import com.wix.accord.dsl.OrderingOps
+import org.joda.time.{Duration, ReadableDuration, ReadableInstant}
 
-/** Provides a DSL for validating [[java.time.temporal.Temporal temporals]] (and subclasses thereof). */
-trait TemporalOps {
+/** Provides a DSL for validating [[org.joda.time.ReadableInstant ReadableInstants]] (and subclasses thereof). */
+trait ReadableInstantOps {
   /** Generates a validator that succeeds only if the provided value comes strictly before the specified bound. */
-  def before[ T <: Temporal ]( right: T ) = new Before( right )
+  def before[ T <: ReadableInstant ]( right: T ) = new Before( right )
   /** Generates a validator that succeeds only if the provided value comes strictly after the specified bound. */
-  def after[ T <: Temporal ]( right: T ) = new After( right )
+  def after[ T <: ReadableInstant ]( right: T ) = new After( right )
 
   /** A builder to support the `within` DSL extensions. */
-  class WithinBuilder[ T <: Temporal ] private[ TemporalOps ]( duration: Duration, friendlyDuration: => String ) {
+  class WithinBuilder[ T <: ReadableInstant ] private[ ReadableInstantOps ]( duration: ReadableDuration, friendlyDuration: => String ) {
     /** Specifies the target temporal for the comparison. */
     def of( target: T ): Within[ T ] = new Within( target, duration, friendlyDuration )
   }
 
-  /** Extends the Accord DSL with additional `within` operations over temporals. */
+  /** Extends the Accord DSL with additional `within` operations over [[org.joda.time.ReadableInstant instants]]. */
   implicit class ExtendAccordDSL( dsl: OrderingOps ) {
     /** Builds a validator that succeeds if the provided value is within the specified tolerance of a particular
-      * temporal. For example:
+      * instant. For example:
       *
       * {{{
-      *   tomorrow is within( 1L, ChronoUnit.WEEKS ).of( now )
+      *   tomorrow is within( Duration.standardDays( 7L ), "7 days" ).of( now )
       * }}}
       */
-    def within[ T <: Temporal ]( count: Long, timeUnit: TemporalUnit ): WithinBuilder[ T ] =
-      new WithinBuilder[ T ]( timeUnit.getDuration.multipliedBy( count ), s"$count ${ timeUnit.toString.toLowerCase }" )
-
-    /** Builds a validator that succeeds if the provided value is within the specified tolerance of a particular
-      * temporal. For example:
-      *
-      * {{{
-      *   tomorrow is within( Duration.ofDays( 7L ), "7 days" ).of( now )
-      * }}}
-      */
-    def within[ T <: Temporal ]( duration: Duration, friendlyDuration: => String ): WithinBuilder[ T ] =
+    def within[ T <: ReadableInstant ]( duration: ReadableDuration, friendlyDuration: => String ): WithinBuilder[ T ] =
       new WithinBuilder[ T ]( duration, friendlyDuration )
 
     /** Builds a validator that succeeds if the provided value is within the specified tolerance of a particular
-      * temporal. The duration is rendered as ISO-8601 by default, for example `"PT168H"`:
+      * instant. The duration is rendered as ISO-8601 by default, for example `"PT168H"`:
       *
       * {{{
-      *   tomorrow is within( Duration.ofDays( 7L ) ).of( now )
+      *   tomorrow is within( Duration.standardDays( 7L ) ).of( now )
       * }}}
       */
-    def within[ T <: Temporal ]( duration: Duration ): WithinBuilder[ T ] =
+    def within[ T <: ReadableInstant ]( duration: ReadableDuration ): WithinBuilder[ T ] =
       within( duration, duration.toString )
   }
 }
