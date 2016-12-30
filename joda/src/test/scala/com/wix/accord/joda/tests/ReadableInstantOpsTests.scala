@@ -45,7 +45,6 @@ class ReadableInstantOpsTests extends WordSpec with Matchers with ResultMatchers
 
   "Default combinator library" should {
     "handle temporal equality via generic equality" in {
-      val otherEpoch = new Instant( 0L )
       atEpoch( otherEpoch ) should be( aSuccess )
       atEpoch( now ) should be( aFailure )
     }
@@ -56,8 +55,6 @@ class ReadableInstantOpsTests extends WordSpec with Matchers with ResultMatchers
     }
 
     "handle temporal comparison via OrderingOps" in {
-      val lastWeek = now.minus( Duration.standardDays( 7 ) )
-      val nextWeek = now.plus( Duration.standardDays( 7 ) )
       duringLastYear( epoch ) should be( aFailure )
       duringLastYear( lastWeek ) should be( aSuccess )
       duringLastYear( nextWeek ) should be( aFailure )
@@ -71,7 +68,9 @@ object ReadableInstantOpsTests {
 
   val now: Instant = DateTime.now().toInstant
   val epoch: ReadableInstant = DateTime.parse( "1970-01-01T00:00:00Z" )
+  val otherEpoch = new Instant( 0L )
   val lastWeek: ReadableInstant = now.minus( Duration.standardDays( 7 ) )
+  val nextWeek: ReadableInstant = now.plus( Duration.standardDays( 7 ) )
   val lastYear: ReadableInstant = now.minus( Duration.standardDays( 365 ) )
   val tomorrow: ReadableInstant = now.plus( Duration.standardDays( 1 ) )
 

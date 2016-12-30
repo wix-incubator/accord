@@ -52,7 +52,6 @@ class TemporalOpsTests extends WordSpec with Matchers with ResultMatchers {
 
   "Default combinator library" should {
     "handle temporal equality via generic equality" in {
-      val otherEpoch = LocalDateTime.ofEpochSecond( 0L, 0, ZoneOffset.UTC )
       atEpoch( otherEpoch ) should be( aSuccess )
       atEpoch( now ) should be( aFailure )
     }
@@ -63,8 +62,6 @@ class TemporalOpsTests extends WordSpec with Matchers with ResultMatchers {
     }
 
     "handle temporal comparison via OrderingOps" in {
-      val lastWeek = now.minus( 1L, ChronoUnit.WEEKS )
-      val nextWeek = now.plus( 1L, ChronoUnit.WEEKS )
       duringLastYear( epoch ) should be( aFailure )
       duringLastYear( lastWeek ) should be( aSuccess )
       duringLastYear( nextWeek ) should be( aFailure )
@@ -80,8 +77,10 @@ object TemporalOpsTests {
   import com.wix.accord.java8._
 
   val epoch: Temporal = LocalDateTime.parse( "1970-01-01T00:00:00" )
+  val otherEpoch = LocalDateTime.ofEpochSecond( 0L, 0, ZoneOffset.UTC )
   val now: Temporal = LocalDateTime.now()
   val lastWeek: Temporal = now.minus( 1L, ChronoUnit.WEEKS )
+  val nextWeek = now.plus( 1L, ChronoUnit.WEEKS )
   val lastYear: Temporal = now.minus( 1L, ChronoUnit.YEARS )
   val tomorrow: Temporal = now.plus( 1L, ChronoUnit.DAYS )
 
