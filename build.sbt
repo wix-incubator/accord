@@ -1,6 +1,5 @@
 import com.typesafe.sbt.pgp.PgpKeys._
-
-lazy val javaRuntimeVersion = settingKey[ Double ]( "The JVM runtime version (e.g. 1.8)" )
+import Helpers._
 
 lazy val publishSettings = Seq(
   publishTo := {
@@ -43,8 +42,7 @@ def noFatalWarningsOn( task: sbt.TaskKey[_] = compile, configuration: sbt.Config
 
 lazy val compileOptions = Seq(
   scalaVersion := "2.11.1",
-  javaRuntimeVersion := System.getProperty( "java.vm.specification.version" ).toDouble,
-  crossScalaVersions := ( javaRuntimeVersion.value match {
+  crossScalaVersions := ( Helpers.javaVersion match {
     case v if v >= 1.8 => Seq( "2.11.1", "2.12.0" )
     case _             => Seq( "2.11.1" )
   } ),
@@ -176,20 +174,18 @@ lazy val java8JVM = java8.jvm
 //lazy val java8JS = java8.js
 
 lazy val joda =
-  crossProject
-    .crossType( CrossType.Pure )
-    .in( file( "joda" ) )
-    .dependsOn( api, core, scalatest % "test->compile" )
-    .settings( Seq(
+  Project(
+    id = "joda",
+    base = file( "joda" ),
+    settings = baseSettings ++ Seq(
       name := "accord-joda",
       libraryDependencies ++= Seq(
         "joda-time" % "joda-time" % "2.9.7",
         "org.joda" % "joda-convert" % "1.8.1"  // Required for rendering constraints
       ),
       description := "Adds native Accord combinators for Joda-Time"
-    ) ++ baseSettings :_* )
-lazy val jodaJVM = joda.jvm
-lazy val jodaJS = joda.js
+    ) )
+  .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile" )
 
 lazy val spring3 =
   Project(
@@ -221,7 +217,10 @@ lazy val root =
   )
   .aggregate(
     apiJVM, apiJS, coreJVM, coreJS,                 // Core modules
-    scalatestJVM, scalatestJS, specs2, spring3,     // Testing support
-    java8JVM, /*java8JS,*/ jodaJVM, jodaJS,         // Optional modules
+    scalatestJVM, scalatestJS, specs2,              // Testing support
+    spring3, joda,                                  // Optional modules
     examples                                        // Extras
   )
+  .whenJavaVersion( _ >= 1.8 ) {
+    _.aggregate( java8JVM/*, java8JS*/ )            // Modules that explicitly require Java 8
+  }
