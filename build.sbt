@@ -40,6 +40,10 @@ def noFatalWarningsOn( task: sbt.TaskKey[_] = compile, configuration: sbt.Config
         ( scalacOptions in ( Compile, compile ) ).value filterNot { _ == "-Xfatal-warnings" }
   }
 
+// Necessary to work around scala/scala-dev#275 (see wix/accord#84)
+def providedScalaCompiler =
+  libraryDependencies <+= scalaVersion { "org.scala-lang" % "scala-compiler" % _ % "provided" }
+
 lazy val compileOptions = Seq(
   scalaVersion := "2.11.1",
   crossScalaVersions := ( Helpers.javaVersion match {
@@ -54,7 +58,7 @@ lazy val compileOptions = Seq(
     "-Xfatal-warnings"
   ),
   noFatalWarningsOn( task = doc )      // Warnings aren't considered fatal on document generation
-)
+) ++ providedScalaCompiler
 
 lazy val baseSettings =
   publishSettings ++
@@ -68,10 +72,6 @@ lazy val baseSettings =
   )
 
 lazy val noPublish = Seq( publish := {}, publishLocal := {}, publishArtifact := false )
-
-// Necessary to work around scala/scala-dev#275 (see wix/accord#84)
-def providedScalaCompiler =
-  libraryDependencies <+= scalaVersion { "org.scala-lang" % "scala-compiler" % _ % "provided" }
 
 // Projects --
 
@@ -145,7 +145,6 @@ lazy val core =
 
       libraryDependencies += "org.scalamacros" %% "resetallattrs" % "1.0.0",
       libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-reflect" % _ % "provided" ),
-      libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ % "provided" ),
 
       description :=
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
@@ -163,7 +162,7 @@ lazy val java8 =
     .settings( Seq(
       name := "accord-java8",
       description := "Adds native Accord combinators for Java 8 features"
-    ) ++ baseSettings ++ providedScalaCompiler :_* )
+    ) ++ baseSettings :_* )
     .jsSettings(
       // This library is still not complete (e.g. LocalDateTime isn't implemented); Scala.js support
       // for this module is consequently currently disabled.
@@ -171,7 +170,7 @@ lazy val java8 =
     )
 
 lazy val java8JVM = java8.jvm
-//lazy val java8JS = java8.js
+//lazy val java8JS = java8.js     // Disabled until scalajs-java-time comes along. See comment above
 
 lazy val joda =
   Project(
@@ -191,7 +190,7 @@ lazy val spring3 =
   Project(
     id = "spring3",
     base = file ( "spring3" ),
-    settings = baseSettings ++ providedScalaCompiler
+    settings = baseSettings
   )
   .dependsOn( apiJVM, scalatestJVM % "test->compile", coreJVM % "test->compile" )
 
@@ -199,7 +198,7 @@ lazy val examples =
   Project(
     id = "examples",
     base = file( "examples" ),
-    settings = baseSettings ++ noPublish ++ providedScalaCompiler ++ Seq(
+    settings = baseSettings ++ noPublish ++ Seq(
       name := "accord-examples",
       description := "Sample projects for the Accord validation library.",
       noFatalWarningsOn( configuration = Compile )
