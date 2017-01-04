@@ -62,7 +62,19 @@ case class RuleViolation( value: Any,
   def applyDescription( description: Description ) =
     this.copy( description = Descriptions.combine( this.description, description ) )
 
-  override def toString: String = s"${ Descriptions.render( description ) } $constraint"
+  override def toString: String = {
+    val includeValue =
+      value match {
+        case null | "" => false
+        case v: Iterable[_] if v.isEmpty => false
+        case _ => true
+      }
+
+    if ( includeValue )
+      s"""${ Descriptions.render( description ) } with value "$value" $constraint"""
+    else
+      s"""${ Descriptions.render( description ) } $constraint"""
+  }
 }
 
 /** Describes the violation of a group of constraints. For example, the `Or` combinator found in the built-in
@@ -83,7 +95,40 @@ case class GroupViolation(value: Any,
   def applyDescription( description: Description ) =
     this.copy( description = Descriptions.combine( this.description, description ) )
 
-  override def toString: String = s"${ Descriptions.render( description ) } $constraint: $children"
+  private def renderHeader =
+    ( if ( value != null )
+        s"""${ Descriptions.render( description ) } with value "$value" $constraint"""
+      else
+        s"""${ Descriptions.render( description ) } $constraint""" ) +
+    ( if ( children.nonEmpty ) ":" else "" )
+
+  private def renderPrefix( nesting: Int, isLast: Boolean ) =
+    ( " " * ( if ( nesting > 1 ) 1 else 0 ) ) +
+    ( "   " * ( nesting - 1 ) ) +
+    ( ( if ( isLast ) '`' else '|' ) + "-- " ) * ( if ( nesting > 0 ) 1 else 0 )
+
+  private def renderSingleChild( nesting: Int, isLast: Boolean )( child: Violation ) =
+    child match {
+      case rv: RuleViolation => renderPrefix( nesting, isLast ) + rv.toString
+      case gv: GroupViolation => gv.render( nesting, isLast )
+    }
+
+  private implicit val childOrdering =
+    Ordering.fromLessThan[ Violation ] {
+      case ( l: RuleViolation, r: GroupViolation ) => true
+      case ( l: GroupViolation, r: RuleViolation ) => false
+      case ( l, r ) => Descriptions.render( l.description ) < Descriptions.render( r.description )
+    }
+
+  private def render( nesting: Int, isLast: Boolean ): String = {
+    val sorted = children.toSeq.sorted
+    val rendered =
+      sorted.dropRight( 1 ).map( renderSingleChild( nesting + 1, isLast = false ) ) ++
+      sorted.lastOption.map( renderSingleChild( nesting + 1, isLast = true ) )
+    ( ( renderPrefix( nesting, isLast ) + renderHeader ) +: rendered ).mkString( "\n" )
+  }
+
+  override def toString: String = render( 0, isLast = true )
 }
 
 /** A base trait for validation results.
