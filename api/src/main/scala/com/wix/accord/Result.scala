@@ -54,6 +54,8 @@ case class RuleViolation(value: Any,
 
   def applyDescription( description: Description ) =
     this.copy( description = Descriptions.combine( this.description, description ) )
+
+  override def toString: String = s"${Descriptions.render(description)} $constraint"
 }
 
 /** Describes the violation of a group of constraints. For example, the `Or` combinator found in the built-in
@@ -73,6 +75,8 @@ case class GroupViolation(value: Any,
 
   def applyDescription( description: Description ) =
     this.copy( description = Descriptions.combine( this.description, description ) )
+
+  override def toString: String = s"${Descriptions.render(description)} $constraint: ${children.toString}"
 }
 
 /** A base trait for validation results.
