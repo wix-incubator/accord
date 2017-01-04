@@ -38,6 +38,13 @@ sealed trait Violation {
     * @see com.wix.accord.Descriptions.combine
     */
   def applyDescription( description: Description ): Violation
+
+  /** Renders a textual representation of this violation.
+    *
+    * Important note: This is intended for debugging and logging purposes; there are no guarantees on
+    * contents or formatting of the result, and it should not be relied on for production purposes!
+    */
+  override def toString: String
 }
 
 /** Describes a simple validation rule violation (i.e. one without hierarchy). Most built-in combinators
@@ -47,15 +54,15 @@ sealed trait Violation {
   * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
   * @param description The description of the object under validation.
   */
-case class RuleViolation(value: Any,
-                         constraint: String,
-                         description: Description = Descriptions.Empty )
+case class RuleViolation( value: Any,
+                          constraint: String,
+                          description: Description = Descriptions.Empty )
   extends Violation {
 
   def applyDescription( description: Description ) =
     this.copy( description = Descriptions.combine( this.description, description ) )
 
-  override def toString: String = s"${Descriptions.render(description)} $constraint"
+  override def toString: String = s"${ Descriptions.render( description ) } $constraint"
 }
 
 /** Describes the violation of a group of constraints. For example, the `Or` combinator found in the built-in
@@ -76,7 +83,7 @@ case class GroupViolation(value: Any,
   def applyDescription( description: Description ) =
     this.copy( description = Descriptions.combine( this.description, description ) )
 
-  override def toString: String = s"${Descriptions.render(description)} $constraint: ${children.toString}"
+  override def toString: String = s"${ Descriptions.render( description ) } $constraint: $children"
 }
 
 /** A base trait for validation results.
