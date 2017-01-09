@@ -59,7 +59,7 @@ case class RuleViolation( value: Any,
                           description: Description = Descriptions.Empty )
   extends Violation {
 
-  def applyDescription( description: Description ) =
+  def applyDescription( description: Description ): Violation =
     this.copy( description = Descriptions.combine( this.description, description ) )
 
   override def toString: String = {
@@ -92,7 +92,7 @@ case class GroupViolation(value: Any,
                           description: Description = Descriptions.Empty )
   extends Violation {
 
-  def applyDescription( description: Description ) =
+  def applyDescription( description: Description ): Violation =
     this.copy( description = Descriptions.combine( this.description, description ) )
 
   private def renderHeader =
@@ -115,8 +115,8 @@ case class GroupViolation(value: Any,
 
   private implicit val childOrdering =
     Ordering.fromLessThan[ Violation ] {
-      case ( l: RuleViolation, r: GroupViolation ) => true
-      case ( l: GroupViolation, r: RuleViolation ) => false
+      case ( _: RuleViolation, _: GroupViolation ) => true
+      case ( _: GroupViolation, _: RuleViolation ) => false
       case ( l, r ) => Descriptions.render( l.description ) < Descriptions.render( r.description )
     }
 
@@ -169,9 +169,9 @@ sealed trait Result {
 
 /** An object representing a successful validation result. */
 case object Success extends Result {
-  override def and( other: Result ) = other
-  override def or( other: Result ) = this
-  override def applyDescription( description: Description ) = this
+  override def and( other: Result ): Result = other
+  override def or( other: Result ): Result = this
+  override def applyDescription( description: Description ): Result = this
   override def isSuccess: Boolean = true
   override def isFailure: Boolean = false
 }
@@ -181,17 +181,17 @@ case object Success extends Result {
   * @param violations The violations that caused the validation to fail.
   */
 case class Failure( violations: Set[ Violation ] ) extends Result {
-  override def and( other: Result ) = other match {
+  override def and( other: Result ): Result = other match {
     case Success => this
     case Failure( vother ) => Failure( violations ++ vother )
   }
 
-  override def or( other: Result ) = other match {
+  override def or( other: Result ): Result = other match {
     case Success => other
     case Failure(_) => this
   }
 
-  override def applyDescription( description: Description ) =
+  override def applyDescription( description: Description ): Result =
     Failure( violations map { _ applyDescription description } )
 
   override def isSuccess: Boolean = false
