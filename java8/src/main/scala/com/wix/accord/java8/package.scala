@@ -16,4 +16,53 @@
 
 package com.wix.accord
 
+/** Adds support for [[java.time.temporal.Temporal temporals]] (and subclasses) to the Accord DSL.
+  *
+  * ==Usage==
+  *
+  * To use these extensions, import this package as follows:
+  *
+  * {{{
+  *   import java.time.LocalDateTime
+  *   import java.time.temporal.ChronoUnit
+  *
+  *   case class Person( name: String, birthDate: LocalDateTime )
+  *
+  *   // Import the Accord DSL and Java 8 extensions...
+  *   import com.wix.accord.dsl._
+  *   import com.wix.accord.java8._
+  *
+  *   // LocalDateTime (and other temporals) are now supported
+  *   implicit val personValidator = validator[ Person ] { p =>
+  *     p.name is notEmpty
+  *     p.birthDate is before( LocalDateTime.now )
+  *   }
+  * }}}
+  *
+  * ==Combinators==
+
+  * Supported operations:
+  *
+  * {{{
+  *   // Simple equality/inequality
+  *   val lastYear = LocalDateTime.now.minus( 1L, ChronoUnit.YEARS )
+  *   p.birthDate is equalTo( lastYear )
+  *   p.birthDate is notEqualTo( lastYear )
+  *
+  *   // Equality with tolerance (both variants are equivalent)
+  *   val oneWeek = Duration.ofDays( 7L )
+  *   p.birthDate is within( oneWeek ).of( lastYear )
+  *   p.birthDate is within( 7L, ChronoUnit.DAYS ).of( lastYear )
+  *
+  *   // Before/after
+  *   val ageOfAdulthood = LocalDateTime.now.minus( 18L, ChronoUnit.YEARS )
+  *   p.birthDate is before( ageOfAdulthood )
+  *   p.birthDate is after( ageOfAdulthood )
+  *
+  *   // Arithmetic-style operations
+  *   p.birthDate must be <= ageOfAdulthood
+  *   p.birthDate is between( lastYear, LocalDateTime.now.minus( oneWeek ) )
+  * }}}
+  *
+  */
 package object java8 extends TemporalCombinators with TemporalOps

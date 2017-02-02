@@ -16,4 +16,46 @@
 
 package com.wix.accord
 
+/** Adds support for [[org.joda.time.ReadableInstant ReadableInstants]] (and subclasses) to the Accord DSL.
+  *
+  * ==Usage==
+  *
+  * To use these extensions, import this package as follows:
+  *
+  * {{{
+  *   import org.joda.time.DateTime
+  *
+  *   case class Person( name: String, birthDate: DateTime )
+  *
+  *   // Import the Accord DSL and JODA extensions...
+  *   import com.wix.accord.dsl._
+  *   import com.wix.accord.joda._
+  *
+  *   // DateTime (and other instant types) are now supported
+  *   implicit val personValidator = validator[ Person ] { p =>
+  *     p.name is notEmpty
+  *     p.birthDate is before( DateTime.now )
+  *   }
+  * }}}
+  *
+  * ==Combinators==
+
+  * Supported operations:
+  *
+  * {{{
+  *   // Simple equality/inequality
+  *   val lastYear = DateTime.now.minus( Duration.standardDays( 365L ) )
+  *   p.birthDate is equalTo( lastYear )
+  *   p.birthDate is notEqualTo( lastYear )
+  *
+  *   // Equality with tolerance
+  *   p.birthDate is within( Duration.standardDays( 7L ) ).of( lastYear )
+  *
+  *   // Before/after
+  *   val ageOfAdulthood = DateTime.now.minus( Duration.standardDays( 18 * 365L ) )
+  *   p.birthDate is before( ageOfAdulthood )
+  *   p.birthDate is after( ageOfAdulthood )
+  * }}}
+  *
+  */
 package object joda extends ReadableInstantCombinators with ReadableInstantOps
