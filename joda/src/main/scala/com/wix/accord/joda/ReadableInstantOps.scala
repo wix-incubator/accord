@@ -17,7 +17,7 @@
 package com.wix.accord.joda
 
 import com.wix.accord.dsl.OrderingOps
-import org.joda.time.{Duration, ReadableDuration, ReadableInstant}
+import org.joda.time.{ReadableDuration, ReadableInstant}
 
 /** Provides a DSL for validating [[org.joda.time.ReadableInstant ReadableInstants]] (and subclasses thereof). */
 trait ReadableInstantOps {
