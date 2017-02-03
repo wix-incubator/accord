@@ -24,6 +24,7 @@ package com.wix.accord
   *
   * {{{
   *   import org.joda.time.DateTime
+  *   import org.joda.time.Duration
   *
   *   case class Person( name: String, birthDate: DateTime )
   *

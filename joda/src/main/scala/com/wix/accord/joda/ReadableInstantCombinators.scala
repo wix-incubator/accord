@@ -23,17 +23,6 @@ import org.joda.time._
 /** Combinators that operate specifically on [[org.joda.time.Instant instants]] (and subclasses thereof). */
 trait ReadableInstantCombinators {
 
-//  /** Implements [[scala.math.Ordering Ordering]] over [[java.time.temporal.Temporal Temporal]] and its
-//    * subclasses.
-//    *
-//    * Implementation note: this assumes `T` implements [[java.lang.Comparable Comparable]], which per
-//    * the JavaDoc for [[java.time.temporal.Temporal]] should always be the case.
-//    *
-//    * @tparam T The specific temporal type for which to construct an [[scala.math.Ordering Ordering]].
-//    */
-//  implicit def temporalOrdering[ T <: ReadableInstant ]: Ordering[ T ] =
-//    new Ordering[ T ] { override def compare( x: T, y: T ): Int = x.asInstanceOf[ Comparable[ T ] ].compareTo( y ) }
-//
   /** A validator that succeeds only for values that come strictly before the specified bound.
     *
     * @param bound The bound against which values are validated.

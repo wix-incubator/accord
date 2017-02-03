@@ -25,6 +25,7 @@ package com.wix.accord
   * {{{
   *   import java.time.LocalDateTime
   *   import java.time.temporal.ChronoUnit
+  *   import java.time.Duration
   *
   *   case class Person( name: String, birthDate: LocalDateTime )
   *
