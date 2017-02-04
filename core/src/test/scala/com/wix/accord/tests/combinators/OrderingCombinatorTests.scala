@@ -18,6 +18,7 @@ package com.wix.accord.tests.combinators
 
 import org.scalatest.Matchers
 import com.wix.accord.combinators.OrderingCombinators
+import com.wix.accord.scalatest.CombinatorTestSpec
 
 class OrderingCombinatorTests extends CombinatorTestSpec with Matchers with OrderingCombinators {
 

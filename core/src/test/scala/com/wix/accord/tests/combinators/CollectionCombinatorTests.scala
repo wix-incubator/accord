@@ -16,7 +16,8 @@
 
 package com.wix.accord.tests.combinators
 
-import com.wix.accord.combinators.{Empty, NotEmpty, Distinct,In}
+import com.wix.accord.combinators.{Distinct, Empty, In, NotEmpty}
+import com.wix.accord.scalatest.CombinatorTestSpec
 
 class CollectionCombinatorTests extends CombinatorTestSpec {
 

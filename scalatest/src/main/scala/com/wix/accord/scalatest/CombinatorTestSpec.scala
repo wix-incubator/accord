@@ -14,13 +14,36 @@
   limitations under the License.
  */
 
-package com.wix.accord.tests.combinators
+package com.wix.accord.scalatest
 
-import org.scalatest.{WordSpec, Matchers}
-import com.wix.accord.scalatest.ResultMatchers
+import org.scalatest.{Matchers, WordSpec}
 
+/**
+  * An opinionated helper trait for combinator specifications. The recommended practice for defining new combinators
+  * is test-first via this specification:
+  *
+  * {{{
+  * class MyCombinatorSpec extends WordSpec with ResultMatchers with Matchers {
+  *
+  *   def isMonotonous[ T ]: Validator[ Iterable[ T ] ] = ???
+  *
+  *   "isMonotonous" should {
+  *     "successfully validate a monotonously-increasing sequence of numbers" in {
+  *       isMonotonous( Seq( 1, 2, 3, 4, 5 ) ) should be( aSuccess )
+  *     }
+  *
+  *     "correctly render violations on a random sequence" in {
+  *       isMonotonous( Seq( 5, 4, 3, 2, 1 ) ) should failWith( "is not monotonously-increasing" )
+  *     }
+  *   }
+  *
+  * }
+  * }}}
+  *
+  */
 trait CombinatorTestSpec extends WordSpec with Matchers with ResultMatchers {
   import scala.language.implicitConversions
+
   implicit def elevateStringToRuleViolationMatcher( s: String ): RuleViolationMatcher =
     RuleViolationMatcher( constraint = s )
 }
