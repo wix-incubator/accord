@@ -40,6 +40,7 @@ object CollectionOpsTests {
     private var _visited = false
     def size: Int = { _visited = true; _size }
     def visited = _visited
+    override def toString = s"Sized(${ _size })"
   }
   val sizeValidator = new Sized( 0 ) has size > 5
 
@@ -70,6 +71,12 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
       val ouv = new Sized( 10 )
       sizeValidator( ouv )
       ouv.visited shouldBe true
+    }
+
+    "retain the original object when producing violations" in {
+      val ouv = new Sized( 2 )
+      val result = sizeValidator( ouv )
+      result should failWith( RuleViolationMatcher( value = ouv ) )
     }
   }
 
