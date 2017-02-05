@@ -20,6 +20,9 @@ import com.wix.accord.Validator
 import com.wix.accord.combinators.StartsWith
 import com.wix.accord.combinators.EndsWith
 import com.wix.accord.combinators.MatchesRegex
+import com.wix.accord.combinators.NotBlank
+import com.wix.accord.combinators.Blank
+
 import scala.util.matching.Regex
 import java.util.regex.Pattern
 
@@ -34,6 +37,12 @@ trait StringOps {
     * the specified suffix.
     */
   def endWith( suffix: String ): Validator[ String ] = new EndsWith( suffix )
+
+  /** Specifies a validator that operates on strings and succeeds only if the validation expression is not blank. */
+  def notBlank: Validator[ String ] = new NotBlank
+
+  /** Specifies a validator that operates on strings and succeeds only if the validation expression is blank. */
+  def blank: Validator[ String ] = new Blank
 
   /** Specifies a validator that operates on strings and succeeds only if the validation expression matches the
     * specified regular expression.

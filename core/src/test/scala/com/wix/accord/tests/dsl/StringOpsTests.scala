@@ -45,7 +45,25 @@ class StringOpsTests extends WordSpec with Matchers with ResultMatchers {
       "some string" validatedWith endsWithValidator should be( aFailure )
     }
   }
-  
+
+  "notBlank" should {
+    "successfully validate a correct string" in {
+      "some string" validatedWith notBlankValidator should be( aSuccess )
+    }
+    "successfully validate an incorrect string" in {
+      " " validatedWith notBlankValidator should be( aFailure )
+    }
+  }
+
+  "blank" should {
+    "successfully validate a correct string" in {
+      " " validatedWith blankValidator should be( aSuccess )
+    }
+    "successfully validate an incorrect string" in {
+      "some string" validatedWith blankValidator should be( aFailure )
+    }
+  }
+
   "matchRegex" should {
     "successfully validate a correct string based on a text pattern" in {
       "tests galore" validatedWith matchRegexValidator should be( aSuccess )
@@ -95,6 +113,8 @@ object StringOpsTests {
 
   val               startsWithValidator = validator[ Test ] { _.s should startWith( "test" ) }
   val                 endsWithValidator = validator[ Test ] { _.s should endWith( "test" ) }
+  val                 notBlankValidator = validator[ Test ] { _.s should notBlank }
+  val                    blankValidator = validator[ Test ] { _.s should blank }
   val               matchRegexValidator = validator[ Test ] { _.s should matchRegex( "test(s?)" ) }
   val        matchRegexByScalaValidator = validator[ Test ] { _.s should matchRegex( "test(s?)".r ) }
   val      matchRegexByPatternValidator = validator[ Test ] { _.s should matchRegex( "test(s?)".r.pattern ) }
