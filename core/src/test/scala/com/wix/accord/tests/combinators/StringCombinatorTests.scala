@@ -59,7 +59,7 @@ class StringCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation" in {
       val left = " "
       val validator = new NotBlank
-      validator( left ) should failWith( "must not blank" )
+      validator( left ) should failWith( "must not be blank" )
     }
   }
 
@@ -73,7 +73,7 @@ class StringCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation" in {
       val left = "ham and eggs"
       val validator = new Blank
-      validator( left ) should failWith( "must blank" )
+      validator( left ) should failWith( "must be blank" )
     }
   }
 
