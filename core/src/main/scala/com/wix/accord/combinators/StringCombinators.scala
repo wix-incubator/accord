@@ -33,11 +33,11 @@ trait StringCombinators {
 
   /** A validator that succeeds only if the provided string is not blank. */
   class NotBlank
-    extends NullSafeValidator[ String ](!_.trim.isEmpty, _ -> "must not blank")
+    extends NullSafeValidator[ String ]( !_.trim.isEmpty, _ -> "must not blank" )
 
   /** A validator that succeeds only if the provided string is blank. */
   class Blank
-    extends NullSafeValidator[ String ](_.trim.isEmpty, _ -> "must blank")
+    extends NullSafeValidator[ String ]( _.trim.isEmpty, _ -> "must blank" )
 
   /** A validator that succeeds only if the provided string matches the specified pattern.
     *
