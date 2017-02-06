@@ -1,0 +1,11 @@
+![Accord](https://raw.githubusercontent.com/wix/accord/master/assets/accord-logo-light.png?raw=1)
+
+Version 0.7 drops support for Scala 2.10 and includes the usually array of enhancements, bug fixes and improvements:
+
+* [#106](https://github.com/wix/accord/pull/106) Feature: Add combinators on blank strings (contributed by @dakatsuka);
+* [#97](https://github.com/wix/accord/issues/97) Bug: scala.js: Only adding accord into libraryDependencies adds +320kb after fullOptJS;
+* [#96](https://github.com/wix/accord/issues/96) Enhancement: Remove support for Scala 2.10.x;
+* [#78](https://github.com/wix/accord/issues/78) Feature: Add useful toString to Violation;
+
+As always, bug reports, pull requests and other ideas are welcome -- [join the discussion](https://gitter.im/wix/accord?utm_source=share-link&utm_medium=link&utm_campaign=share-link) on Gitter!
+
