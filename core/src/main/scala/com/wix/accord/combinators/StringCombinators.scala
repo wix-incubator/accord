@@ -31,6 +31,18 @@ trait StringCombinators {
   class EndsWith( suffix: String )
     extends NullSafeValidator[ String ]( _ endsWith suffix, _ -> s"must end with '$suffix'" )
 
+  /** A validator that succeeds only if the provided string is not blank. Note that [[java.lang.String.trim]] is used
+    * for inspection whitespace.
+    */
+  class NotBlank
+    extends NullSafeValidator[ String ]( !_.trim.isEmpty, _ -> "must not be blank" )
+
+  /** A validator that succeeds only if the provided string is blank. Note that [[java.lang.String.trim]] is used
+    * for inspection whitespace.
+    */
+  class Blank
+    extends NullSafeValidator[ String ]( _.trim.isEmpty, _ -> "must be blank" )
+
   /** A validator that succeeds only if the provided string matches the specified pattern.
     *
     * @param partialMatchAllowed Whether or not the pattern has to match the entire string or any part of it. For

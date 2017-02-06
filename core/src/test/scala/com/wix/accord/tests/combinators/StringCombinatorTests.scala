@@ -49,6 +49,34 @@ class StringCombinatorTests extends CombinatorTestSpec {
     }
   }
 
+  "NotBlank combinator" should {
+    "successfully validate a string that is not blank" in {
+      val left = "ham and eggs"
+      val validator = new NotBlank
+      validator( left ) should be( aSuccess )
+    }
+
+    "render a correct rule violation" in {
+      val left = " "
+      val validator = new NotBlank
+      validator( left ) should failWith( "must not be blank" )
+    }
+  }
+
+  "Blank combinator" should {
+    "successfully validate a string that is blank" in {
+      val left = " "
+      val validator = new Blank
+      validator( left ) should be( aSuccess )
+    }
+
+    "render a correct rule violation" in {
+      val left = "ham and eggs"
+      val validator = new Blank
+      validator( left ) should failWith( "must be blank" )
+    }
+  }
+
   "MatchesRegex combinator" should {
     "successfully validate a string that partially matches specified pattern if partial match is allowed" in {
       val left = "ham and eggs"
