@@ -39,6 +39,9 @@ sealed trait Violation {
     */
   def applyDescription( description: Description ): Violation
 
+  /** Produces a copy of this violation with the specified value. */
+  def replaceValue( newValue: Any ): Violation
+
   /** Renders a textual representation of this violation.
     *
     * Important note: This is intended for debugging and logging purposes; there are no guarantees on
@@ -61,6 +64,9 @@ case class RuleViolation( value: Any,
 
   def applyDescription( description: Description ): Violation =
     this.copy( description = Descriptions.combine( this.description, description ) )
+
+  def replaceValue( newValue: Any ): Violation =
+    this.copy( value = newValue )
 
   override def toString: String = {
     val includeValue =
@@ -94,6 +100,9 @@ case class GroupViolation(value: Any,
 
   def applyDescription( description: Description ): Violation =
     this.copy( description = Descriptions.combine( this.description, description ) )
+
+  def replaceValue( newValue: Any ): Violation =
+    this.copy( value = newValue )
 
   private def renderHeader =
     ( if ( value != null )
@@ -165,6 +174,14 @@ sealed trait Result {
     * @return A modified copy of this result with the new violation description in place.
     */
   def applyDescription( description: Description ): Result
+
+  /** Replaces the reported value of this result (if a failure) with the specified value.
+    *
+    * @param newValue The replacement value for this result.
+    * @return If this result represents a success, it is returned as-is; otherwise returns a new
+    *         failure whose violations report the new value.
+    */
+  def replaceValue( newValue: Any ): Result
 }
 
 /** An object representing a successful validation result. */
@@ -172,6 +189,7 @@ case object Success extends Result {
   override def and( other: Result ): Result = other
   override def or( other: Result ): Result = this
   override def applyDescription( description: Description ): Result = this
+  override def replaceValue( newValue: Any ): Result = this
   override def isSuccess: Boolean = true
   override def isFailure: Boolean = false
 }
@@ -193,6 +211,9 @@ case class Failure( violations: Set[ Violation ] ) extends Result {
 
   override def applyDescription( description: Description ): Result =
     Failure( violations map { _ applyDescription description } )
+
+  override def replaceValue( newValue: Any ): Result =
+    Failure( violations map { _ replaceValue newValue } )
 
   override def isSuccess: Boolean = false
   override def isFailure: Boolean = true

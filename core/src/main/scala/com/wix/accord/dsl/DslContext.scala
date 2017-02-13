@@ -16,7 +16,7 @@
 
 package com.wix.accord.dsl
 
-import com.wix.accord.Validator
+import com.wix.accord.{Result, Validator}
 
 // TODO ScalaDocs
 
@@ -28,7 +28,13 @@ class CollectionDslContext[ Inner, Outer ]( protected val transform: Validator[ 
   extends ContextTransformer[ Inner, Outer ] {
 
   def apply( validator: Validator[ Int ] )( implicit ev: Inner => HasSize ): Validator[ Outer ] = {
-    val composed = validator.boxed compose { u: Inner => if ( u == null ) null else u.size }
+    val composed = new Validator[ Inner ] {
+      override def apply( v1: Inner ): Result =
+        if ( v1 == null )
+          Validator.nullFailure
+        else
+          validator.boxed( v1.size ).replaceValue( v1 )
+    }
     transform apply composed
   }
 }
@@ -73,6 +79,6 @@ trait DslContext[ Inner, Outer ] {
 }
 
 trait SimpleDslContext[ U ] extends DslContext[ U, U ] with ContextTransformer[ U, U ] {
-  override def transform = identity
+  protected override def transform = identity
 }
 
