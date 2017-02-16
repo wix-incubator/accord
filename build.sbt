@@ -47,7 +47,7 @@ def providedScalaCompiler =
 def limitPackageSize( allowedSizeInKB: Int ) =
   packageBin in Compile := {
     val jar = ( packageBin in Compile ).value
-    var sizeKB = jar.length() / 1024
+    val sizeKB = jar.length() / 1024
     if ( sizeKB > allowedSizeInKB )
       error( s"Resulting package $jar (size=${sizeKB}KB) is larger than the allowed limit of ${allowedSizeInKB}KB" )
     jar
