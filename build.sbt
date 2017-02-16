@@ -44,6 +44,15 @@ def noFatalWarningsOn( task: sbt.TaskKey[_] = compile, configuration: sbt.Config
 def providedScalaCompiler =
   libraryDependencies <+= scalaVersion { "org.scala-lang" % "scala-compiler" % _ % "provided" }
 
+def limitPackageSize( allowedSizeInKB: Int ) =
+  packageBin in Compile := {
+    val jar = ( packageBin in Compile ).value
+    var sizeKB = jar.length() / 1024
+    if ( sizeKB > allowedSizeInKB )
+      error( s"Resulting package $jar (size=${sizeKB}KB) is larger than the allowed limit of ${allowedSizeInKB}KB" )
+    jar
+  }
+
 lazy val compileOptions = Seq(
   scalaVersion := "2.11.1",
   crossScalaVersions := ( Helpers.javaVersion match {
@@ -87,13 +96,15 @@ lazy val api =
         "instances. Feedback, bug reports and improvements are welcome!"
     ) ++ baseSettings :_* )
   .jsSettings(
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0" % "test"
+    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0" % "test",
+    limitPackageSize( 150 )
   )
   .jvmSettings(
     libraryDependencies <+= scalaVersion {
       case v if v startsWith "2.12" => "org.scalatest" %% "scalatest" % "3.0.0" % "test"
       case _ => "org.scalatest" %% "scalatest" % "2.2.6" % "test"
-    }
+    },
+    limitPackageSize( 90 )
   )
 
 lazy val apiJVM = api.jvm
@@ -110,13 +121,15 @@ lazy val scalatest =
       noFatalWarningsOn( configuration = Test )
     ) :_* )
   .jsSettings(
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0"
+    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0",
+    limitPackageSize( 100 )
   )
   .jvmSettings(
     libraryDependencies <+= scalaVersion {
       case v if v startsWith "2.12" => "org.scalatest" %% "scalatest" % "3.0.0"
       case _ => "org.scalatest" %% "scalatest" % "2.2.6"
-    }
+    },
+    limitPackageSize( 60 )
   )
 lazy val scalatestJVM = scalatest.jvm
 lazy val scalatestJS = scalatest.js
@@ -131,7 +144,8 @@ lazy val specs2 =
         case v if v startsWith "2.12" => "org.specs2" %% "specs2-core" % "3.8.6"
         case _ => "org.specs2" %% "specs2-core" % "3.6.5"
       },
-      noFatalWarningsOn( compile, Test )
+      noFatalWarningsOn( compile, Test ),
+      limitPackageSize( 80 )
     )
   ).dependsOn( apiJVM )
 
@@ -151,6 +165,8 @@ lazy val core =
         "dead-simple and self-contained story for defining validation rules and executing them on object " +
         "instances. Feedback, bug reports and improvements are welcome!"
     ) ++ baseSettings :_* )
+    .jvmSettings( limitPackageSize( 400 ) )
+    .jsSettings( limitPackageSize( 700 ) )
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
 
@@ -161,7 +177,8 @@ lazy val java8 =
     .dependsOn( api, core, scalatest % "test->compile" )
     .settings( Seq(
       name := "accord-java8",
-      description := "Adds native Accord combinators for Java 8 features"
+      description := "Adds native Accord combinators for Java 8 features",
+      limitPackageSize( 30 )
     ) ++ baseSettings :_* )
     .jsSettings(
       // This library is still not complete (e.g. LocalDateTime isn't implemented); Scala.js support
@@ -182,7 +199,8 @@ lazy val joda =
         "joda-time" % "joda-time" % "2.9.7",
         "org.joda" % "joda-convert" % "1.8.1"  // Required for rendering constraints
       ),
-      description := "Adds native Accord combinators for Joda-Time"
+      description := "Adds native Accord combinators for Joda-Time",
+      limitPackageSize( 25 )
     ) )
   .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile" )
 
@@ -190,7 +208,7 @@ lazy val spring3 =
   Project(
     id = "spring3",
     base = file ( "spring3" ),
-    settings = baseSettings
+    settings = baseSettings ++ Seq( limitPackageSize( 25 ) )
   )
   .dependsOn( apiJVM, scalatestJVM % "test->compile", coreJVM % "test->compile" )
 
