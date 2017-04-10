@@ -18,13 +18,20 @@ package com.wix.accord
 
 import com.wix.accord.Descriptions.Description
 
+case class StandardConstraint( template: String, parameters: Any* ) {
+  override def toString: String = template.format( parameters:_* )
+}
+
 /** A base trait for all violation types. */
 sealed trait Violation {
   /** The actual runtime value of the object under validation. */
   def value: Any
 
-  /** A textual description of the constraint being violated (for example, "must not be empty"). */
-  def constraint: String
+  /** The constraint being violated. Built-in Accord validators always produce a subclass of
+    * [[com.wix.accord.StandardConstraint StandardConstraint]], but custom validators may produce constraints
+    * of any type.
+    */
+  def constraint: Any
 
   /** The actual generated description of the object under validation (this is the expression that, when evaluated at
     * runtime, produces the value in [[com.wix.accord.Violation.value]]). This is normally filled in
@@ -42,6 +49,9 @@ sealed trait Violation {
   /** Produces a copy of this violation with the specified value. */
   def replaceValue( newValue: Any ): Violation
 
+  /** Produces a copy of this violation with the specified constraint. */
+  def replaceConstraint( newConstraint: Any ): Violation
+
   /** Renders a textual representation of this violation.
     *
     * Important note: This is intended for debugging and logging purposes; there are no guarantees on
@@ -54,11 +64,12 @@ sealed trait Violation {
   * emit this type of violation.
   * 
   * @param value The value of the object which failed the validation rule.
-  * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
+  * @param constraint The constraint being violated, usually (but not exclusively) a subclass of
+  *                   [[com.wix.accord.StandardConstraint StandardConstraint]].
   * @param description The description of the object under validation.
   */
 case class RuleViolation( value: Any,
-                          constraint: String,
+                          constraint: Any,
                           description: Description = Descriptions.Empty )
   extends Violation {
 
@@ -67,6 +78,9 @@ case class RuleViolation( value: Any,
 
   def replaceValue( newValue: Any ): Violation =
     this.copy( value = newValue )
+
+  def replaceConstraint( newConstraint: Any ): Violation =
+    this.copy( constraint = newConstraint )
 
   override def toString: String = {
     val includeValue =
@@ -87,13 +101,13 @@ case class RuleViolation( value: Any,
   * combinator library produces a group violation when all of its predicates fail.
   *
   * @param value The value of the object which failed validation.
-  * @param constraint A textual description of the constraint being violated (for example, "doesn't meet any
-  *                   of the requirements").
+  * @param constraint The constraint being violated, usually (but not exclusively) a subclass of
+  *                   [[com.wix.accord.StandardConstraint StandardConstraint]].
   * @param description The description of the object under validation.
   * @param children The set of violations contained within the group.
   */
 case class GroupViolation(value: Any,
-                          constraint: String,
+                          constraint: Any,
                           children: Set[ Violation ],
                           description: Description = Descriptions.Empty )
   extends Violation {
@@ -103,6 +117,9 @@ case class GroupViolation(value: Any,
 
   def replaceValue( newValue: Any ): Violation =
     this.copy( value = newValue )
+
+  def replaceConstraint( newConstraint: Any ): Violation =
+    this.copy( constraint = newConstraint )
 
   private def renderHeader =
     ( if ( value != null )
@@ -182,6 +199,14 @@ sealed trait Result {
     *         failure whose violations report the new value.
     */
   def replaceValue( newValue: Any ): Result
+
+  /** Replaces the reported constraint of this result (if a failure) with the specified value.
+    *
+    * @param newConstraint The replacement constraint for this result.
+    * @return If this result represents a success, it is returned as-is; otherwise returns a new
+    *         failure whose violations report the new constraint.
+    */
+  def replaceConstraint( newConstraint: Any ): Result
 }
 
 /** An object representing a successful validation result. */
@@ -190,6 +215,7 @@ case object Success extends Result {
   override def or( other: Result ): Result = this
   override def applyDescription( description: Description ): Result = this
   override def replaceValue( newValue: Any ): Result = this
+  override def replaceConstraint( newConstraint: Any ): Result = this
   override def isSuccess: Boolean = true
   override def isFailure: Boolean = false
 }
@@ -214,6 +240,9 @@ case class Failure( violations: Set[ Violation ] ) extends Result {
 
   override def replaceValue( newValue: Any ): Result =
     Failure( violations map { _ replaceValue newValue } )
+
+  override def replaceConstraint( newConstraint: Any ): Result =
+    Failure( violations map { _ replaceConstraint newConstraint } )
 
   override def isSuccess: Boolean = false
   override def isFailure: Boolean = true

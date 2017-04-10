@@ -50,6 +50,10 @@ trait Validator[ -T ] extends ( T => Result ) {
   override def compose[ U ]( g: U => T ): Validator[ U ] = new Validator[ U ] {
     override def apply( v1: U ): Result = self apply g( v1 )
   }
+
+  def withConstraint( constraint: Any ): Validator[ T ] = new Validator[ T ] {
+    override def apply( v1: T ): Result = ( self apply v1 ).replaceConstraint( constraint )
+  }
 }
 
 /** A companion object mostly responsible for allowing null-safe validation of boxed Java primitive types. */
