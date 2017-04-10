@@ -16,7 +16,7 @@
 
 package com.wix.accord.combinators
 
-import com.wix.accord.{BaseValidator, NullSafeValidator, Validator}
+import com.wix.accord.{BaseValidator, NullSafeValidator, StandardConstraint, Validator}
 import com.wix.accord.ViolationBuilder._
 
 import scala.collection.GenTraversableOnce
@@ -55,7 +55,9 @@ trait CollectionCombinators {
     * @see [[com.wix.accord.combinators.NotEmpty]]
     */
   class Empty[ T <: AnyRef ]( implicit ev: T => HasEmpty )
-    extends NullSafeValidator[ T ]( _.isEmpty, _ -> "must be empty" )
+    extends NullSafeValidator[ T ]( _.isEmpty, _ -> EmptyConstraint )
+
+  case object EmptyConstraint extends StandardConstraint( "must be empty" )
 
   /** A validator that operates on objects that can be empty, and succeeds only if the provided instance is ''not''
     * empty.
@@ -65,6 +67,8 @@ trait CollectionCombinators {
   class NotEmpty[ T <: AnyRef ]( implicit ev: T => HasEmpty )
     extends NullSafeValidator[ T ]( !_.isEmpty, _ -> "must not be empty" )
 
+  case object NotEmptyConstraint extends StandardConstraint( "must not be empty" )
+
   /** A validator that succeeds only if the provided collection has no duplicate elements. */
   object Distinct extends Validator[ Traversable[_] ] {
     def apply( coll: Traversable[_] ) =
@@ -72,13 +76,19 @@ trait CollectionCombinators {
         Validator.nullFailure
       else {
         val duplicates = coll.groupBy( identity ).filter( _._2.size > 1 ).keys
-        result(
-          duplicates.isEmpty,
-          coll -> duplicates.mkString( "is not a distinct set; duplicates: [", ", ", "]" )
-        )
+        result( duplicates.isEmpty, coll -> DistinctConstraint( duplicates ) )
       }
   }
+
+  case class DistinctConstraint[_]( duplicates: Traversable[_] )
+    extends StandardConstraint( "is not a distinct set; duplicates: [{}]", duplicates.mkString( ", " ) )
+
   /** A validator that succeeds only if the object exists in the target collection. */
   case class In[ T ]( set: Set[ T ], prefix: String )
-    extends BaseValidator[ T ]( set.contains, v => v -> set.mkString( s"$prefix $v, expected one of: [", ", ", "]" ) )
+    extends BaseValidator[ T ]( set.contains, v => v -> InConstraint( set, prefix, v ) )
+
+  case class InConstraint[ T ]( set: Set[ T ], prefix: String, value: T )
+    extends StandardConstraint( s"{} {}, expected one of: [{}]", prefix, value, set )
 }
+
+object CollectionCombinators extends CollectionCombinators

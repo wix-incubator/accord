@@ -24,6 +24,7 @@ import scala.language.implicitConversions
 /** Provides a DSL for collection-like objects. Works in conjunction with [[com.wix.accord.dsl.DslContext]]. */
 trait CollectionOps {
   protected def prefix: String = "got"
+
   /** Specifies a validator that succeeds on empty instances; the object under validation must implement
     * `def isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
     */
@@ -63,7 +64,7 @@ trait CollectionOps {
     * `def size: Int`, see [[com.wix.accord.dsl.CollectionOps.HasSize]]). Enables syntax such as
     * `c.students has size > 0`.
     */
-  val size = new OrderingOps { override def snippet = "has size" }
+  val size = new OrderingOps { override protected def snippet = "has size" }
 
   /** Specifies a validator that succeeds only if the object exists in the specified set. */
   def in[ T ]( set: Set[ T ] ): Validator[ T ] = In( set, prefix )

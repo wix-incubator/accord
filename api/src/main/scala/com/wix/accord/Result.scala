@@ -18,8 +18,8 @@ package com.wix.accord
 
 import com.wix.accord.Descriptions.Description
 
-case class StandardConstraint( template: String, parameters: Any* ) {
-  override def toString: String = template.format( parameters:_* )
+abstract class StandardConstraint( template: String, parameters: Any* ) {
+  final override def toString: String = template.format( parameters:_* )
 }
 
 /** A base trait for all violation types. */

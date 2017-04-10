@@ -16,7 +16,7 @@
 
 package com.wix.accord.tests.combinators
 
-import com.wix.accord.combinators.{And, Fail, IsFalse, IsTrue, NilValidator, Or}
+import com.wix.accord.combinators.{And, Fail, IsFalse, IsTrue, NilValidator, Or, BooleanConstraint}
 import com.wix.accord.scalatest.CombinatorTestSpec
 
 class BooleanCombinatorTests extends CombinatorTestSpec {
@@ -30,7 +30,7 @@ class BooleanCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation" in {
       val left = false
       val validator = new IsTrue
-      validator( left ) should failWith( "must be true" )
+      validator( left ) should failWith( BooleanConstraint( true ) )
     }
   }
 
@@ -43,7 +43,7 @@ class BooleanCombinatorTests extends CombinatorTestSpec {
     "render a correct rule violation" in {
       val left = true
       val validator = new IsFalse
-      validator( left ) should failWith( "must be false" )
+      validator( left ) should failWith( BooleanConstraint( false ) )
     }
   }
 

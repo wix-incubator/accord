@@ -49,7 +49,7 @@ trait ResultMatchers {
     * @see [[com.wix.accord.RuleViolation]]
     */
   case class RuleViolationMatcher( value: Any = null,
-                                   constraint: String = null,
+                                   constraint: Any = null,
                                    legacyDescription: String = null,
                                    description: Description = null )
     extends ViolationMatcher {
@@ -72,7 +72,7 @@ trait ResultMatchers {
           s"$left is a rule violation" )
     }
 
-    override def toString() =
+    override def toString(): String =
       Seq( Option( value ) getOrElse "_",
            Option( constraint ) getOrElse "_",
            Option( description ) orElse Option( legacyDescription ) getOrElse "_" )
@@ -82,26 +82,12 @@ trait ResultMatchers {
   /** A convenience implicit to simplify test code. Enables syntax like:
     *
     * ```
-    * val rule: RuleViolationMatcher = "firstName" -> "must not be empty"
-    * // ... which is equivalent to
-    * val rule = RuleViolationMatcher( legacyDescription = "firstName", constraint = "must not be empty" )
-    * ```
-    */
-  @deprecated( "Intended for backwards compatibility. It is recommended to match against Description types instead " +
-               "(see descriptionAndConstraintTuple2RuleMatcher).",
-               since = "0.6" )
-  implicit def stringTuple2RuleMatcher( v: ( String, String ) ): RuleViolationMatcher =
-    RuleViolationMatcher( legacyDescription = v._1, constraint = v._2 )
-
-  /** A convenience implicit to simplify test code. Enables syntax like:
-    *
-    * ```
     * val rule: RuleViolationMatcher = AccessChain( "firstName" ) -> "must not be empty"
     * // ... which is equivalent to
     * val rule = RuleViolationMatcher( description = AccessChain( "firstName" ), constraint = "must not be empty" )
     * ```
     */
-  implicit def descriptionAndConstraintTuple2RuleMatcher( v: ( Description, String ) ): RuleViolationMatcher =
+  implicit def descriptionAndConstraintTuple2RuleMatcher( v: ( Description, Any ) ): RuleViolationMatcher =
     RuleViolationMatcher( description = v._1, constraint = v._2 )
 
   // TODO ScalaDocs
@@ -134,7 +120,7 @@ trait ResultMatchers {
     * @see [[com.wix.accord.GroupViolation]]
     */
   case class GroupViolationMatcher( value: Any = null,
-                                    constraint: String = null,
+                                    constraint: Any = null,
                                     legacyDescription: String = null,
                                     description: Description = null,
                                     violations: Set[ ViolationMatcher ] = null )
@@ -163,7 +149,7 @@ trait ResultMatchers {
           s"$left is a group violation" )
     }
 
-    override def toString() =
+    override def toString(): String =
       Seq( Option( value ) getOrElse "_",
            Option( constraint ) getOrElse "_",
            Option( description ) orElse Option( legacyDescription ) getOrElse "_",
@@ -177,7 +163,7 @@ trait ResultMatchers {
     * @param expectedViolations The set of expected violations for this matcher.
     */
   case class ResultMatcher( expectedViolations: Set[ ViolationMatcher ] ) extends Matcher[ Result ] {
-    def apply( left: Result ) = left match {
+    def apply( left: Result ): MatchResult = left match {
       case Success =>
         MatchResult( matches = false, "Validation was successful", "Validation was not successful" )
 
@@ -227,48 +213,17 @@ trait ResultMatchers {
     * @param expectedViolations The set of expected violations that comprise the group.
     * @return A matcher over [[com.wix.accord.GroupViolation]]s.
     */
-  def group( description: Description, constraint: String, expectedViolations: ( Description, String )* ) =
-    GroupViolationMatcher( constraint  = constraint,
-                           description = description,
-                           violations  = ( expectedViolations map descriptionAndConstraintTuple2RuleMatcher ).toSet )
-
-  /** A convenience method for matching violation groups. Enables syntax like:
-    *
-    * ```
-    * val result: Result = ...
-    * result should failWith( group( AccessChain( "teacher" ), "is invalid",                // The group context
-    *                                AccessChain( "firstName ) -> "must not be empty" ) )   // The rule violations
-    * ```
-    *
-    * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
-    * @param legacyDescription Retained for backwards compatibility; matches against the rendered description of
-    *                          the object being validated. See [[com.wix.accord.Descriptions.render]] for details
-    *                          of how descriptions are rendered into strings.
-    * @param expectedViolations The set of expected violations that comprise the group.
-    * @return A matcher over [[com.wix.accord.GroupViolation]]s.
-    */
-  //noinspection ScalaDeprecation
-  @deprecated( "Intended for backwards compatibility. It is recommended to match against Description types instead.",
-               since = "0.6" )
-  def group( legacyDescription: String, constraint: String, expectedViolations: ( String, String )* ) =
-    GroupViolationMatcher( constraint  = constraint,
-      legacyDescription = legacyDescription,
-      violations  = ( expectedViolations map stringTuple2RuleMatcher ).toSet )
-
-  // TODO docs
-  @deprecated( "Intended for backwards compatibility. It is recommended to match against Description types instead.",
-               since = "0.6" )
-  def group[ T ]( legacyDescription: String, constraint: String, expectedViolations: T* )
-                ( implicit ev: T => RuleViolationMatcher ): GroupViolationMatcher =
-    GroupViolationMatcher( constraint        = constraint,
-                           legacyDescription = legacyDescription,
-                           violations        = ( expectedViolations map ev ).toSet )
-
   def group[ T ]( description: Description, constraint: String, expectedViolations: T* )
                 ( implicit ev: T => RuleViolationMatcher ): GroupViolationMatcher =
     GroupViolationMatcher( constraint  = constraint,
                            description = description,
                            violations  = ( expectedViolations map ev ).toSet )
+
+  // TODO check if necessary and remove entirely of not
+  //  def group( description: Description, constraint: String, expectedViolations: ( Description, Any )* ) =
+  //    GroupViolationMatcher( constraint  = constraint,
+  //                           description = description,
+  //                           violations  = ( expectedViolations map descriptionAndConstraintTuple2RuleMatcher ).toSet )
 
   /** Enables syntax like `someResult should be( aFailure )` */
   val aFailure = new BeMatcher[ Result ] {
@@ -281,7 +236,7 @@ trait ResultMatchers {
 
   /** Enables syntax like `someResult should be( aSuccess )` */
   val aSuccess = new BeMatcher[ Result ] {
-    def apply( left: Result ) = {
+    def apply( left: Result ): MatchResult = {
       val ( success, violations ) = left match {
         case Success => ( true, Seq.empty )
         case f: Failure => ( false, f.violations )

@@ -44,6 +44,6 @@ import org.scalatest.{Matchers, WordSpec}
 trait CombinatorTestSpec extends WordSpec with Matchers with ResultMatchers {
   import scala.language.implicitConversions
 
-  implicit def elevateStringToRuleViolationMatcher( s: String ): RuleViolationMatcher =
-    RuleViolationMatcher( constraint = s )
+  implicit def elevateAnyToRuleViolationMatcher( constraint: Any ): RuleViolationMatcher =
+    RuleViolationMatcher( constraint = constraint )
 }

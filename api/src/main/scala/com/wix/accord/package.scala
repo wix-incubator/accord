@@ -53,5 +53,5 @@ package object accord {
     * @tparam T The type of the object to validate.
     * @return A [[com.wix.accord.Result]] indicating success or failure of the validation.
     */
-  def validate[ T ]( x: T )( implicit validator: Validator[ T ] ) = validator( x )
+  def validate[ T ]( x: T )( implicit validator: Validator[ T ] ): Result = validator( x )
 }

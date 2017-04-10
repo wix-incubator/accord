@@ -22,8 +22,10 @@ import com.wix.accord.ViolationBuilder._
 /** Simple boolean combinators. */
 trait BooleanCombinators {
   /** A boolean validator that matches only on true. */
-  class IsTrue extends BaseValidator[ Boolean ]( identity, _ -> "must be true" )
+  class IsTrue extends BaseValidator[ Boolean ]( identity, _ -> BooleanConstraint( true ) )
 
   /** A boolean validator that matches only on false. */
-  class IsFalse extends BaseValidator[ Boolean ]( !_, _ -> "must be false" )
+  class IsFalse extends BaseValidator[ Boolean ]( !_, _ -> BooleanConstraint( false ) )
+
+  case class BooleanConstraint( expected: Boolean ) extends StandardConstraint( "must be {}", expected )
 }
