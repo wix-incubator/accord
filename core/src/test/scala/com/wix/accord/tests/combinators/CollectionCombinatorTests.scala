@@ -16,11 +16,14 @@
 
 package com.wix.accord.tests.combinators
 
-import com.wix.accord.combinators.CollectionCombinators._
+import com.wix.accord.combinators.CollectionCombinators
 import com.wix.accord.scalatest.CombinatorTestSpec
 
 class CollectionCombinatorTests extends CombinatorTestSpec {
 
+  val combinators = new CollectionCombinators {}
+  import combinators._
+  
   "Empty combinator" should {
     "successfully validate an empty option" in {
       val left = None

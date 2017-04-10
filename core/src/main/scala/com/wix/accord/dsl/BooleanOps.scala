@@ -17,7 +17,7 @@
 package com.wix.accord.dsl
 
 import com.wix.accord.Validator
-import com.wix.accord.combinators.{IsTrue, IsFalse, And, Or}
+import com.wix.accord.combinators._
 
 /** Provides a DSL for booleans. */
 trait BooleanOps {
@@ -37,5 +37,4 @@ trait BooleanOps {
     def and[ U ]( other: Validator[ U ] ) = new And( validator, other ) // TODO shortcut multiple ANDs
     def or[ U ]( other: Validator[ U ] ) = new Or( validator, other )   // TODO shortcut multiple ORs
   }
-
 }

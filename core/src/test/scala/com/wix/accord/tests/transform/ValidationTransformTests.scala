@@ -16,9 +16,10 @@
 
 package com.wix.accord.tests.transform
 
-import com.wix.accord.Descriptions._
 import org.scalatest.{Matchers, WordSpec}
 import com.wix.accord._
+import com.wix.accord.combinators._
+import com.wix.accord.Descriptions._
 import com.wix.accord.scalatest.ResultMatchers
 
 class ValidationTransformTests extends WordSpec with Matchers with ResultMatchers {
@@ -214,13 +215,13 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     "propagate correctly when the object under validation is implicitly described" in {
       val sample = RuntimeDescribedTest( Seq( "valid", "" ) )
       val result = validate( sample )( implicitDescriptionWithRuntimeRewriteValidator )
-      result should failWith( Indexed( 1L, AccessChain( Generic( "field" ) ) ) -> "must not be empty" )
+      result should failWith( Indexed( 1L, AccessChain( Generic( "field" ) ) ) -> NotEmptyConstraint )
     }
 
     "propagate correctly when the object under validation is explicitly described with \"as\"" in {
       val sample = RuntimeDescribedTest( Seq( "valid", "" ) )
       val result = validate( sample )( explicitDescriptionWithRuntimeRewriteValidator )
-      result should failWith( Indexed( 1L, Explicit( "described" ) ) -> "must not be empty" )
+      result should failWith( Indexed( 1L, Explicit( "described" ) ) -> NotEmptyConstraint )
     }
 
     "support interleaved indices within access chains" in {

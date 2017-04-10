@@ -65,7 +65,7 @@ trait CollectionCombinators {
     * @see [[com.wix.accord.combinators.Empty]]
     */
   class NotEmpty[ T <: AnyRef ]( implicit ev: T => HasEmpty )
-    extends NullSafeValidator[ T ]( !_.isEmpty, _ -> "must not be empty" )
+    extends NullSafeValidator[ T ]( !_.isEmpty, _ -> NotEmptyConstraint )
 
   case object NotEmptyConstraint extends StandardConstraint( "must not be empty" )
 
@@ -81,14 +81,12 @@ trait CollectionCombinators {
   }
 
   case class DistinctConstraint[_]( duplicates: Traversable[_] )
-    extends StandardConstraint( "is not a distinct set; duplicates: [{}]", duplicates.mkString( ", " ) )
+    extends StandardConstraint( "is not a distinct set; duplicates: [%s]", duplicates.mkString( ", " ) )
 
   /** A validator that succeeds only if the object exists in the target collection. */
   case class In[ T ]( set: Set[ T ], prefix: String )
     extends BaseValidator[ T ]( set.contains, v => v -> InConstraint( set, prefix, v ) )
 
   case class InConstraint[ T ]( set: Set[ T ], prefix: String, value: T )
-    extends StandardConstraint( s"{} {}, expected one of: [{}]", prefix, value, set )
+    extends StandardConstraint( "%s %s, expected one of: [%s]", prefix, value, set )
 }
-
-object CollectionCombinators extends CollectionCombinators

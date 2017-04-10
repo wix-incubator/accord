@@ -72,11 +72,12 @@ trait ResultMatchers {
           s"$left is a rule violation" )
     }
 
-    override def toString(): String =
-      Seq( Option( value ) getOrElse "_",
-           Option( constraint ) getOrElse "_",
-           Option( description ) orElse Option( legacyDescription ) getOrElse "_" )
-      .mkString( "RuleViolation(", ",", ")" )
+    override def toString(): String = {
+      val d = Option( description ) map Descriptions.render orElse Option( legacyDescription ) getOrElse "_"
+      val v = Option( value ) map { v => "\"" + v + "\"" } getOrElse "_"
+      val c = Option( constraint ) getOrElse "_"
+      s"$d with value $v $c"
+    }
   }
 
   /** A convenience implicit to simplify test code. Enables syntax like:
