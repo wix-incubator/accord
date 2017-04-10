@@ -30,25 +30,25 @@ trait OrderingOps {
   protected def snippet: String = "got"
 
   /** Generates a validator that succeeds only if the provided value is greater than the specified bound. */
-  def >[ T : Ordering ]( other: T ) = GreaterThan( other, snippet )
+  def >[ T : Ordering ]( other: T ) = new GreaterThan( other, snippet )
 
   /** Generates a validator that succeeds only if the provided value is less than the specified bound. */
-  def <[ T : Ordering ]( other: T ) = LesserThan( other, snippet )
+  def <[ T : Ordering ]( other: T ) = new LesserThan( other, snippet )
 
   /** Generates a validator that succeeds if the provided value is greater than or equal to the specified bound. */
-  def >=[ T : Ordering ]( other: T ) = GreaterThanOrEqual( other, snippet )
+  def >=[ T : Ordering ]( other: T ) = new GreaterThanOrEqual( other, snippet )
 
   /** Generates a validator that succeeds if the provided value is less than or equal to the specified bound. */
-  def <=[ T : Ordering ]( other: T ) = LesserThanOrEqual( other, snippet )
+  def <=[ T : Ordering ]( other: T ) = new LesserThanOrEqual( other, snippet )
 
   /** Generates a validator that succeeds if the provided value is exactly equal to the specified value. */
-  def ==[ T : Ordering ]( other: T ) = EquivalentTo( other, snippet )
+  def ==[ T : Ordering ]( other: T ) = new EquivalentTo( other, snippet )
 
   /** Generates a validator that succeeds if the provided value is between (inclusive) the specified bounds.
     * The method `exclusive` is provided to specify an exclusive upper bound.
     */
   def between[ T : Ordering ]( lowerBound: T, upperBound: T ): InRangeInclusive[ T ] =
-    InRangeInclusive( lowerBound, upperBound, snippet )
+    new InRangeInclusive( lowerBound, upperBound, snippet )
 
   /** Generates a validator that succeeds if the provided value is within the specified range. */
   def within( range: Range ): InRange[ Int ] = {

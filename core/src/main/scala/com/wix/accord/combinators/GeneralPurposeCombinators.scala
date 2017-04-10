@@ -122,6 +122,8 @@ trait GeneralPurposeCombinators {
         }
   }
 
+  case object ValidConstraint extends StandardConstraint( "is invalid" )
+
   /** A validator that succeeds only if the validated object is an instance of the specified type. Respects nulls.
     *
     * @param ct A runtime representation of the desired type.
@@ -133,6 +135,9 @@ trait GeneralPurposeCombinators {
       _ -> s"is not an instance of $ct"
     )
 
+  case class AnInstanceOfConstraint[ T <: AnyRef ]( implicit val classTag: ClassTag[ T ] )
+    extends StandardConstraint( "is not an instance of %s", classTag )
+
   /** A validator that fails only if the validated object is an instance of the specified type. Respects nulls.
     *
     * @param ct A runtime representation of the undesirable type.
@@ -143,6 +148,9 @@ trait GeneralPurposeCombinators {
       value => !( ct.runtimeClass isAssignableFrom value.getClass ),
       _ -> s"is an instance of $ct"
     )
+
+  case class NotAnInstanceOfConstraint[ T <: AnyRef ]( implicit val classTag: ClassTag[ T ] )
+    extends StandardConstraint( "is an instance of %s", classTag )
 
   /** A validator that branches at runtime based on the value of the object under validation. Supports an optional
     * fallback validator.

@@ -68,7 +68,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new IsNull
-      validator( "test" ) should failWith( "is not a null" )
+      validator( "test" ) should failWith( IsNullConstraint )
     }
   }
 
@@ -79,7 +79,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new IsNotNull
-      validator( null ) should failWith( "is a null" )
+      validator( null ) should failWith( IsNotNullConstraint )
     }
   }
 
@@ -90,7 +90,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
       implicit val delegate = new BaseValidator[ Test ]( _.f == "anything", _ -> "just a safety net, shouldn't happen" )
 
       val validator = new Valid[ Test ]
-      validator( null ) should failWith( "is a null" )
+      validator( null ) should failWith( IsNullConstraint )
     }
   }
 
@@ -101,7 +101,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new AnInstanceOf[ BigDecimal ]
-      validator( "invalid" ) should failWith( "is not an instance of scala.math.BigDecimal" )
+      validator( "invalid" ) should failWith( AnInstanceOfConstraint[ BigDecimal ] )
     }
   }
 
@@ -112,7 +112,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new NotAnInstanceOf[ String ]
-      validator( "invalid" ) should failWith( "is an instance of java.lang.String" )
+      validator( "invalid" ) should failWith( NotAnInstanceOfConstraint[ String ] )
     }
   }
 
