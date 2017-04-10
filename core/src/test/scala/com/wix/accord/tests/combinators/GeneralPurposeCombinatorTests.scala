@@ -16,52 +16,14 @@
 
 package com.wix.accord.tests.combinators
 
-import com.wix.accord.combinators._
+import com.wix.accord.combinators.GeneralPurposeCombinators
 import com.wix.accord.BaseValidator
 import com.wix.accord.scalatest.CombinatorTestSpec
 
 class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
 
-  "And combinator with a two-clause rule" should {
-    val clause1 = new StartsWith( "ok" )
-    val clause2 = new EndsWith( "ay" )
-    val validator = new And[ String ]( clause1, clause2 )
-
-    "successfully validate a object that satisfies both clauses" in {
-      validator( "okay" ) should be( aSuccess )
-    }
-    "render a correct rule violation when the first clause is not satisfied" in {
-      validator( "ok" ) should failWith( "must end with 'ay'" )
-    }
-    "render a correct rule violation when the second clause is not satisfied" in {
-      validator( "gray" ) should failWith( "must start with 'ok'" )
-    }
-    "render a correct rule violation when both clauses are not satisfied" in {
-      validator( "no" ) should failWith( "must start with 'ok'", "must end with 'ay'" )
-    }
-  }
-
-  "Or combinator with a two-clause rule" should {
-    val clause1 = new StartsWith( "ok" )
-    val clause2 = new EndsWith( "ay" )
-    val validator = new Or[ String ]( clause1, clause2 )
-
-    "successfully validate a object that satisfies both clauses" in {
-      validator( "okay" ) should be( aSuccess )
-    }
-    "successfully validate an object that only satisfies the first clause" in {
-      validator( "okapi" ) should be( aSuccess )
-    }
-    "successfully validate an object that only satisfies the second clause" in {
-      validator( "gray" ) should be( aSuccess )
-    }
-    "render a correct rule violation when both clauses are not satisfied" in {
-      validator( "no" ) should failWith( GroupViolationMatcher(
-        constraint = "doesn't meet any of the requirements",
-        violations = Set( "must start with 'ok'", "must end with 'ay'" )
-      ) )
-    }
-  }
+  val combinators = new GeneralPurposeCombinators {}
+  import combinators._
 
   "Fail combinator" should {
     "render a correct rule violation" in {
@@ -84,7 +46,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new EqualTo[ String ]( "test" )
-      validator( "invalid" ) should failWith( "does not equal test" )
+      validator( "invalid" ) should failWith( EqualToConstraint( "test" ) )
     }
   }
 
@@ -95,7 +57,7 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
     }
     "render a correct rule violation" in {
       val validator = new NotEqualTo[ String ]( "test" )
-      validator( "test" ) should failWith( "equals test" )
+      validator( "test" ) should failWith( NotEqualToConstraint( "test" ) )
     }
   }
 
@@ -153,4 +115,53 @@ class GeneralPurposeCombinatorTests extends CombinatorTestSpec {
       validator( "invalid" ) should failWith( "is an instance of java.lang.String" )
     }
   }
+
+  import com.wix.accord.ViolationBuilder._
+  sealed trait TestResult
+  case object FailOne extends TestResult
+  case object FailTwo extends TestResult
+  case object FailBoth extends TestResult
+  case object SatisfyBoth extends TestResult
+  case object ConstraintOne
+  case object ConstraintTwo
+  case object ClauseOne extends BaseValidator[ TestResult ]( r => r != FailOne && r != FailBoth, _ -> ConstraintOne )
+  case object ClauseTwo extends BaseValidator[ TestResult ]( r => r != FailTwo && r != FailBoth, _ -> ConstraintTwo )
+
+  "And combinator with a two-clause rule" should {
+    val validator = new And( ClauseOne, ClauseTwo )
+
+    "successfully validate a object that satisfies both clauses" in {
+      validator( SatisfyBoth ) should be( aSuccess )
+    }
+    "render a correct rule violation when the first clause is not satisfied" in {
+      validator( FailOne ) should failWith( ConstraintOne )
+    }
+    "render a correct rule violation when the second clause is not satisfied" in {
+      validator( FailTwo ) should failWith( ConstraintTwo )
+    }
+    "render a correct rule violation when both clauses are not satisfied" in {
+      validator( FailBoth ) should failWith( ConstraintOne, ConstraintTwo )
+    }
+  }
+
+  "Or combinator with a two-clause rule" should {
+    val validator = new Or( ClauseOne, ClauseTwo )
+
+    "successfully validate a object that satisfies both clauses" in {
+      validator( SatisfyBoth ) should be( aSuccess )
+    }
+    "successfully validate an object that only satisfies the first clause" in {
+      validator( FailTwo ) should be( aSuccess )
+    }
+    "successfully validate an object that only satisfies the second clause" in {
+      validator( FailOne ) should be( aSuccess )
+    }
+    "render a correct rule violation when both clauses are not satisfied" in {
+      validator( FailBoth ) should failWith( GroupViolationMatcher(
+        constraint = OrConstraint,
+        violations = Set( ClauseOne, ClauseTwo )
+      ) )
+    }
+  }
+
 }

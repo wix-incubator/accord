@@ -58,12 +58,14 @@ trait Validator[ -T ] extends ( T => Result ) {
 
 /** A companion object mostly responsible for allowing null-safe validation of boxed Java primitive types. */
 object Validator {
+  case object NullConstraint extends StandardConstraint( "is a null" )
+
   /** The default failure when validating `null`. */
-  val nullFailure = Failure( Set( RuleViolation( null, "is a null" ) ) )
+  val nullFailure = Failure( Set( RuleViolation( null, NullConstraint ) ) )
 
   // Primitive promotions --
 
-  abstract class PromotedPrimitiveValidator[ U, B ]( validator: Validator[ U ] )( implicit unbox: B => U ) {
+  abstract sealed class PromotedPrimitiveValidator[ U, B ]( validator: Validator[ U ] )( implicit unbox: B => U ) {
     /** Transforms this validator to a null-safe variant over the reference type. */
     def boxed = new Validator[ B ] {
       def apply( v: B ): Result = if ( v == null ) nullFailure else validator( v )

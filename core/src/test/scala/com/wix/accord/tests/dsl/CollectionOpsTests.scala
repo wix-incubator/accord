@@ -94,17 +94,17 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
 
   "The expression \"is distinct\"" should {
     "return the Distinct combinator" in {
-      distinctValidator shouldBe a[ Distinct.type ]
+      distinctValidator shouldBe a[ Distinct[_] ]
     }
   }
 
   "The expression \"in\"" should {
     "accept a set and return a suitably-configured In combinator" in {
-      inSetValidator shouldEqual In( Set( 1, 3, 5 ), "got" )
+      inSetValidator shouldEqual new In( Set( 1, 3, 5 ), "got" )
     }
 
     "accept a varags item list and return a suitably-configured In combinator" in {
-      inItemsValidator shouldEqual In( Set( 1, 3, 5 ), "got" )
+      inItemsValidator shouldEqual new In( Set( 1, 3, 5 ), "got" )
     }
   }
 

@@ -16,6 +16,7 @@
 
 package com.wix.accord.tests.combinators
 
+import com.wix.accord.Validator.NullConstraint
 import com.wix.accord.combinators.CollectionCombinators
 import com.wix.accord.scalatest.CombinatorTestSpec
 
@@ -73,26 +74,26 @@ class CollectionCombinatorTests extends CombinatorTestSpec {
   "Distinct combinator" should {
     "be null-safe" in {
       val left: Seq[ String ] = null
-      val validator = Distinct
-      validator( left ) should failWith( "is a null" )
+      val validator = new Distinct[ String ]
+      validator( left ) should failWith( NullConstraint )
     }
 
     "successfully validate an empty collection" in {
       val left = Seq.empty[ String ]
-      val validator = Distinct
+      val validator = new Distinct[ String ]
       validator( left ) should be( aSuccess )
     }
 
     "successfully validate a distinct set" in {
       val left = Seq( 1, 2, 3, 4, 5 )
-      val validator = Distinct
+      val validator = new Distinct[ Int ]
       validator( left ) should be( aSuccess )
     }
 
     "render a correct rule violation" in {
       val left = Seq( 1, 2, 3, 3, 4, 4, 5 )
-      val validator = Distinct
-      validator( left ) should failWith( "is not a distinct set; duplicates: [3, 4]" )
+      val validator = new Distinct[ Int ]
+      validator( left ) should failWith( DistinctConstraint( Set( 3, 4 ) ) )
     }
   }
 
@@ -104,7 +105,7 @@ class CollectionCombinatorTests extends CombinatorTestSpec {
     }
 
     "render a correct rule violation" in {
-      validator( 2 ) should failWith( "got 2, expected one of: [1, 5, 9]" )
+      validator( 2 ) should failWith( InConstraint( Set( 1, 5, 9 ), "got" /* TODO get rid of this thing */, 2 ) )
     }
   }
 }

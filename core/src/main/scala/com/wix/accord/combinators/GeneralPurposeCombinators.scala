@@ -28,7 +28,7 @@ trait GeneralPurposeCombinators {
     * @tparam T The type on which this validator operates.
     */
   class And[ T ]( predicates: Validator[ T ]* ) extends Validator[ T ] {
-    def apply( x: T ) = predicates.map { _ apply x }.fold( Success ) { _ and _ }
+    def apply( x: T ): Result = predicates.map { _ apply x }.fold( Success ) { _ and _ }
   }
 
   /** A combinator that takes a chain of predicates and implements logical OR between them. When all predicates
@@ -38,19 +38,21 @@ trait GeneralPurposeCombinators {
     * @tparam T The type on which this validator operates.
     */
   class Or[ T ]( predicates: Validator[ T ]* ) extends Validator[ T ] {
-    def apply( x: T ) = {
+    def apply( x: T ): Result = {
       val results = predicates.map { _ apply x }.toSet
       val failures = results.collect { case Failure( violations ) => violations }.flatten
-      result( results exists { _ == Success }, x -> "doesn't meet any of the requirements" -> failures )
+      result( results contains Success, x -> "doesn't meet any of the requirements" -> failures )
     }
   }
 
-  /** A validator that always fails with a specific violation.
-    * @param message The violation message.
+  case object OrConstraint extends StandardConstraint( "doesn't meet any of the requirements" )
+
+  /** A validator that always fails with a specific constraint.
+    * @param constraint The violated constraint.
     * @tparam T The type on which this validator operates.
     */
-  class Fail[ T ]( message: => String ) extends Validator[ T ] {
-    def apply( x: T ) = result( test = false, x -> message )
+  class Fail[ T ]( constraint: => Any ) extends Validator[ T ] {
+    def apply( x: T ): Result = result( test = false, x -> constraint )
   }
 
   /** A validator that always succeeds.
@@ -70,15 +72,19 @@ trait GeneralPurposeCombinators {
     * and delegates equality checks to [[java.lang.Object.equals]]. */
   class EqualTo[ T ]( to: T ) extends Validator[ T ] {
     private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
-    def apply( x: T ) = result( test = safeEq( x, to ), x -> s"does not equal $to" )
+    def apply( x: T ): Result = result( test = safeEq( x, to ), x -> s"does not equal $to" )
   }
+
+  case class EqualToConstraint[ T ]( to: T ) extends StandardConstraint( "does not equal %s", to )
 
   /** A validator that succeeds only if the validated object is not equal to the specified value. Respects nulls
     * and delegates equality checks to [[java.lang.Object.equals]]. */
   class NotEqualTo[ T ]( to: T ) extends Validator[ T ] {
     private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
-    def apply( x: T ) = result( test = !safeEq( x, to ), x -> s"equals $to" )
+    def apply( x: T ): Result = result( test = !safeEq( x, to ), x -> s"equals $to" )
   }
+
+  case class NotEqualToConstraint[ T ]( to: T ) extends StandardConstraint( "equals %s", to )
 
   /** A validator which merely delegates to another, implicitly available validator. This is necessary for the
     * description generation to work correctly, e.g. in the case where:
@@ -106,7 +112,7 @@ trait GeneralPurposeCombinators {
     *           over type `T` must be in scope.
     */
   class Valid[ T : Validator ] extends Validator[ T ] {
-    def apply( x: T ) =
+    def apply( x: T ): Result =
       if ( x == null )
         Validator.nullFailure
       else
@@ -148,7 +154,7 @@ trait GeneralPurposeCombinators {
   class Conditional[ T ]( branches: Seq[( T => Boolean, Validator[ T ] )], default: Option[ Validator[ T ] ] )
     extends Validator[ T ] {
 
-    def apply( v: T ) = {
+    def apply( v: T ): Result = {
       val branch = branches.collectFirst { case ( test, validator ) if test( v ) => validator }
       ( branch orElse default ).map( _ apply v ).getOrElse( Success )
     }

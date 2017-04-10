@@ -36,7 +36,7 @@ trait CollectionOps {
   def notEmpty[ T <: AnyRef ]( implicit ev: T => HasEmpty ): Validator[ T ] = new NotEmpty[ T ]
 
   /** Specifies a validator that fails on collections with duplicate elements. */
-  def distinct = Distinct
+  def distinct[ T ]: Validator[ Traversable[ T ] ] = new Distinct[ T ]
 
   /** A structural type representing any object that has a size. */
   type HasSize = Any { def size: Int }
@@ -67,8 +67,8 @@ trait CollectionOps {
   val size = new OrderingOps { override protected def snippet = "has size" }
 
   /** Specifies a validator that succeeds only if the object exists in the specified set. */
-  def in[ T ]( set: Set[ T ] ): Validator[ T ] = In( set, prefix )
+  def in[ T ]( set: Set[ T ] ): Validator[ T ] = new In( set, prefix )
 
   /** Specifies a validator that succeeds only if the object exists in the specified set of items. */
-  def in[ T ]( items: T* ): Validator[ T ] = In( items.toSet, prefix )
+  def in[ T ]( items: T* ): Validator[ T ] = new In( items.toSet, prefix )
 }
