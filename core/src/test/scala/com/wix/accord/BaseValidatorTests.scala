@@ -16,18 +16,16 @@
 
 package com.wix.accord
 
-import org.scalatest.{Matchers, WordSpec}
-import org.scalatest.LoneElement._    // Compilation fails when mixing this in, no idea why.
+import com.wix.accord.scalatest.CombinatorTestSpec
 
-class BaseValidatorTests extends WordSpec with Matchers with ViolationBuilder {
+class BaseValidatorTests extends CombinatorTestSpec with ViolationBuilder {
   "BaseValidator.report" should {
 
     val validator = new NullSafeValidator[ String ]( _ startsWith "ok", _ -> "no good" )
+
     "return a Failure with a default violation on nulls" in {
       val result = validator.apply( null )
-      result shouldBe a[ Failure ]
-      val Failure( violations ) = result
-      violations.loneElement shouldEqual RuleViolation( null, "is a null" )
+      result shouldEqual Validator.nullFailure
     }
 
     "return a Success if test succeeds" in {
@@ -36,9 +34,7 @@ class BaseValidatorTests extends WordSpec with Matchers with ViolationBuilder {
 
     "return a Failure with the generated violations if test fails" in {
       val result = validator.apply( "no" )
-      result shouldBe a[ Failure ]
-      val Failure( violations ) = result
-      violations.loneElement shouldEqual RuleViolation( "no", "no good" )
+      result should failWith( "no good" )
     }
   }
 }

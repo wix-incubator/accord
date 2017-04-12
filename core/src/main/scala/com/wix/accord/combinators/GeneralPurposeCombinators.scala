@@ -76,7 +76,7 @@ trait GeneralPurposeCombinators {
     * and delegates equality checks to [[java.lang.Object.equals]]. */
   class EqualTo[ T ]( to: T ) extends Validator[ T ] {
     private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
-    def apply( x: T ): Result = result( test = safeEq( x, to ), x -> s"does not equal $to" )
+    def apply( x: T ): Result = result( test = safeEq( x, to ), x -> EqualToConstraint( to ) )
   }
 
   case class EqualToConstraint[ T ]( to: T ) extends StandardConstraint( "does not equal %s", to )
@@ -85,7 +85,7 @@ trait GeneralPurposeCombinators {
     * and delegates equality checks to [[java.lang.Object.equals]]. */
   class NotEqualTo[ T ]( to: T ) extends Validator[ T ] {
     private def safeEq( x: T, y: T ) = if ( x == null ) y == null else x equals y
-    def apply( x: T ): Result = result( test = !safeEq( x, to ), x -> s"equals $to" )
+    def apply( x: T ): Result = result( test = !safeEq( x, to ), x -> NotEqualToConstraint( to ) )
   }
 
   case class NotEqualToConstraint[ T ]( to: T ) extends StandardConstraint( "equals %s", to )
