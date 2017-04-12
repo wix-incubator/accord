@@ -35,7 +35,7 @@ trait OrderingCombinators {
     * @param ev Evidence that `T` is ordered (i.e. a [[scala.math.Ordering]] of `T` is available).
     * @tparam T The object type this validator operates on.
     */
-  class GreaterThan[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] )
+  case class GreaterThan[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] )
     extends BaseValidator[ T ]( ev.gt( _, bound ), v => v -> s"$prefix $v, expected more than $bound" )
 
   case class GreaterThanConstraint[ T ]( bound: T, prefix: String, value: T )
@@ -49,7 +49,7 @@ trait OrderingCombinators {
     * @param ev Evidence that `T` is ordered (i.e. a [[scala.math.Ordering]] of `T` is available).
     * @tparam T The object type this validator operates on.
     */
-  class GreaterThanOrEqual[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] )
+  case class GreaterThanOrEqual[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] )
     extends BaseValidator[ T ]( ev.gteq( _, bound ), v => v -> s"$prefix $v, expected $bound or more" )
 
   case class GreaterThanOrEqualConstraint[ T ]( bound: T, prefix: String, value: T )
@@ -63,7 +63,7 @@ trait OrderingCombinators {
     * @param ev Evidence that `T` is ordered (i.e. a [[scala.math.Ordering]] of `T` is available).
     * @tparam T The object type this validator operates on.
     */
-  class LesserThan[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] )
+  case class LesserThan[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] )
     extends BaseValidator[ T ]( ev.lt( _, bound ), v => v -> s"$prefix $v, expected less than $bound" )
 
   case class LesserThanConstraint[ T ]( bound: T, prefix: String, value: T )
@@ -77,7 +77,7 @@ trait OrderingCombinators {
     * @param ev Evidence that `T` is ordered (i.e. a [[scala.math.Ordering]] of `T` is available).
     * @tparam T The object type this validator operates on.
     */
-  class LesserThanOrEqual[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] )
+  case class LesserThanOrEqual[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] )
     extends BaseValidator[ T ]( ev.lteq( _, bound ), v => v -> s"$prefix $v, expected $bound or less" )
 
   case class LesserThanOrEqualConstraint[ T ]( bound: T, prefix: String, value: T )
@@ -92,7 +92,7 @@ trait OrderingCombinators {
     * @param ev Evidence that `T` is ordered (i.e. a [[scala.math.Ordering]] of `T` is available).
     * @tparam T The object type this validator operates on.
     */
-  class EquivalentTo[ T ]( other: T, prefix: String )( implicit ev: Ordering[ T ] )
+  case class EquivalentTo[ T ]( other: T, prefix: String )( implicit ev: Ordering[ T ] )
     extends BaseValidator[ T ]( ev.equiv( _, other ), v => v -> s"$prefix $v, expected $other" )
 
   case class EquivalentToConstraint[ T ]( bound: T, prefix: String, other: T )

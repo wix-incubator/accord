@@ -154,7 +154,7 @@ trait ResultMatchers {
       Seq( Option( value ) getOrElse "_",
            Option( constraint ) getOrElse "_",
            Option( description ) orElse Option( legacyDescription ) getOrElse "_",
-           Option( violations ) getOrElse "_" )
+           Option( violations ) map { _ map { _.toString } } getOrElse "_" )
       .mkString( "GroupViolation(", ",", ")" )
   }
 

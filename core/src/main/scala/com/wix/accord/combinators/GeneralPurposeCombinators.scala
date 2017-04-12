@@ -41,7 +41,7 @@ trait GeneralPurposeCombinators {
     def apply( x: T ): Result = {
       val results = predicates.map { _ apply x }.toSet
       val failures = results.collect { case Failure( violations ) => violations }.flatten
-      result( results contains Success, x -> "doesn't meet any of the requirements" -> failures )
+      result( results contains Success, x -> OrConstraint -> failures )
     }
   }
 
