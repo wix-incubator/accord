@@ -37,7 +37,7 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers {
   val twenty = Test( 20 )
 
   "GreaterThan combinator" should {
-    val greaterThanTen = new GreaterThan( ten, "got" )
+    val greaterThanTen = GreaterThan(ten, "got")
 
     "successfully validate a greater object" in {
       greaterThanTen( twenty ) should be( aSuccess )
@@ -48,7 +48,7 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers {
   }
   
   "GreaterThanOrEqual combinator" should {
-    val greaterThanOrEqualToTen = new GreaterThanOrEqual( ten, "got" )
+    val greaterThanOrEqualToTen = GreaterThanOrEqual(ten, "got")
 
     "successfully validate a greater object" in {
       greaterThanOrEqualToTen( twenty ) should be( aSuccess )
@@ -62,7 +62,7 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers {
   }
   
   "LesserThan combinator" should {
-    val lesserThanTen = new LesserThan( ten, "got" )
+    val lesserThanTen = LesserThan(ten, "got")
 
     "successfully validate a lesser object" in {
       lesserThanTen( one ) should be( aSuccess )
@@ -73,7 +73,7 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers {
   }
   
   "LesserThanOrEqual combinator" should {
-    val lesserThanOrEqualToTen = new LesserThanOrEqual( ten, "got" )
+    val lesserThanOrEqualToTen = LesserThanOrEqual(ten, "got")
 
     "successfully validate a lesser object" in {
       lesserThanOrEqualToTen( one ) should be( aSuccess )
@@ -87,7 +87,7 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers {
   }
   
   "EquivalentTo combinator" should {
-    val equivalentToTen = new EquivalentTo( ten, "got" )
+    val equivalentToTen = EquivalentTo(ten, "got")
 
     "successfully validate an equal object" in {
       equivalentToTen( ten ) should be( aSuccess )
@@ -98,7 +98,7 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers {
   }
   
   "InRangeInclusive combinator" should {
-    val zeroToTen = new InRangeInclusive( zero, ten, "got" )
+    val zeroToTen = InRangeInclusive(zero, ten, "got")
 
     "successfully validate an object within the specified range" in {
       zeroToTen( one ) should be( aSuccess )
@@ -109,7 +109,7 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers {
   }
   
   "InRangeExclusive combinator" should {
-    val zeroUntilTen = new InRangeExclusive( zero, ten, "got" ).exclusive
+    val zeroUntilTen = InRangeExclusive(zero, ten, "got").exclusive
 
     "successfully validate an object within the specified range" in {
       zeroUntilTen( one ) should be( aSuccess )

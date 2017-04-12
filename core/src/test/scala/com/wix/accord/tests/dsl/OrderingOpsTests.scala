@@ -64,42 +64,42 @@ class OrderingOpsTests extends FlatSpec with Matchers with Inside {
   import OrderingOpsTests._
 
   "Operator \">\"" should "return a GreaterThan combinator" in {
-    ( ops > rhs ) shouldEqual new GreaterThan( rhs, snippet )
+    ( ops > rhs ) shouldEqual GreaterThan(rhs, snippet)
   }
 
   "Operator \">=\"" should "return a GreaterThanOrEqual combinator" in {
-    ( ops >= rhs ) shouldEqual new GreaterThanOrEqual( rhs, snippet )
+    ( ops >= rhs ) shouldEqual GreaterThanOrEqual(rhs, snippet)
   }
 
   "Operator \"<\"" should "return a LesserThan combinator" in {
-    ( ops < rhs ) shouldEqual new LesserThan( rhs, snippet )
+    ( ops < rhs ) shouldEqual LesserThan(rhs, snippet)
   }
 
   "Operator \"<=\"" should "return a LesserThanOrEqual combinator" in {
-    ( ops <= rhs ) shouldEqual new LesserThanOrEqual( rhs, snippet )
+    ( ops <= rhs ) shouldEqual LesserThanOrEqual(rhs, snippet)
   }
 
   "Operator \"==\"" should "return an EquivalentTo combinator" in {
-    ( ops == rhs ) shouldEqual new EquivalentTo( rhs, snippet )
+    ( ops == rhs ) shouldEqual EquivalentTo(rhs, snippet)
   }
 
   "Operator \"between\"" should "return an InRangeInclusive combinator" in {
-    ( ops between( lowerBound, upperBound ) ) shouldEqual new InRangeInclusive( lowerBound, upperBound, snippet )
+    ( ops between( lowerBound, upperBound ) ) shouldEqual InRangeInclusive(lowerBound, upperBound, snippet)
   }
 
   "Operator \"within\" over a native integer range" should "return an InRangeInclusive combinator" in {
-    ( ops within intRangeInclusive ) shouldEqual new InRangeInclusive( intLowerBound, intUpperBound, snippet )
+    ( ops within intRangeInclusive ) shouldEqual InRangeInclusive(intLowerBound, intUpperBound, snippet)
   }
 
   "Operator \"within\" over a numeric range" should "return an InRangeInclusive combinator" in {
-    ( ops within rangeInclusive ) shouldEqual new InRangeInclusive( lowerBound, upperBound, snippet )
+    ( ops within rangeInclusive ) shouldEqual InRangeInclusive(lowerBound, upperBound, snippet)
   }
 
   "Operator \"within\" over an exclusive native integer range" should "return an InRangeExclusive combinator" in {
-    ( ops within intRangeExclusive ) shouldEqual new InRangeExclusive( intLowerBound, intUpperBound, snippet )
+    ( ops within intRangeExclusive ) shouldEqual InRangeExclusive(intLowerBound, intUpperBound, snippet)
   }
 
   "Operator \"within\" over an exclusive numeric range" should "return an InRangeExclusive combinator" in {
-    ( ops within rangeExclusive ) shouldEqual new InRangeExclusive( lowerBound, upperBound, snippet )
+    ( ops within rangeExclusive ) shouldEqual InRangeExclusive(lowerBound, upperBound, snippet)
   }
 }

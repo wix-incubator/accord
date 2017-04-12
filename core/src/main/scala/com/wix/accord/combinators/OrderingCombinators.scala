@@ -36,7 +36,7 @@ trait OrderingCombinators {
     * @tparam T The object type this validator operates on.
     */
   case class GreaterThan[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] )
-    extends BaseValidator[ T ]( ev.gt( _, bound ), v => v -> s"$prefix $v, expected more than $bound" )
+    extends BaseValidator[ T ]( ev.gt( _, bound ), v => v -> GreaterThanConstraint( bound, prefix, v ) )
 
   case class GreaterThanConstraint[ T ]( bound: T, prefix: String, value: T )
     extends StandardConstraint( "%s %s, expected more than %s", prefix, value, bound )
@@ -50,7 +50,7 @@ trait OrderingCombinators {
     * @tparam T The object type this validator operates on.
     */
   case class GreaterThanOrEqual[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] )
-    extends BaseValidator[ T ]( ev.gteq( _, bound ), v => v -> s"$prefix $v, expected $bound or more" )
+    extends BaseValidator[ T ]( ev.gteq( _, bound ), v => v -> GreaterThanOrEqualConstraint( bound, prefix, v ) )
 
   case class GreaterThanOrEqualConstraint[ T ]( bound: T, prefix: String, value: T )
     extends StandardConstraint( "%s %s, expected %s or more", prefix, value, bound )
@@ -64,7 +64,7 @@ trait OrderingCombinators {
     * @tparam T The object type this validator operates on.
     */
   case class LesserThan[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] )
-    extends BaseValidator[ T ]( ev.lt( _, bound ), v => v -> s"$prefix $v, expected less than $bound" )
+    extends BaseValidator[ T ]( ev.lt( _, bound ), v => v -> LesserThanConstraint( bound, prefix, v ) )
 
   case class LesserThanConstraint[ T ]( bound: T, prefix: String, value: T )
     extends StandardConstraint( "%s %s, expected less than %s", prefix, value, bound )
@@ -78,7 +78,7 @@ trait OrderingCombinators {
     * @tparam T The object type this validator operates on.
     */
   case class LesserThanOrEqual[ T ]( bound: T, prefix: String )( implicit ev: Ordering[ T ] )
-    extends BaseValidator[ T ]( ev.lteq( _, bound ), v => v -> s"$prefix $v, expected $bound or less" )
+    extends BaseValidator[ T ]( ev.lteq( _, bound ), v => v -> LesserThanOrEqualConstraint( bound, prefix, v ) )
 
   case class LesserThanOrEqualConstraint[ T ]( bound: T, prefix: String, value: T )
     extends StandardConstraint( "%s %s, expected %s or less", prefix, value, bound )
@@ -93,7 +93,7 @@ trait OrderingCombinators {
     * @tparam T The object type this validator operates on.
     */
   case class EquivalentTo[ T ]( other: T, prefix: String )( implicit ev: Ordering[ T ] )
-    extends BaseValidator[ T ]( ev.equiv( _, other ), v => v -> s"$prefix $v, expected $other" )
+    extends BaseValidator[ T ]( ev.equiv( _, other ), v => v -> EquivalentToConstraint( other, prefix, v ) )
 
   case class EquivalentToConstraint[ T ]( bound: T, prefix: String, other: T )
     extends StandardConstraint( "%s %s, expected %s", prefix, other, bound )
@@ -125,16 +125,16 @@ trait OrderingCombinators {
     * @param ev Evidence that `T` is ordered (i.e. a [[scala.math.Ordering]] of `T` is available).
     * @tparam T The object type this validator operates on.
     */
-  class InRangeInclusive[ T ]( protected val lowerBound: T, protected val upperBound: T, prefix: String )
-                             ( implicit ev: Ordering[ T ] )
+  case class InRangeInclusive[ T ]( protected val lowerBound: T, protected val upperBound: T, prefix: String )
+                                  ( implicit ev: Ordering[ T ] )
     extends BaseValidator[ T ](
       v => ev.gteq( v, lowerBound ) && ev.lteq( v, upperBound ),
-      v => v -> s"$prefix $v, expected between $lowerBound and $upperBound" )
+      v => v -> InRangeInclusiveConstraint( prefix, lowerBound, upperBound, v ) )
     with InRange[ T ] {
 
     def isExclusive = false
-    def exclusive = new InRangeExclusive( lowerBound, upperBound, prefix )
-    def inclusive = this
+    def exclusive = InRangeExclusive(lowerBound, upperBound, prefix)
+    def inclusive: InRangeInclusive[T] = this
   }
 
   sealed trait InRangeConstraint[ T ] {
@@ -160,8 +160,8 @@ trait OrderingCombinators {
     * @param ev Evidence that `T` is ordered (i.e. a [[scala.math.Ordering]] of `T` is available).
     * @tparam T The object type this validator operates on.
     */
-  class InRangeExclusive[ T ]( protected val lowerBound: T, protected val upperBound: T, prefix: String )
-                             ( implicit ev: Ordering[ T ] )
+  case class InRangeExclusive[ T ]( protected val lowerBound: T, protected val upperBound: T, prefix: String )
+                                  ( implicit ev: Ordering[ T ] )
     extends BaseValidator[ T ](
       v => ev.gteq( v, lowerBound ) && ev.lt( v, upperBound ),
       v => v -> s"$prefix $v, expected between $lowerBound and $upperBound (exclusively)" )
@@ -169,7 +169,7 @@ trait OrderingCombinators {
 
     def isExclusive = true
     def exclusive: InRangeExclusive[T] = this
-    def inclusive = new InRangeInclusive( lowerBound, upperBound, prefix )
+    def inclusive = InRangeInclusive(lowerBound, upperBound, prefix)
   }
 
   case class InRangeExclusiveConstraint[ T ]( prefix: String, lowerBound: T, upperBound: T, value: T )
