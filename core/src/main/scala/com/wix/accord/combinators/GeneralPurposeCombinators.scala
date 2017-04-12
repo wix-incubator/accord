@@ -65,8 +65,12 @@ trait GeneralPurposeCombinators {
   /** A validator that succeeds only if the provided object is `null`. */
   class IsNull extends BaseValidator[ AnyRef ]( _ == null, _ -> "is not a null" )
 
+  val IsNullConstraint = com.wix.accord.Validator.NullConstraint
+
   /** A validator that succeeds only if the provided object is not `null`. */
   class IsNotNull extends BaseValidator[ AnyRef ]( _ != null, _ -> "is a null" )
+
+  case object IsNotNullConstraint extends StandardConstraint( "is a null" )
 
   /** A validator that succeeds only if the validated object is equal to the specified value. Respects nulls
     * and delegates equality checks to [[java.lang.Object.equals]]. */

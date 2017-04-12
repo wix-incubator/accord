@@ -31,104 +31,91 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers {
     def compare( x: Test, y: Test ): Int = x.v - y.v
   }
 
+  val zero = Test( 0 )
+  val one = Test( 1 )
+  val ten = Test( 10 )
+  val twenty = Test( 20 )
+
   "GreaterThan combinator" should {
+    val greaterThanTen = new GreaterThan( ten, "got" )
+
     "successfully validate a greater object" in {
-      val left = Test( 10 )
-      val validator = new GreaterThan( Test( 5 ), "got" )
-      validator( left ) should be( aSuccess )
+      greaterThanTen( twenty ) should be( aSuccess )
     }
     "render a correct rule violation" in {
-      val left = Test( 0 )
-      val validator = new GreaterThan( Test( 5 ), "got" )
-      validator( left ) should failWith( GreaterThanConstraint( Test( 5 ), "got", Test( 0 ) ) )
+      greaterThanTen( one ) should failWith( GreaterThanConstraint( ten, "got", one ) )
     }
   }
   
   "GreaterThanOrEqual combinator" should {
+    val greaterThanOrEqualToTen = new GreaterThanOrEqual( ten, "got" )
+
     "successfully validate a greater object" in {
-      val left = Test( 20 )
-      val validator = new GreaterThanOrEqual( Test( 10 ), "got" )
-      validator( left ) should be( aSuccess )
+      greaterThanOrEqualToTen( twenty ) should be( aSuccess )
     }
     "successfully validate an equal object" in {
-      val left = Test( 10 )
-      val validator = new GreaterThanOrEqual( Test( 10 ), "got" )
-      validator( left ) should be( aSuccess )
+      greaterThanOrEqualToTen( ten ) should be( aSuccess )
     }
     "render a correct rule violation" in {
-      val left = Test( 0 )
-      val validator = new GreaterThanOrEqual( Test( 5 ), "got" )
-      validator( left ) should failWith( GreaterThanOrEqualConstraint( Test( 5 ), "got", Test( 0 ) ) )
+      greaterThanOrEqualToTen( one ) should failWith( GreaterThanOrEqualConstraint( ten, "got", one ) )
     }
   }
   
   "LesserThan combinator" should {
+    val lesserThanTen = new LesserThan( ten, "got" )
+
     "successfully validate a lesser object" in {
-      val left = Test( 5 )
-      val validator = new LesserThan( Test( 10 ), "got" )
-      validator( left ) should be( aSuccess )
+      lesserThanTen( one ) should be( aSuccess )
     }
     "render a correct rule violation" in {
-      val left = Test( 10 )
-      val validator = new LesserThan( Test( 10 ), "got" )
-      validator( left ) should failWith( LesserThanConstraint( Test( 10 ), "got", Test( 10 ) ) )
+      lesserThanTen( twenty ) should failWith( LesserThanConstraint( ten, "got", twenty ) )
     }
   }
   
   "LesserThanOrEqual combinator" should {
+    val lesserThanOrEqualToTen = new LesserThanOrEqual( ten, "got" )
+
     "successfully validate a lesser object" in {
-      val left = Test( 5 )
-      val validator = new LesserThanOrEqual( Test( 10 ), "got" )
-      validator( left ) should be( aSuccess )
+      lesserThanOrEqualToTen( one ) should be( aSuccess )
     }
     "successfully validate an equal object" in {
-      val left = Test( 10 )
-      val validator = new LesserThanOrEqual( Test( 10 ), "got" )
-      validator( left ) should be( aSuccess )
+      lesserThanOrEqualToTen( ten ) should be( aSuccess )
     }
     "render a correct rule violation" in {
-      val left = Test( 10 )
-      val validator = new LesserThanOrEqual( Test( 5 ), "got" )
-      validator( left ) should failWith( LesserThanOrEqualConstraint( Test( 10 ), "got", Test( 5 ) ) )
+      lesserThanOrEqualToTen( twenty ) should failWith( LesserThanOrEqualConstraint( ten, "got", twenty ) )
     }
   }
   
   "EquivalentTo combinator" should {
+    val equivalentToTen = new EquivalentTo( ten, "got" )
+
     "successfully validate an equal object" in {
-      val left = Test( 10 )
-      val validator = new EquivalentTo( Test( 10 ), "got" )
-      validator( left ) should be( aSuccess )
+      equivalentToTen( ten ) should be( aSuccess )
     }
     "render a correct rule violation" in {
-      val left = Test( 10 )
-      val validator = new EquivalentTo( Test( 5 ), "got" )
-      validator( left ) should failWith( EquivalentToConstraint( Test( 10 ), "got", Test( 5 ) ) )
+      equivalentToTen( one ) should failWith( EquivalentToConstraint( ten, "got", one ) )
     }
   }
   
   "InRangeInclusive combinator" should {
+    val zeroToTen = new InRangeInclusive( zero, ten, "got" )
+
     "successfully validate an object within the specified range" in {
-      val left = Test( 10 )
-      val validator = new InRangeInclusive( Test( 5 ), Test( 10 ), "got" )
-      validator( left ) should be( aSuccess )
+      zeroToTen( one ) should be( aSuccess )
     }
     "render a correct rule violation" in {
-      val left = Test( 1 )
-      val validator = new InRangeInclusive( Test( 5 ), Test( 10 ), "got" )
-      validator( left ) should failWith( "got Test(1), expected between Test(5) and Test(10)" )
+      zeroToTen( twenty ) should failWith( InRangeInclusiveConstraint( "got", zero, ten, twenty ) )
     }
   }
   
   "InRangeExclusive combinator" should {
+    val zeroUntilTen = new InRangeExclusive( zero, ten, "got" ).exclusive
+
     "successfully validate an object within the specified range" in {
-      val left = Test( 5 )
-      val validator = new InRangeExclusive( Test( 5 ), Test( 10 ), "got" ).exclusive
-      validator( left ) should be( aSuccess )
+      zeroUntilTen( one ) should be( aSuccess )
     }
     "render a correct rule violation" in {
-      val left = Test( 10 )
-      val validator = new InRangeExclusive( Test( 5 ), Test( 10 ), "got" ).exclusive
-      validator( left ) should failWith( "got Test(10), expected between Test(5) and Test(10) (exclusively)" )
+      zeroUntilTen( ten ) should failWith( InRangeExclusiveConstraint( "got", zero, ten, ten ) )
     }
   }
 }
