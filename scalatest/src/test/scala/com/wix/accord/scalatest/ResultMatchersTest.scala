@@ -101,25 +101,7 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
 
   "Matcher construction DSL" should {
 
-    "generate a correct rule violation for a Tuple2[String, String] (deprecated)" in {
-      val rv: RuleViolationMatcher = "description" -> "constraint"
-      rv.legacyDescription shouldEqual "description"
-      rv.description should ===( null )
-      rv.constraint shouldEqual "constraint"
-      rv.value should ===( null )
-    }
-
-    "generate a correct group violation via group() with legacy description (deprecated)" in {
-      val gv = group( "description", "constraint", "description" -> "constraint" )
-      gv.legacyDescription shouldEqual "description"
-      gv.description should ===( null )
-      gv.constraint shouldEqual "constraint"
-      gv.value should ===( null )
-      gv.violations should contain only
-        RuleViolationMatcher( legacyDescription = "description", constraint = "constraint" )
-    }
-
-    "generate a correct rule violation for a Tuple2[Description, String]" in {
+    "generate a correct rule violation for a Tuple2[Description, Any]" in {
       val rv: RuleViolationMatcher = Generic( "description" ) -> "constraint"
       rv.legacyDescription should ===( null )
       rv.description shouldEqual Generic( "description" )
