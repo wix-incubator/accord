@@ -54,7 +54,7 @@ trait CollectionCombinators {
     * @tparam T A type that implements `isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
     * @see [[com.wix.accord.combinators.NotEmpty]]
     */
-  class Empty[ T <: AnyRef ]( implicit ev: T => HasEmpty )
+  case class Empty[ T <: AnyRef ]( implicit ev: T => HasEmpty )
     extends NullSafeValidator[ T ]( _.isEmpty, _ -> EmptyConstraint )
 
   case object EmptyConstraint extends StandardConstraint( "must be empty" )
@@ -64,7 +64,7 @@ trait CollectionCombinators {
     * @tparam T A type that implements `isEmpty: Boolean` (see [[com.wix.accord.combinators.HasEmpty]]).
     * @see [[com.wix.accord.combinators.Empty]]
     */
-  class NotEmpty[ T <: AnyRef ]( implicit ev: T => HasEmpty )
+  case class NotEmpty[ T <: AnyRef ]( implicit ev: T => HasEmpty )
     extends NullSafeValidator[ T ]( !_.isEmpty, _ -> NotEmptyConstraint )
 
   case object NotEmptyConstraint extends StandardConstraint( "must not be empty" )
@@ -84,7 +84,7 @@ trait CollectionCombinators {
     extends StandardConstraint( "is not a distinct set; duplicates: [%s]", duplicates.mkString( ", " ) )
 
   /** A validator that succeeds only if the object exists in the target collection. */
-  class In[ T ]( set: Set[ T ], prefix: String )
+  case class In[ T ]( set: Set[ T ], prefix: String )
     extends BaseValidator[ T ]( set.contains, v => v -> InConstraint( set, prefix, v ) )
 
   case class InConstraint[ T ]( set: Set[ T ], prefix: String, value: T )
