@@ -167,6 +167,12 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     "be generated for an anonymous value reference" in {
       validate( null )( implicitlyDescribedValueValidator ) should failWith( SelfReference -> "is a null" )
     }
+    "be generated for an explicitly-described anonymous value reference" in {
+      validate( null )( explicitlyDescribedValueValidator ) should failWith( Explicit( "described" ) -> "is a null" )
+    }
+    "propagate through anonymous value references" in {
+      validate( null )( explicitlyDescribedSelfReferenceValidator ) should failWith( Explicit( "described" ) -> "is a null" )
+    }
     "be generated for a fully-qualified selector with multiple indirections" in {
       val obj = CompositeTest( FlatTest( null ) )
       validate( obj )( namedIndirectValidator ) should
@@ -268,6 +274,8 @@ object ValidationTransformTests {
       val implicitlyDescribedAnonymousValidator = validator[ FlatTest ] { _.field is notNull }
       val explicitlyDescribedValidator = validator[ FlatTest ] { t => t.field as "described" is notNull }
       val implicitlyDescribedValueValidator = validator[ String ] { _ is notNull }
+      val explicitlyDescribedValueValidator = validator[ String ] { _ as "described" is notNull }
+      val explicitlyDescribedSelfReferenceValidator = validator[ String ] { _ is explicitlyDescribedValueValidator }
       val adaptedValidator = implicitlyDescribedValueValidator compose { ( f: FlatTest ) => f.field }
       val booleanExpressionValidator = validator[ FlatTest ] { t => ( t.field is aNull ) or ( t.field has size > 5 ) }
       val genericValidator = validator[ FlatTest ] { t => t.field.length * 2 must be > 0 }
@@ -299,6 +307,8 @@ object ValidationTransformTests {
       val aValidSelfReference = validator[ String ] { _ is notEmpty }
       val selfReferenceWithExplicitDescriptionAndRuntimeRewriteValidator =
         validator[ RuntimeDescribedTest ] { _.field.each as "described" is aValidSelfReference }
+      val selfReferenceWithExplicitDescription =
+        validator[ String ] { _ is aValidSelfReference }
     }
   }
 
