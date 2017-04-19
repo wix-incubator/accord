@@ -170,7 +170,10 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     "be generated for an explicitly-described anonymous value reference" in {
       validate( null )( explicitlyDescribedValueValidator ) should failWith( Explicit( "described" ) -> "is a null" )
     }
-    "propagate through anonymous value references" in {
+    "propagate through anonymous value references for generated descriptions" in {
+      validate( null )( implicitlyDescribedSelfReferenceValidator ) should failWith( SelfReference -> "is a null" )
+    }
+    "propagate through anonymous value references for explicit descriptions" in {
       validate( null )( explicitlyDescribedSelfReferenceValidator ) should failWith( Explicit( "described" ) -> "is a null" )
     }
     "be generated for a fully-qualified selector with multiple indirections" in {
@@ -275,6 +278,7 @@ object ValidationTransformTests {
       val explicitlyDescribedValidator = validator[ FlatTest ] { t => t.field as "described" is notNull }
       val implicitlyDescribedValueValidator = validator[ String ] { _ is notNull }
       val explicitlyDescribedValueValidator = validator[ String ] { _ as "described" is notNull }
+      val implicitlyDescribedSelfReferenceValidator = validator[ String ] { _ is implicitlyDescribedValueValidator }
       val explicitlyDescribedSelfReferenceValidator = validator[ String ] { _ is explicitlyDescribedValueValidator }
       val adaptedValidator = implicitlyDescribedValueValidator compose { ( f: FlatTest ) => f.field }
       val booleanExpressionValidator = validator[ FlatTest ] { t => ( t.field is aNull ) or ( t.field has size > 5 ) }
