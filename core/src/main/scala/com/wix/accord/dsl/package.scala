@@ -239,7 +239,7 @@ package object dsl
       * @param description The description to use for the expression in case of violations.
       * @return The validation expression tagged with the explicit description.
       */
-    def as( description: String ) = value
+    def as( description: String ): U = value
   }
 
   /** Provides the "be" keyword.
