@@ -80,19 +80,34 @@ object Descriptions {
 
   // Description algebra --
 
+  private def failed( lhs: Description, rhs: Description ): Nothing =
+    throw new IllegalArgumentException( s"Cannot combine description '$lhs' with '$rhs'" )
+
+  private object NonEmpty {
+    def unapply( desc: Description ): Option[ Description ] =
+      if ( desc != Empty ) Some( desc ) else None
+  }
+
   val combine: ( ( Description, Description ) => Description ) = {
     case ( Empty, rhs ) => rhs
-    case ( SelfReference, rhs: AccessChain ) => rhs   // Optimized specific case, elides allocation vs below cases
+
     case ( Indexed( index, Empty ), rhs ) => Indexed( index, rhs )
+
+    case ( Explicit(_), rhs: Explicit ) => rhs
+
     case ( lhs: Explicit, AccessChain( ind @ _* ) ) => AccessChain( ind :+ lhs :_* )
     case ( lhs: Generic, AccessChain( ind @ _* ) ) => AccessChain( ind :+ lhs :_* )
-    case ( lhs @ Indexed( _, of ), AccessChain( ind @ _* ) ) if of != Empty => AccessChain( ind :+ lhs :_* )
+    case ( lhs @ Indexed( _, NonEmpty( of ) ), AccessChain( ind @ _* ) ) => AccessChain( ind :+ lhs :_* )
+
     case ( AccessChain( rhs @ _* ), ind @ Indexed( _, Empty ) ) => AccessChain( ind +: rhs : _* )
     case ( AccessChain( ind @ Indexed( _, Empty ), tail @ _* ), rhs ) => AccessChain( ind.copy( of = rhs ) +: tail :_* )
     case ( AccessChain( inner @ _* ), AccessChain( outer @ _* ) ) => AccessChain( outer ++ inner :_* )
 
-    case ( lhs, rhs ) =>
-      throw new IllegalArgumentException( s"Cannot combine description '$lhs' with '$rhs'" )
+    case ( SelfReference, Empty ) => failed( SelfReference, Empty )
+    case ( SelfReference, rhs ) => rhs
+    case ( lhs, SelfReference ) => lhs
+
+    case ( lhs, rhs ) => failed( lhs, rhs )
   }
 
   val render: Description => String = {

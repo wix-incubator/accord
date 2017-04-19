@@ -74,12 +74,11 @@ class DescriptionCombinationSpec extends FlatSpec with Matchers {
   }
 
   "Explicit description" should "override preexisting Explicit descriptions" in {
-    combine( explicit, Explicit( "prior" ) ) shouldEqual explicit
+    combine( Explicit( "prior" ), explicit ) shouldEqual explicit
   }
 
   "Explicit description" should "fail to combine with any other description" in {
     an[ IllegalArgumentException ] shouldBe thrownBy { combine( explicit, Empty ) }
-    an[ IllegalArgumentException ] shouldBe thrownBy { combine( explicit, explicit ) }
     an[ IllegalArgumentException ] shouldBe thrownBy { combine( explicit, generic ) }
   }
 
