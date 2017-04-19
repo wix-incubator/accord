@@ -82,7 +82,7 @@ object Descriptions {
 
   val combine: ( ( Description, Description ) => Description ) = {
     case ( Empty, rhs ) => rhs
-    case ( SelfReference, rhs: AccessChain ) => rhs
+    case ( SelfReference, rhs: AccessChain ) => rhs   // Optimized specific case, elides allocation vs below cases
     case ( Indexed( index, Empty ), rhs ) => Indexed( index, rhs )
     case ( lhs: Explicit, AccessChain( ind @ _* ) ) => AccessChain( ind :+ lhs :_* )
     case ( lhs: Generic, AccessChain( ind @ _* ) ) => AccessChain( ind :+ lhs :_* )
@@ -100,8 +100,8 @@ object Descriptions {
     case Indexed( index, of ) => s"${render( of )} [at index $index]"
     case Explicit( s ) => s
     case Generic( s ) => s
-    case AccessChain( elements @ _* ) => elements.map( render ).mkString( "." )
     case SelfReference => "value"
+    case AccessChain( elements @ _* ) => elements.map( render ).mkString( "." )
     case Conditional( on, value, None, target ) => s"${render( target )} [where ${render( on )}=$value]"
     case Conditional( on, value, Some( guard ), target ) =>
       s"${render( target )} [where ${render( on )}=$value and ${render( guard )}]"

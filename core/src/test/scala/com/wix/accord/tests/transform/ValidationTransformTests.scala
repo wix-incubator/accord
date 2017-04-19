@@ -170,11 +170,17 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     "be generated for an explicitly-described anonymous value reference" in {
       validate( null )( explicitlyDescribedValueValidator ) should failWith( Explicit( "described" ) -> "is a null" )
     }
-    "propagate through anonymous value references for generated descriptions" in {
-      validate( null )( implicitlyDescribedSelfReferenceValidator ) should failWith( SelfReference -> "is a null" )
+    "propagate through anonymous value references for anonymous descriptions" in {
+      validate( null )( selfReferenceToImplicitlyDescribedValidator ) should failWith( SelfReference -> "is a null" )
     }
     "propagate through anonymous value references for explicit descriptions" in {
-      validate( null )( explicitlyDescribedSelfReferenceValidator ) should failWith( Explicit( "described" ) -> "is a null" )
+      validate( null )( selfReferenceToExplicitlyDescribedValidator ) should failWith( Explicit( "described" ) -> "is a null" )
+    }
+    "be generated for explicit description of multiple anonymous value references" in {
+      validate( null )( explicitlyDescribedSelfReferenceToImplicitlyDescribedValidator ) should failWith( Explicit( "described" ) -> "is a null" )
+    }
+    "allow overriding explicit descriptions on anonymous value references" in {
+      validate( null )( explicitlyDescribedSelfReferenceToExplicitlyDescribedValidator ) should failWith( Explicit( "override" ) -> "is a null" )
     }
     "be generated for a fully-qualified selector with multiple indirections" in {
       val obj = CompositeTest( FlatTest( null ) )
@@ -273,13 +279,17 @@ object ValidationTransformTests {
 
     object Static {
       case class FlatTest( field: String )
+
+      // TODO *sigh* in dire need of refactoring --TG
       val implicitlyDescribedNamedValidator = validator[ FlatTest ] { t => t.field is notNull }
       val implicitlyDescribedAnonymousValidator = validator[ FlatTest ] { _.field is notNull }
       val explicitlyDescribedValidator = validator[ FlatTest ] { t => t.field as "described" is notNull }
       val implicitlyDescribedValueValidator = validator[ String ] { _ is notNull }
       val explicitlyDescribedValueValidator = validator[ String ] { _ as "described" is notNull }
-      val implicitlyDescribedSelfReferenceValidator = validator[ String ] { _ is implicitlyDescribedValueValidator }
-      val explicitlyDescribedSelfReferenceValidator = validator[ String ] { _ is explicitlyDescribedValueValidator }
+      val selfReferenceToImplicitlyDescribedValidator = validator[ String ] { _ is implicitlyDescribedValueValidator }
+      val selfReferenceToExplicitlyDescribedValidator = validator[ String ] { _ is explicitlyDescribedValueValidator }
+      val explicitlyDescribedSelfReferenceToImplicitlyDescribedValidator = validator[ String ] { _ as "described" is implicitlyDescribedValueValidator }
+      val explicitlyDescribedSelfReferenceToExplicitlyDescribedValidator = validator[ String ] { _ as "override" is explicitlyDescribedValueValidator }
       val adaptedValidator = implicitlyDescribedValueValidator compose { ( f: FlatTest ) => f.field }
       val booleanExpressionValidator = validator[ FlatTest ] { t => ( t.field is aNull ) or ( t.field has size > 5 ) }
       val genericValidator = validator[ FlatTest ] { t => t.field.length * 2 must be > 0 }
