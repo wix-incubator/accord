@@ -52,19 +52,29 @@ class DescriptionCombinationSpec extends FlatSpec with Matchers {
     combine( materializedIndexed, AccessChain( prefix ) ) shouldEqual AccessChain( prefix, materializedIndexed )
   }
 
-  "Combining SelfReference with itself" should "produce SelfReference" in {
+  "Combining SelfReference with any non-Empty description" should "return the description as-is" in {
     combine( SelfReference, SelfReference ) shouldEqual SelfReference
-  }
-
-  "Combining SelfReference with an AccessChain" should "return the AccessChain as-is" in {
+    combine( SelfReference, explicit ) shouldEqual explicit
+    combine( SelfReference, generic ) shouldEqual generic
     combine( SelfReference, accessChain ) shouldEqual accessChain
+    combine( SelfReference, openIndexed ) shouldEqual openIndexed
+    combine( SelfReference, materializedIndexed ) shouldEqual materializedIndexed
   }
 
-  "Combining any description with a SelfReference" should "produce an AccessChain with the specified description" in {
-    combine( explicit, SelfReference ) shouldEqual AccessChain( explicit )
-    combine( generic, SelfReference ) shouldEqual AccessChain( generic )
-    combine( openIndexed, SelfReference ) shouldEqual AccessChain( openIndexed )
-    combine( materializedIndexed, SelfReference ) shouldEqual AccessChain( materializedIndexed )
+  "SelfReference" should "fail to combine with Empty descriptions" in {
+    an[ IllegalArgumentException ] shouldBe thrownBy { combine( SelfReference, Empty ) }
+  }
+
+  "Combining any other description with a SelfReference" should "return the description as-is" in {
+    combine( SelfReference, SelfReference ) shouldEqual SelfReference
+    combine( explicit, SelfReference ) shouldEqual explicit
+    combine( generic, SelfReference ) shouldEqual generic
+    combine( accessChain, SelfReference ) shouldEqual accessChain
+    combine( materializedIndexed, SelfReference ) shouldEqual materializedIndexed
+  }
+
+  "Explicit description" should "override preexisting Explicit descriptions" in {
+    combine( explicit, Explicit( "prior" ) ) shouldEqual explicit
   }
 
   "Explicit description" should "fail to combine with any other description" in {
@@ -77,12 +87,6 @@ class DescriptionCombinationSpec extends FlatSpec with Matchers {
     an[ IllegalArgumentException ] shouldBe thrownBy { combine( generic, Empty ) }
     an[ IllegalArgumentException ] shouldBe thrownBy { combine( generic, explicit ) }
     an[ IllegalArgumentException ] shouldBe thrownBy { combine( generic, generic ) }
-  }
-
-  "SelfReference" should "fail to combine with any other description" in {
-    an[ IllegalArgumentException ] shouldBe thrownBy { combine( SelfReference, Empty ) }
-    an[ IllegalArgumentException ] shouldBe thrownBy { combine( SelfReference, explicit ) }
-    an[ IllegalArgumentException ] shouldBe thrownBy { combine( SelfReference, generic ) }
   }
 
   "Combining an AccessChain with another AccessChain" should "produce a new AccessChain indirecting right-to-left" in {
@@ -125,6 +129,5 @@ class DescriptionCombinationSpec extends FlatSpec with Matchers {
     an[ IllegalArgumentException ] shouldBe thrownBy { combine( lhs, Empty ) }
     an[ IllegalArgumentException ] shouldBe thrownBy { combine( lhs, explicit ) }
     an[ IllegalArgumentException ] shouldBe thrownBy { combine( lhs, generic ) }
-    an[ IllegalArgumentException ] shouldBe thrownBy { combine( lhs, SelfReference ) }
   }
 }
