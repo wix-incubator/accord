@@ -73,11 +73,11 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
     * description tree.
     */
   case object ExplicitlyDescribed {
-    def unapply( ouv: Tree ): Option[ context.Expr[ Explicit ] ] = ouv match {
-      case q"com.wix.accord.dsl.`package`.Descriptor[$_]( $_ ).as( $literal )" =>
-        Some( context.Expr[ Explicit ]( q"com.wix.accord.Descriptions.Explicit( $literal )" ) )
-      case _ => None
-    }
+    def unapply( ouv: Tree ): Option[ context.Expr[ Explicit ] ] =
+      collectFromPattern( ouv ) {
+        case q"com.wix.accord.dsl.`package`.Descriptor[$_]( $_ ).as( $literal )" =>
+          context.Expr[ Explicit ]( q"com.wix.accord.Descriptions.Explicit( $literal )" )
+      }.headOption
   }
 
   /** Generates a description for the specified AST.

@@ -84,14 +84,16 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
 
       case ObjectUnderValidation( ouv :: Nil ) =>
         val sv = rewriteContextExpressionAsValidator( expr )
+        val description = ExplicitlyDescribed.unapply( expr ).getOrElse( describeTree( prototype, ouv ) )
         trace( s"""
               |Found validation rule:
               |  ouv=$ouv
               |  ouvraw=${showRaw(ouv)}
               |  sv=${show(sv)}
               |  svraw=${showRaw(sv)}
+              |  desc=$description
               |""".stripMargin, ouv.pos )
-        Some( ValidationRule( ouv, sv, describeTree( prototype, ouv ) ) )
+        Some( ValidationRule( ouv, sv, description ) )
 
       case ObjectUnderValidation( _ :: _ ) =>
         // Multiple validators found; this can happen in case of a multiple-clause boolean expression,
