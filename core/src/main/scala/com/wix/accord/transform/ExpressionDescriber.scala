@@ -22,8 +22,6 @@ import com.wix.accord.Descriptions.Description
 
 import scala.language.experimental.macros
 
-
-
 /** A macro helper trait that generates implicit description for expressions. The transformation operates in the
   * context of a function of the form `Function1[ T, U ]`, or in other words only supports single-parameter
   * functions.
@@ -75,11 +73,8 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
     * description tree.
     */
   case object ExplicitlyDescribed {
-    private val descriptorTerm = typeOf[ com.wix.accord.dsl.Descriptor[_] ].typeSymbol.name.toTermName
-    private val asTerm = termName( "as" )
-
-    private[ ExpressionDescriber ] def unapply( ouv: Tree ): Option[ context.Expr[ Explicit ] ] = ouv match {
-      case Apply( Select( Apply( TypeApply( Select( _, `descriptorTerm` ), _ ), _ ), `asTerm` ), literal :: Nil ) =>
+    def unapply( ouv: Tree ): Option[ context.Expr[ Explicit ] ] = ouv match {
+      case q"com.wix.accord.dsl.`package`.Descriptor[$_]( $_ ).as( $literal )" =>
         Some( context.Expr[ Explicit ]( q"com.wix.accord.Descriptions.Explicit( $literal )" ) )
       case _ => None
     }

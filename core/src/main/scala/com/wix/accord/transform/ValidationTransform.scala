@@ -28,8 +28,8 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
   import context.universe._
 
-  protected val debugOutputEnabled = context.settings.contains( "debugValidationTransform" )
-  protected val traceOutputEnabled = context.settings.contains( "traceValidationTransform" )
+  protected val debugOutputEnabled: Boolean = context.settings.contains( "debugValidationTransform" )
+  protected val traceOutputEnabled: Boolean = context.settings.contains( "traceValidationTransform" )
 
   // Rewrite expressions into a validation chain --
 
@@ -38,7 +38,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
   type DescriptionTransformation = context.Expr[ Description ] => context.Expr[ Description ]
 
   def rewriteOne( rule: ValidationRule, transform: DescriptionTransformation = identity ): Tree = {
-    val description = transform( describeTree( prototype, rule.ouv ) )
+    val description = transform( rule.description )
     val rewrite =
       q"""
           new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
@@ -258,7 +258,7 @@ object ValidationTransform {
     val helper = new FunctionDescriber[ c.type, U, T ] {
       val context: c.type = c
       private val ( prototype, body ) = describeFunction( g )
-      val description = describeTree( prototype, body )
+      val description: c.Expr[Description] = describeTree( prototype, body )
     }
 
     import c.universe._
