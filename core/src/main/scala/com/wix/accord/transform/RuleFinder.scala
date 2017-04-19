@@ -17,17 +17,21 @@
 package com.wix.accord.transform
 
 import MacroHelper._
+import com.wix.accord.Descriptions.{Description, Explicit}
 import com.wix.accord._
 
 private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ] with MacroHelper[ C ] {
-  self: MacroLogging[ C ] =>
+  self: MacroLogging[ C ] with ExpressionDescriber[ C ] =>
 
   import context.universe._
   import context.abort
 
+  protected def prototype: ValDef
+
   sealed trait ValidatorApplication
   protected case class BooleanExpression( expr: Tree ) extends ValidatorApplication
-  protected case class ValidationRule( ouv: Tree, validation: Tree ) extends ValidatorApplication
+  protected case class ValidationRule( ouv: Tree, validation: Tree, description: context.Expr[ Description ] )
+    extends ValidatorApplication
 
   protected object ValidationRule {
     def isValidationRule( tpe: Type ): Boolean = !tpe.isBottom && tpe <:< typeOf[ Validator[_] ]
@@ -47,7 +51,7 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
 
     private def extractObjectUnderValidation( t: Tree ): List[ Tree ] =
       collectFromPattern( t ) {
-        case Apply( TypeApply( Select( _, `contextualizerTerm` ), tpe :: Nil ), e :: Nil ) =>
+        case Apply( TypeApply( Select( _, `contextualizerTerm` ), _ :: Nil ), e :: Nil ) =>
           resetAttrs( e.duplicate )
       }
 
@@ -87,7 +91,7 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
               |  sv=${show(sv)}
               |  svraw=${showRaw(sv)}
               |""".stripMargin, ouv.pos )
-        Some( ValidationRule( ouv, sv ) )
+        Some( ValidationRule( ouv, sv, describeTree( prototype, ouv ) ) )
 
       case ObjectUnderValidation( _ :: _ ) =>
         // Multiple validators found; this can happen in case of a multiple-clause boolean expression,
@@ -102,7 +106,7 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
       case _ => None
     }
 
-    def isValid( expr: Tree ) = unapply( expr ).isDefined
+    def isValid( expr: Tree ): Boolean = unapply( expr ).isDefined
   }
 
   object PartialFunction {

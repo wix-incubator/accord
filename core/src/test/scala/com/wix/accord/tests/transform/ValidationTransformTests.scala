@@ -244,7 +244,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       result should failWith( AccessChain( Indexed( 0L, AccessChain( Generic( "field" ) ) ), Generic( "property" ) ) )
     }
 
-    "support underlying self references" in {
+    "support underlying self references with an overriding explicit description" in {
       val sample = RuntimeDescribedTest( Seq( "valid", "" ) )
       val result = validate( sample )( selfReferenceWithExplicitDescriptionAndRuntimeRewriteValidator )
       result should failWith( Indexed( 1L, Explicit( "described" ) ) )
@@ -305,24 +305,19 @@ object ValidationTransformTests {
 
     object Runtime {
       case class RuntimeDescribedTest( field: Seq[ String ] )
+      case class TestElement( property: String )
+      case class CollectionOfIndirections( field: Seq[ TestElement ] )
+
       val implicitDescriptionWithRuntimeRewriteValidator =
         validator[ RuntimeDescribedTest ] { rdt => rdt.field.each is notEmpty }
       val explicitDescriptionWithRuntimeRewriteValidator =
         validator[ RuntimeDescribedTest ] { rdt => ( rdt.field as "described" ).each is notEmpty }
-
-
-      case class TestElement( property: String )
-      case class CollectionOfIndirections( field: Seq[ TestElement ] )
-
       val aValidElement = validator[ TestElement ] { c => c.property is notEmpty }
       val collectionOfIndirectionsValidator =
         validator[ CollectionOfIndirections ] { coi => coi.field.each is aValidElement }
-
       val aValidSelfReference = validator[ String ] { _ is notEmpty }
       val selfReferenceWithExplicitDescriptionAndRuntimeRewriteValidator =
         validator[ RuntimeDescribedTest ] { _.field.each as "described" is aValidSelfReference }
-      val selfReferenceWithExplicitDescription =
-        validator[ String ] { _ is aValidSelfReference }
     }
   }
 
