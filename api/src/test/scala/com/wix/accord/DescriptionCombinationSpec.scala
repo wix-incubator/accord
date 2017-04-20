@@ -36,20 +36,12 @@ class DescriptionCombinationSpec extends FlatSpec with Matchers {
     combine( Empty, SelfReference ) shouldEqual SelfReference
   }
 
-  "Combining an open Indexed (of==Empty) with any description" should
-    "materialize a non-empty Indexed description" in {
+  "Combining an open Indexed with any description" should "materialize a non-empty Indexed description" in {
     combine( openIndexed, openIndexed ) shouldEqual Indexed( 1, openIndexed )
     combine( openIndexed, explicit ) shouldEqual Indexed( 1, explicit )
     combine( openIndexed, generic ) shouldEqual Indexed( 1, generic )
     combine( openIndexed, accessChain ) shouldEqual Indexed( 1, accessChain )
     combine( openIndexed, SelfReference ) shouldEqual Indexed( 1, SelfReference )
-  }
-
-  "Combining a non-empty description with an AccessChain" should "add the description to the tail of the chain" in {
-    val prefix = Generic( "prefix" )
-    combine( explicit, AccessChain( prefix ) ) shouldEqual AccessChain( prefix, explicit )
-    combine( generic, AccessChain( prefix ) ) shouldEqual AccessChain( prefix, generic )
-    combine( materializedIndexed, AccessChain( prefix ) ) shouldEqual AccessChain( prefix, materializedIndexed )
   }
 
   "Combining SelfReference with any non-Empty description" should "return the description as-is" in {
@@ -59,6 +51,13 @@ class DescriptionCombinationSpec extends FlatSpec with Matchers {
     combine( SelfReference, accessChain ) shouldEqual accessChain
     combine( SelfReference, openIndexed ) shouldEqual openIndexed
     combine( SelfReference, materializedIndexed ) shouldEqual materializedIndexed
+  }
+
+  "Combining a non-empty description with an AccessChain" should "add the description to the tail of the chain" in {
+    val prefix = Generic( "prefix" )
+    combine( explicit, AccessChain( prefix ) ) shouldEqual AccessChain( prefix, explicit )
+    combine( generic, AccessChain( prefix ) ) shouldEqual AccessChain( prefix, generic )
+    combine( materializedIndexed, AccessChain( prefix ) ) shouldEqual AccessChain( prefix, materializedIndexed )
   }
 
   "SelfReference" should "fail to combine with Empty descriptions" in {
@@ -75,6 +74,10 @@ class DescriptionCombinationSpec extends FlatSpec with Matchers {
 
   "Explicit description" should "override preexisting Explicit descriptions" in {
     combine( Explicit( "prior" ), explicit ) shouldEqual explicit
+  }
+
+  "Combining a materialized Indexed with an Explicit description" should "replace the preexisting description" in {
+    combine( materializedIndexed, explicit ) shouldEqual materializedIndexed.copy( of = explicit )
   }
 
   "Explicit description" should "fail to combine with any other description" in {
