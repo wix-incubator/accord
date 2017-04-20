@@ -75,8 +75,8 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
   case object ExplicitlyDescribed {
     def unapply( ouv: Tree ): Option[ context.Expr[ Explicit ] ] =
       collectFromPattern( ouv ) {
-        case q"com.wix.accord.dsl.`package`.Descriptor[$_]( $_ ).as( $literal )" =>
-          context.Expr[ Explicit ]( q"com.wix.accord.Descriptions.Explicit( $literal )" )
+        case q"com.wix.accord.dsl.`package`.Descriptor[$_]( $_ ).as( $description )" =>
+          context.Expr[ Explicit ]( q"com.wix.accord.Descriptions.Explicit( ${ resetAttrs( description.duplicate ) } )" )
       }.headOption
   }
 
