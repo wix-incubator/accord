@@ -92,6 +92,7 @@ object Descriptions {
     case ( Empty, rhs ) => rhs
 
     case ( Indexed( index, Empty ), rhs ) => Indexed( index, rhs )
+    case ( Indexed( index, _ ), rhs: Explicit ) => Indexed( index, rhs )
 
     case ( Explicit(_), rhs: Explicit ) => rhs
 

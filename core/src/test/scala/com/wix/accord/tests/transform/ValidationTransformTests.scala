@@ -246,7 +246,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
 
     "support underlying self references with an overriding explicit description" in {
       val sample = RuntimeDescribedTest( Seq( "valid", "" ) )
-      val result = validate( sample )( selfReferenceWithExplicitDescriptionAndRuntimeRewriteValidator )
+      val result = validate( sample )( propagatedSelfReferenceWithExplicitDescriptionAndRuntimeRewriteValidator )
       result should failWith( Indexed( 1L, Explicit( "described" ) ) )
     }
   }
@@ -316,7 +316,7 @@ object ValidationTransformTests {
       val collectionOfIndirectionsValidator =
         validator[ CollectionOfIndirections ] { coi => coi.field.each is aValidElement }
       val aValidSelfReference = validator[ String ] { _ is notEmpty }
-      val selfReferenceWithExplicitDescriptionAndRuntimeRewriteValidator =
+      val propagatedSelfReferenceWithExplicitDescriptionAndRuntimeRewriteValidator =
         validator[ RuntimeDescribedTest ] { _.field.each as "described" is aValidSelfReference }
     }
   }
