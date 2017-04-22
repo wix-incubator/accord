@@ -93,6 +93,7 @@ object Descriptions {
 
     case ( Indexed( index, Empty ), rhs ) => Indexed( index, rhs )
     case ( Indexed( index, _ ), rhs: Explicit ) => Indexed( index, rhs )
+    case ( lhs: Indexed, rhs @ Indexed( _, Empty ) ) => AccessChain( rhs, lhs )
 
     case ( Explicit(_), rhs: Explicit ) => rhs
 

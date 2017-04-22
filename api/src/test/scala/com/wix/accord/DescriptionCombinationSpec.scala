@@ -80,6 +80,10 @@ class DescriptionCombinationSpec extends FlatSpec with Matchers {
     combine( materializedIndexed, explicit ) shouldEqual materializedIndexed.copy( of = explicit )
   }
 
+  "Combining a materialized Indexed with an open Index" should "create an appropriate access chain" in {
+    combine( materializedIndexed, openIndexed ) shouldEqual AccessChain( openIndexed, materializedIndexed )
+  }
+
   "Explicit description" should "fail to combine with any other description" in {
     an[ IllegalArgumentException ] shouldBe thrownBy { combine( explicit, Empty ) }
     an[ IllegalArgumentException ] shouldBe thrownBy { combine( explicit, generic ) }
