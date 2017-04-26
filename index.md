@@ -130,8 +130,8 @@ Accord is published to the Maven Central Repository, so you simply have to add t
     (See issue #84 at https://github.com/wix/accord/issues/84)
   -->
   <dependency>
-    <groupId>org.scala-lang.org</groupId>
-    <artifactId>scala-compiler</article>
+    <groupId>org.scala-lang</groupId>
+    <artifactId>scala-compiler</artifactId>
     <version>${scala.version}</version>
   </dependency>
 </dependencies>
