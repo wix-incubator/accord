@@ -16,7 +16,7 @@
 
 package com.wix.accord
 
-import com.wix.accord.Descriptions.Description
+import com.wix.accord.Descriptions.{Description, Path}
 
 /** A base trait for all violation types. */
 sealed trait Violation {
@@ -26,22 +26,22 @@ sealed trait Violation {
   /** A textual description of the constraint being violated (for example, "must not be empty"). */
   def constraint: String
 
-  /** The actual generated description of the object under validation (this is the expression that, when evaluated at
+  /** The actual generated path of the object under validation (this is the expression that, when evaluated at
     * runtime, produces the value in [[com.wix.accord.Violation.value]]). This is normally filled in
     * by the validation transform macro, but can also be explicitly provided via the DSL.
     */
-  def description: Description
+  def path: Path
 
-  /** Applies the specified description to this violation, and produces a new instance with the resulting
-    * description. For the exact semantics please refer to [[com.wix.accord.Descriptions.combine]].
-    *
-    * @see com.wix.accord.Descriptions.combine
-    */
-  def applyDescription( description: Description ): Violation
-
-  /** Produces a copy of this violation with the specified value. */
-  def replaceValue( newValue: Any ): Violation
-
+//  /** Applies the specified description to this violation, and produces a new instance with the resulting
+//    * description. For the exact semantics please refer to [[com.wix.accord.Descriptions.combine]].
+//    *
+//    * @see com.wix.accord.Descriptions.combine
+//    */
+//  def prependPath( description: Description ): Violation
+//
+//  /** Produces a copy of this violation with the specified value. */
+//  def replaceValue( newValue: Any ): Violation
+//
   /** Renders a textual representation of this violation.
     *
     * Important note: This is intended for debugging and logging purposes; there are no guarantees on
@@ -52,21 +52,21 @@ sealed trait Violation {
 
 /** Describes a simple validation rule violation (i.e. one without hierarchy). Most built-in combinators
   * emit this type of violation.
-  * 
+  *
   * @param value The value of the object which failed the validation rule.
   * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
   * @param description The description of the object under validation.
   */
 case class RuleViolation( value: Any,
                           constraint: String,
-                          description: Description = Descriptions.Empty )
+                          path: Path = Path.empty )
   extends Violation {
 
-  override def applyDescription( description: Description ): RuleViolation =
-    this.copy( description = Descriptions.combine( this.description, description ) )
-
-  override def replaceValue( newValue: Any ): RuleViolation =
-    this.copy( value = newValue )
+//  override def mapDescription( f: Description => Description ): RuleViolation =
+//    this.copy( description = f( description ) )
+//
+//  override def replaceValue( newValue: Any ): RuleViolation =
+//    this.copy( value = newValue )
 
   override def toString: String = {
     val includeValue =
@@ -77,9 +77,9 @@ case class RuleViolation( value: Any,
       }
 
     if ( includeValue )
-      s"""${ Descriptions.render( description ) } with value "$value" $constraint"""
+      s"""${ Descriptions.render( path ) } with value "$value" $constraint"""
     else
-      s"""${ Descriptions.render( description ) } $constraint"""
+      s"""${ Descriptions.render( path ) } $constraint"""
   }
 }
 
@@ -92,23 +92,23 @@ case class RuleViolation( value: Any,
   * @param description The description of the object under validation.
   * @param children The set of violations contained within the group.
   */
-case class GroupViolation(value: Any,
-                          constraint: String,
-                          children: Set[ Violation ],
-                          description: Description = Descriptions.Empty )
+case class GroupViolation( value: Any,
+                           constraint: String,
+                           children: Set[ Violation ],
+                           path: Path = Path.empty )
   extends Violation {
 
-  override def applyDescription( description: Description ): GroupViolation =
-    this.copy( description = Descriptions.combine( this.description, description ) )
-
-  override def replaceValue( newValue: Any ): GroupViolation =
-    this.copy( value = newValue )
+//  override def mapDescription( f: Description => Description ): GroupViolation =
+//    this.copy( description = f( description ) )
+//
+//  override def replaceValue( newValue: Any ): GroupViolation =
+//    this.copy( value = newValue )
 
   private def renderHeader =
     ( if ( value != null )
-        s"""${ Descriptions.render( description ) } with value "$value" $constraint"""
+        s"""${ Descriptions.render( path ) } with value "$value" $constraint"""
       else
-        s"""${ Descriptions.render( description ) } $constraint""" ) +
+        s"""${ Descriptions.render( path ) } $constraint""" ) +
     ( if ( children.nonEmpty ) ":" else "" )
 
   private def renderPrefix( nesting: Int, isLast: Boolean ) =
@@ -126,7 +126,7 @@ case class GroupViolation(value: Any,
     Ordering.fromLessThan[ Violation ] {
       case ( _: RuleViolation, _: GroupViolation ) => true
       case ( _: GroupViolation, _: RuleViolation ) => false
-      case ( l, r ) => Descriptions.render( l.description ) < Descriptions.render( r.description )
+      case ( l, r ) => Descriptions.render( l.path ) < Descriptions.render( r.path )
     }
 
   private def render( nesting: Int, isLast: Boolean ): String = {
@@ -168,30 +168,34 @@ sealed trait Result {
    */
   def or( other: Result ): Result
 
-  /** Applies a description to all violations within this result.
-    *
-    * @param description The description to be applied
-    * @return A modified copy of this result with the new violation description in place.
-    */
-  def applyDescription( description: Description ): Result
 
-  /** Replaces the reported value of this result (if a failure) with the specified value.
-    *
-    * @param newValue The replacement value for this result.
-    * @return If this result represents a success, it is returned as-is; otherwise returns a new
-    *         failure whose violations report the new value.
-    */
-  def replaceValue( newValue: Any ): Result
+  def map( f: Set[ Violation ] => Set[ Violation ] ): Result
+
+//  /** Applies a transformation to all descriptions within this result.
+//    *
+//    * @param description The description to be applied
+//    * @return A modified copy of this result with the new violation description in place.
+//    */
+//  def withPath( f: Description => Description ): Result
+//
+//  /** Replaces the reported value of this result (if a failure) with the specified value.
+//    *
+//    * @param newValue The replacement value for this result.
+//    * @return If this result represents a success, it is returned as-is; otherwise returns a new
+//    *         failure whose violations report the new value.
+//    */
+//  def replaceValue( newValue: Any ): Result
 }
 
 /** An object representing a successful validation result. */
 case object Success extends Result {
   override def and( other: Result ): Result = other
   override def or( other: Result ): Success.type = this
-  override def applyDescription( description: Description ): Success.type = this
-  override def replaceValue( newValue: Any ): Success.type = this
+//  override def mapDescription( f: Description => Description ): Success.type = this
+//  override def replaceValue( newValue: Any ): Success.type = this
   override def isSuccess: Boolean = true
   override def isFailure: Boolean = false
+  override def map( f: Set[ Violation ] => Set[ Violation ] ): Result = this
 }
 
 /** An object representing a failed validation result.
@@ -209,11 +213,14 @@ case class Failure( violations: Set[ Violation ] ) extends Result {
     case Failure(_) => this
   }
 
-  override def applyDescription( description: Description ): Failure =
-    Failure( violations map { _ applyDescription description } )
+//  override def mapDescription( f: Description => Description ): Failure =
+//    Failure( violations map { _ mapDescription f } )
+//
+//  override def replaceValue( newValue: Any ): Failure =
+//    Failure( violations map { _ replaceValue newValue } )
 
-  override def replaceValue( newValue: Any ): Failure =
-    Failure( violations map { _ replaceValue newValue } )
+  override def map( f: Set[ Violation ] => Set[ Violation ] ): Result =
+    Failure( f( violations ) )
 
   override def isSuccess: Boolean = false
   override def isFailure: Boolean = true

@@ -16,7 +16,7 @@
 
 package com.wix.accord.tests.dsl
 
-import com.wix.accord.Descriptions.{Empty, Generic, Indexed}
+import com.wix.accord.Descriptions.{Generic, Indexed, Path}
 import com.wix.accord._
 import com.wix.accord.scalatest.ResultMatchers
 import org.scalatest.{Inside, Matchers, WordSpec}
@@ -134,7 +134,7 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
       result shouldBe aSuccess
     }
 
-    def violationFor( elem: ArbitraryType ) = RuleViolation( elem, "fake constraint", Empty )
+    def violationFor( elem: ArbitraryType ) = RuleViolation( elem, "fake constraint", Path.empty )
     def failureFor( elem: ArbitraryType ) = Failure( Set( violationFor( elem ) ) )
     def matcherFor( elem: ArbitraryType ) = RuleViolationMatcher( value = elem, constraint = "fake constraint" )
 
@@ -160,7 +160,7 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
       result should failWith( failing map matcherFor :_* )
     }
 
-    "include position in a failed element's description for sequences" in {
+    "prepend position to a failed sequence element's path" in {
       val coll = Seq.fill( 5 )( ArbitraryType.apply )
       val result =
         visitEach( coll ) {
@@ -168,19 +168,19 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
           case _ => Success
         }
 
-      result should failWith( RuleViolationMatcher( value = coll( 2 ), description = Indexed( 2, Empty ) ) )
+      result should failWith( RuleViolationMatcher( value = coll( 2 ), path = Path( Indexed( 2 ) ) ) )
     }
 
     "not include positional information for options" in {
       val coll = Option( ArbitraryType.apply )
       val result = visitEach( coll ) { failureFor(_) }
-      result should failWith( Empty )
+      result should failWith( Path.empty )
     }
 
     "not include positional information for sets" in {
       val coll = Set( ArbitraryType.apply )
       val result = visitEach( coll ) { failureFor(_) }
-      result should failWith( Empty )
+      result should failWith( Path.empty )
     }
   }
 }

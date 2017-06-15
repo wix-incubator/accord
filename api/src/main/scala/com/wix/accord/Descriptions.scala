@@ -16,18 +16,60 @@
 
 package com.wix.accord
 
+import scala.annotation.tailrec
+
 object Descriptions {
+
+  type Path = Seq[ Description ]
+  object Path {
+    def apply( elements: Description* ): Path = elements.toVector
+    def empty = Nil
+  }
+
+  // TODO ---
+  // This significantly aids in backwards compatibility. Maybe retain?
+  import scala.language.implicitConversions
+  implicit def descriptionToPath( description: Description ): Path =
+    Option( description ).map( Path(_) ).orNull   // Option wrangling to support "group( null: Description, ... )"
+
+  object AccessChain {
+    @deprecated( "Use com.wix.accord.Descriptions.Path.apply instead", since = "0.7" )
+    def apply( elements: Description* ): Path = Path( elements:_* )
+    @deprecated( "Match on the path directly instead", since = "0.7" )
+    def unapply( path: Path ): Option[ Seq[ Description ] ] = Some( path )
+  }
+
+  object Conditional {
+    @deprecated( "Use one of com.wix.accord.Descriptions.{Branch, PatternMatch} instead", since = "0.7" )
+    def apply( on: Path, value: Any, guard: Option[ Generic ] ): AssociativeDescription =
+      on match {
+        case Generic( "branch" ) :: Nil =>
+          val evaluation =
+            try value.asInstanceOf[ Boolean ]
+            catch {
+              case e: ClassCastException => throw new IllegalArgumentException( "Non-boolean branch value specified" )
+            }
+          Branch(
+            guard = guard.getOrElse( throw new IllegalArgumentException( "Cannot create a branch without a guard" ) ),
+            evaluation = evaluation
+          )
+
+        case _ => PatternMatch( on, value, guard )
+      }
+  }
+
+  @deprecated( "Use com.wix.accord.Descriptions.Path.empty instead.", since = "0.7" )
+  val SelfReference: Path = Path.empty
+
+  // TODO ---
+
   /** Root trait whose various cases describe a single Object Under Validation (OUV). */
   sealed trait Description
 
-  /**
-    * An empty (i.e. unknown) description. This is the default state of any violation prior to applying additional
-    * information via [[com.wix.accord.Descriptions.combine]].
-    */
-  case object Empty extends Description
+  sealed trait AssociativeDescription extends Description
 
   /** Denotes an index access (e.g. accessing the nth element of an array). */
-  case class Indexed( index: Long, of: Description = Empty ) extends Description
+  case class Indexed( index: Long ) extends AssociativeDescription
 
   /** Denotes an explicit textual description, typically provided via the DSL `as` keyword. */
   case class Explicit( description: String ) extends Description
@@ -38,11 +80,9 @@ object Descriptions {
     */
   case class Generic( description: String ) extends Description
 
-  /**
-    * Denotes an indirection chain. For example, the expression `field.subfield.subsubfield` would result in
-    * a description like `AccessChain( Generic( "field" ), Generic( "subfield" ), Generic( "subsubfield" ) )`.
-    */
-  case class AccessChain( elements: Description* ) extends Description
+  case class Branch( guard: Generic, evaluation: Boolean ) extends AssociativeDescription
+
+  case class PatternMatch( on: Path, value: Any, guard: Option[ Generic ] ) extends AssociativeDescription
 
   /**
     * Denotes that the desirable validation strategy depends on a runtime condition. For example, the following
@@ -58,69 +98,69 @@ object Descriptions {
     * May evaluate to either of the following descriptions:
     * - Conditional( on = AccessChain( "age" ),
     *                value = -5,
-    *                guard = Some( Generic( "age < 18" ) ),
-    *                target = AccessChain( "guardian" ) )
+    *                guard = Some( Generic( "age < 18" ) ) )
     * - Conditional( on = AccessChain( "age" ),
     *                value = 55,
-    *                guard = Some( Generic( "age >= 18" ) ),
-    *                target = AccessChain( "residencyAddress" ) )
+    *                guard = Some( Generic( "age >= 18" ) ) )
     *
     * @param on A description of the property on which validation branches, or `Generic( "Branch" )` if not applicable.
     * @param value The runtime value of the condition for the matching case.
     * @param guard An optional description of the guard specified for the matching case.
-    * @param target The description of the validation target for the matching case.
     */
-  case class Conditional( on: Description,
-                          value: Any,
-                          guard: Option[ Description ],
-                          target: Description ) extends Description
+//  case class Conditional( on: Path,
+//                          value: Any,
+//                          guard: Option[ Generic ] ) extends AssociativeDescription
 
-  /** Denotes a self-reference (i.e. using a single positional wildcard in a lambda). */
-  case object SelfReference extends Description
 
   // Description algebra --
 
-  private def failed( lhs: Description, rhs: Description ): Nothing =
-    throw new IllegalArgumentException( s"Cannot combine description '$lhs' with '$rhs'" )
+  def render( description: Description ): String =
+    description match {
+      case Indexed( index ) => s"[at index $index]"
+      case Explicit( s ) => s
+      case Generic( s ) => s
+      case Branch( guard, evaluation ) => s"[where ${render( guard )} is $evaluation]"
+      case PatternMatch( on, value, None ) => s"[where ${render( on )}=$value]"
+      case PatternMatch( on, value, Some( guard ) ) => s"[where ${render( on )}=$value and ${render( guard )}]"
+    }
 
-  private object NonEmpty {
-    def unapply( desc: Description ): Option[ Description ] =
-      if ( desc != Empty ) Some( desc ) else None
-  }
+  def render( path: Path ): String =
+    if ( path.isEmpty )
+      "value"
+    else {
+      val sb = new StringBuilder
 
-  val combine: ( ( Description, Description ) => Description ) = {
-    case ( Empty, rhs ) => rhs
+      @tailrec def process( tail: Path, emitted: Boolean = true ): Unit =
+        tail match {
+          case Nil =>
 
-    case ( Indexed( index, Empty ), rhs ) => Indexed( index, rhs )
-    case ( Indexed( index, _ ), rhs: Explicit ) => Indexed( index, rhs )
-    case ( lhs: Indexed, rhs @ Indexed( _, Empty ) ) => AccessChain( rhs, lhs )
+          case ( assoc: AssociativeDescription ) +: Nil =>
+            if ( !emitted ) sb append "value"
+            sb append ' '
+            sb append render( assoc )
 
-    case ( Explicit(_), rhs: Explicit ) => rhs
+          case ( assoc: AssociativeDescription ) +: remainder =>
+            if ( !emitted ) sb append "value"
+            sb append ' '
+            sb append render( assoc )
+            process( remainder )
 
-    case ( lhs: Explicit, AccessChain( ind @ _* ) ) => AccessChain( ind :+ lhs :_* )
-    case ( lhs: Generic, AccessChain( ind @ _* ) ) => AccessChain( ind :+ lhs :_* )
-    case ( lhs @ Indexed( _, NonEmpty( of ) ), AccessChain( ind @ _* ) ) => AccessChain( ind :+ lhs :_* )
+          case ( exp: Explicit ) +: Nil =>
+            if ( emitted ) sb append '.'
+            sb append render( exp )
 
-    case ( AccessChain( rhs @ _* ), ind @ Indexed( _, Empty ) ) => AccessChain( ind +: rhs : _* )
-    case ( AccessChain( ind @ Indexed( _, Empty ), tail @ _* ), rhs ) => AccessChain( ind.copy( of = rhs ) +: tail :_* )
-    case ( AccessChain( inner @ _* ), AccessChain( outer @ _* ) ) => AccessChain( outer ++ inner :_* )
+          case ( exp: Explicit ) +: next +: remainder =>
+            if ( emitted ) sb append '.'
+            sb append render( exp )
+            process( remainder )
 
-    case ( SelfReference, Empty ) => failed( SelfReference, Empty )
-    case ( SelfReference, rhs ) => rhs
-    case ( lhs, SelfReference ) => lhs
+          case next +: remainder =>
+            if ( emitted ) sb append '.'
+            sb append render( next )
+            process( remainder )
+        }
 
-    case ( lhs, rhs ) => failed( lhs, rhs )
-  }
-
-  val render: Description => String = {
-    case Empty => "unknown"
-    case Indexed( index, of ) => s"${render( of )} [at index $index]"
-    case Explicit( s ) => s
-    case Generic( s ) => s
-    case SelfReference => "value"
-    case AccessChain( elements @ _* ) => elements.map( render ).mkString( "." )
-    case Conditional( on, value, None, target ) => s"${render( target )} [where ${render( on )}=$value]"
-    case Conditional( on, value, Some( guard ), target ) =>
-      s"${render( target )} [where ${render( on )}=$value and ${render( guard )}]"
-  }
+      process( path, emitted = false )
+      sb.result()
+    }
 }

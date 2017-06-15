@@ -16,7 +16,7 @@
 
 package com.wix.accord.scalatest
 
-import com.wix.accord.Descriptions.Description
+import com.wix.accord.Descriptions.{Description, Path}
 
 import scala.language.implicitConversions
 import org.scalatest.Suite
@@ -28,7 +28,9 @@ trait ResultMatchers {
   self: Suite =>
 
   /** Abstracts over validators for the various violation type. */
-  sealed trait ViolationMatcher extends Matcher[ Violation ]
+  sealed trait ViolationMatcher extends Matcher[ Violation ] {
+    def path: Path
+  }
 
   /** A matcher over [[com.wix.accord.RuleViolation]]s. To generate a violation rule "pattern", call
     * the constructor with the required predicates, for example:
@@ -51,18 +53,18 @@ trait ResultMatchers {
   case class RuleViolationMatcher( value: Any = null,
                                    constraint: String = null,
                                    legacyDescription: String = null,
-                                   description: Description = null )
+                                   path: Path = null )
     extends ViolationMatcher {
 
-    require( value != null || constraint != null || legacyDescription != null || description != null )
+    require( value != null || constraint != null || legacyDescription != null || path != null )
 
     def apply( left: Violation ): MatchResult = left match {
       case rv: RuleViolation =>
         MatchResult(
-          matches = ( value             == null || value             == rv.value                              ) &&
-                    ( constraint        == null || constraint        == rv.constraint                         ) &&
-                    ( legacyDescription == null || legacyDescription == Descriptions.render( rv.description ) ) &&
-                    ( description       == null || description       == rv.description                        ),
+          matches = ( value             == null || value             == rv.value                       ) &&
+                    ( constraint        == null || constraint        == rv.constraint                  ) &&
+                    ( legacyDescription == null || legacyDescription == Descriptions.render( rv.path ) ) &&
+                    ( path              == null || path              == rv.path                        ),
           s"Rule violation $rv did not match pattern $this",
           s"Rule violation $rv matches pattern $this"
         )
@@ -72,11 +74,12 @@ trait ResultMatchers {
           s"$left is a rule violation" )
     }
 
-    override def toString() =
-      Seq( Option( value ) getOrElse "_",
-           Option( constraint ) getOrElse "_",
-           Option( description ) orElse Option( legacyDescription ) getOrElse "_" )
-      .mkString( "RuleViolation(", ",", ")" )
+    override def toString(): String = {
+      val pathStr = Option( path ) map Descriptions.render orElse Option( legacyDescription ) getOrElse "_"
+      val valueStr = Option( value ) map { v => "with value \"" + v + "\"" } getOrElse ""
+      val constraintStr = Option( constraint ) getOrElse "_"
+      pathStr + valueStr + " " + constraintStr
+    }
   }
 
   /** A convenience implicit to simplify test code. Enables syntax like:
@@ -87,8 +90,8 @@ trait ResultMatchers {
     * val rule = RuleViolationMatcher( legacyDescription = "firstName", constraint = "must not be empty" )
     * ```
     */
-  @deprecated( "Intended for backwards compatibility. It is recommended to match against Description types instead " +
-               "(see descriptionAndConstraintTuple2RuleMatcher).",
+  @deprecated( "Intended for backwards compatibility. It is recommended to match against paths instead " +
+               "(see pathAndConstraintTuple2RuleMatcher).",
                since = "0.6" )
   implicit def stringTuple2RuleMatcher( v: ( String, String ) ): RuleViolationMatcher =
     RuleViolationMatcher( legacyDescription = v._1, constraint = v._2 )
@@ -101,13 +104,25 @@ trait ResultMatchers {
     * val rule = RuleViolationMatcher( description = AccessChain( "firstName" ), constraint = "must not be empty" )
     * ```
     */
+  @deprecated( "Intended for backwards compatibility. It is recommended to match against paths instead " +
+               "(see pathAndConstraintTuple2RuleMatcher).",
+               since = "0.7" )
   implicit def descriptionAndConstraintTuple2RuleMatcher( v: ( Description, String ) ): RuleViolationMatcher =
-    RuleViolationMatcher( description = v._1, constraint = v._2 )
+    RuleViolationMatcher( path = Path( v._1 ), constraint = v._2 )
+
+  implicit def pathAndConstraintTuple2RuleMatcher( v: ( Path, String ) ): RuleViolationMatcher =
+    RuleViolationMatcher( path = v._1, constraint = v._2 )
 
   // TODO ScalaDocs
   // TODO maybe ViolationMatcher? This applies to groups as well
+  @deprecated( "Intended for backwards compatibility. It is recommended to match against paths instead " +
+               "(see path2RuleMatcher).",
+               since = "0.7" )
   implicit def description2RuleViolationMatcher( desc: Description ): RuleViolationMatcher =
-    RuleViolationMatcher( description = desc )
+    RuleViolationMatcher( path = Path( desc ) )
+
+  implicit def path2RuleViolationMatcher( path: Path ): RuleViolationMatcher =
+    RuleViolationMatcher( path = path )
 
   /** A matcher over [[com.wix.accord.GroupViolation]]s. To generate a violation rule "pattern", call
     * the constructor with the required predicates, for example:
@@ -136,12 +151,11 @@ trait ResultMatchers {
   case class GroupViolationMatcher( value: Any = null,
                                     constraint: String = null,
                                     legacyDescription: String = null,
-                                    description: Description = null,
+                                    path: Path = null,
                                     violations: Set[ ViolationMatcher ] = null )
     extends ViolationMatcher {
 
-    require( value       != null || constraint != null || legacyDescription != null ||
-             description != null || violations != null )
+    require( value != null || constraint != null || legacyDescription != null || path != null || violations != null )
 
     def apply( left: Violation ): MatchResult = left match {
       case gv: GroupViolation =>
@@ -149,10 +163,10 @@ trait ResultMatchers {
                          ( gv.children.size == violations.size &&
                            gv.children.forall( rule => violations.exists( _.apply( rule ).matches ) ) )
         MatchResult(
-          matches = ( value             == null || value             == gv.value                              ) &&
-                    ( constraint        == null || constraint        == gv.constraint                         ) &&
-                    ( legacyDescription == null || legacyDescription == Descriptions.render( gv.description ) ) &&
-                    ( description       == null || description       == gv.description                        ) &&
+          matches = ( value             == null || value             == gv.value                       ) &&
+                    ( constraint        == null || constraint        == gv.constraint                  ) &&
+                    ( legacyDescription == null || legacyDescription == Descriptions.render( gv.path ) ) &&
+                    ( path              == null || path              == gv.path                        ) &&
                     rulesMatch,
           s"Group violation $gv did not match pattern $this",
           s"Group violation $gv matches pattern $this"
@@ -163,10 +177,10 @@ trait ResultMatchers {
           s"$left is a group violation" )
     }
 
-    override def toString() =
+    override def toString(): String =
       Seq( Option( value ) getOrElse "_",
            Option( constraint ) getOrElse "_",
-           Option( description ) orElse Option( legacyDescription ) getOrElse "_",
+           Option( path ) map Descriptions.render orElse Option( legacyDescription ) getOrElse "_",
            Option( violations ) getOrElse "_" )
       .mkString( "GroupViolation(", ",", ")" )
   }
@@ -177,14 +191,25 @@ trait ResultMatchers {
     * @param expectedViolations The set of expected violations for this matcher.
     */
   case class ResultMatcher( expectedViolations: Set[ ViolationMatcher ] ) extends Matcher[ Result ] {
-    def apply( left: Result ) = left match {
+    def apply( left: Result ): MatchResult = left match {
       case Success =>
         MatchResult( matches = false, "Validation was successful", "Validation was not successful" )
 
       case Failure( violations ) =>
-        val matched = violations.map { v => ( v, expectedViolations.find( _.apply( v ).matches ) ) }
-        val unexpected = matched collect { case ( v, None ) => v }
-        val unmatched = expectedViolations.diff( matched collect { case ( _, Some( rule ) ) => rule } )
+
+        // TODO clean this unholy mess up
+
+        val matched =
+          violations.map { v => ( v, expectedViolations.find( _.apply( v ).matches ) ) }
+        def renderRule( rule: ViolationMatcher ): String =
+          rule.path match {
+            case null => rule.toString
+            case p => s"$rule (with path ${ Descriptions.render( p ) })"
+          }
+        val unmatched =
+          expectedViolations.diff( matched collect { case ( _, Some( rule ) ) => rule } ) map renderRule
+        val unexpected =
+          matched collect { case ( v, None ) => s"$v (with path ${ Descriptions.render( v.path ) })" }
 
         MatchResult( matches = unexpected.isEmpty && unmatched.isEmpty,
           s"""
@@ -227,10 +252,10 @@ trait ResultMatchers {
     * @param expectedViolations The set of expected violations that comprise the group.
     * @return A matcher over [[com.wix.accord.GroupViolation]]s.
     */
-  def group( description: Description, constraint: String, expectedViolations: ( Description, String )* ) =
+  def group( path: Path, constraint: String, expectedViolations: ( Path, String )* ) =
     GroupViolationMatcher( constraint  = constraint,
-                           description = description,
-                           violations  = ( expectedViolations map descriptionAndConstraintTuple2RuleMatcher ).toSet )
+                           path        = path,
+                           violations  = ( expectedViolations map pathAndConstraintTuple2RuleMatcher ).toSet )
 
   /** A convenience method for matching violation groups. Enables syntax like:
     *
@@ -256,7 +281,7 @@ trait ResultMatchers {
       violations  = ( expectedViolations map stringTuple2RuleMatcher ).toSet )
 
   // TODO docs
-  @deprecated( "Intended for backwards compatibility. It is recommended to match against Description types instead.",
+  @deprecated( "Intended for backwards compatibility. It is recommended to match against paths instead.",
                since = "0.6" )
   def group[ T ]( legacyDescription: String, constraint: String, expectedViolations: T* )
                 ( implicit ev: T => RuleViolationMatcher ): GroupViolationMatcher =
@@ -264,10 +289,10 @@ trait ResultMatchers {
                            legacyDescription = legacyDescription,
                            violations        = ( expectedViolations map ev ).toSet )
 
-  def group[ T ]( description: Description, constraint: String, expectedViolations: T* )
+  def group[ T ]( path: Path, constraint: String, expectedViolations: T* )
                 ( implicit ev: T => RuleViolationMatcher ): GroupViolationMatcher =
     GroupViolationMatcher( constraint  = constraint,
-                           description = description,
+                           path        = path,
                            violations  = ( expectedViolations map ev ).toSet )
 
   /** Enables syntax like `someResult should be( aFailure )` */

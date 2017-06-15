@@ -11,11 +11,8 @@ lazy val publishSettings = Seq(
   },
   publishMavenStyle := true,
   credentials in Scaladex += Credentials( Path.userHome / ".ivy2" / ".scaladex.credentials" ),
+  scmInfo := Some( ScmInfo( url( "https://github.com/wix/accord" ), "scm:git:git@github.com:wix/accord.git" ) ),
   pomExtra in ThisBuild :=
-    <scm>
-      <url>git@github.com:wix/accord.git</url>
-      <connection>scm:git@github.com:wix/accord.git</connection>
-    </scm>
     <developers>
       <developer>
         <id>Holograph</id>
@@ -163,7 +160,9 @@ lazy val core =
       description :=
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
         "dead-simple and self-contained story for defining validation rules and executing them on object " +
-        "instances. Feedback, bug reports and improvements are welcome!"
+        "instances. Feedback, bug reports and improvements are welcome!",
+
+      noFatalWarningsOn( compile, Test )      // Avoid failed test compilation due to deprecations // TODO remove
     ) ++ baseSettings :_* )
     .jvmSettings( limitPackageSize( 400 ) )
     .jsSettings( limitPackageSize( 700 ) )
