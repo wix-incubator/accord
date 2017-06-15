@@ -61,41 +61,33 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     // TODO split into separate tests for each property
     "describe the true branch correctly" in {
       val trueBranchInvalid = ControlStructureTest( -5, "5" )
-      ifWithBothBranches( trueBranchInvalid ) should failWith( Conditional(
-        on = Generic( "branch" ),
-        value = true,
-        guard = Some( Generic( "cst.field1 < 0" ) ),
-        target = AccessChain( Generic( "field2" ) )
+      ifWithBothBranches( trueBranchInvalid ) should failWith( Path(
+        Branch( Generic( "cst.field1 < 0" ), evaluation = true ),
+        Generic( "field2" )
       ) )
     }
 
     "describe the false branch correctly" in {
       val falseBranchInvalid = ControlStructureTest( 5, "" )
-      ifWithBothBranches( falseBranchInvalid ) should failWith( Conditional(
-        on = Generic( "branch" ),
-        value = false,
-        guard = Some( Generic( "<else>" ) ),
-        target = AccessChain( Generic( "field2" ) )
+      ifWithBothBranches( falseBranchInvalid ) should failWith( Path(
+        Branch( Generic( "cst.field1 < 0" ), evaluation = false ),
+        Generic( "field2" )
       ) )
     }
 
     "derive the guard description on non-terminal branches of an if-else chain" in {
       val secondBranchInvalid = ControlStructureTest( 0, "5" )
-      ifElseChain( secondBranchInvalid ) should failWith( Conditional(
-        on = Generic( "branch" ),
-        value = true,
-        guard = Some( Generic( "cst.field1 == 0" ) ),
-        target = AccessChain( Generic( "field2" ) )
+      ifElseChain( secondBranchInvalid ) should failWith( Path(
+        Branch( Generic( "cst.field1 == 0" ), evaluation = true ),
+        Generic( "field2" )
       ) )
     }
 
     "describe the last branch of an if-else chain correctly" in {
       val thirdBranchInvalid = ControlStructureTest( 5, "" )
-      ifElseChain( thirdBranchInvalid ) should failWith( Conditional(
-        on = Generic( "branch" ),
-        value = false,
-        guard = Some( Generic( "<else>" ) ),
-        target = AccessChain( Generic( "field2" ) )
+      ifElseChain( thirdBranchInvalid ) should failWith( Path(
+        Branch( Generic( "cst.field1 == 0" ), evaluation = false ),
+        Generic( "field2" )
       ) )
     }
   }
@@ -125,20 +117,24 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     }
     "correctly describe a case on failure" in {
       val invalid = ControlStructureTest( 1, "wrong" )
-      simplePatternMatch( invalid ) should failWith( Conditional(
-        on = AccessChain( Generic( "field1" ) ),
-        value = 1,
-        guard = None,
-        target = AccessChain( Generic( "field2" ) )  // TODO elide from test once we have a proper matcher in place
+      simplePatternMatch( invalid ) should failWith( Path (
+        PatternMatch(
+          on = AccessChain( Generic( "field1" ) ),
+          value = 1,
+          guard = None
+        ),
+        Generic( "field2" )  // TODO elide from test once we have a proper matcher in place
       ) )
     }
     "correctly describe a guard on failure" in {
       val invalid = ControlStructureTest( -1, "wrong" )
-      patternMatchWithGuard( invalid ) should failWith( Conditional(
-        on = AccessChain( Generic( "field1" ) ),
-        value = -1,
-        guard = Some( Generic( "n < 0" ) ),
-        target = AccessChain( Generic( "field2" ) )
+      patternMatchWithGuard( invalid ) should failWith( Path(
+        PatternMatch(
+          on = AccessChain( Generic( "field1" ) ),
+          value = -1,
+          guard = Some( Generic( "n < 0" ) )
+        ),
+        Generic( "field2" )
       ) )
     }
     "treat an empty case as an implicit success" in {
@@ -174,13 +170,12 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       validate( null )( selfReferenceToImplicitlyDescribedValidator ) should failWith( SelfReference -> "is a null" )
     }
     "propagate through anonymous value references for explicit descriptions" in {
-      validate( null )( selfReferenceToExplicitlyDescribedValidator ) should failWith( Explicit( "described" ) -> "is a null" )
+      validate( null )( selfReferenceToExplicitlyDescribedValidator ) should
+        failWith( Explicit( "described" ) -> "is a null" )
     }
     "be generated for explicit description of multiple anonymous value references" in {
-      validate( null )( explicitlyDescribedSelfReferenceToImplicitlyDescribedValidator ) should failWith( Explicit( "described" ) -> "is a null" )
-    }
-    "allow overriding explicit descriptions on anonymous value references" in {
-      validate( null )( explicitlyDescribedSelfReferenceToExplicitlyDescribedValidator ) should failWith( Explicit( "override" ) -> "is a null" )
+      validate( null )( explicitlyDescribedSelfReferenceToImplicitlyDescribedValidator ) should
+        failWith( Explicit( "described" ) -> "is a null" )
     }
     "be generated for a fully-qualified selector with multiple indirections" in {
       val obj = CompositeTest( FlatTest( null ) )
@@ -219,7 +214,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     }
     "be propagated for an adapted validator" in {
       validate( FlatTest( null ) )( adaptedValidator ) should
-        failWith( AccessChain( Generic( "field" ) ) -> "is a null" )
+        failWith( Path( Generic( "field" ) ) -> "is a null" )
     }
   }
 
@@ -229,25 +224,25 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     "propagate correctly when the object under validation is implicitly described" in {
       val sample = RuntimeDescribedTest( Seq( "valid", "" ) )
       val result = validate( sample )( implicitDescriptionWithRuntimeRewriteValidator )
-      result should failWith( Indexed( 1L, AccessChain( Generic( "field" ) ) ) -> "must not be empty" )
+      result should failWith( Path( Generic( "field" ), Indexed( 1L ) ) -> "must not be empty" )
     }
 
     "propagate correctly when the object under validation is explicitly described with \"as\"" in {
       val sample = RuntimeDescribedTest( Seq( "valid", "" ) )
       val result = validate( sample )( explicitDescriptionWithRuntimeRewriteValidator )
-      result should failWith( Indexed( 1L, Explicit( "described" ) ) -> "must not be empty" )
+      result should failWith( Path( Explicit( "described" ), Indexed( 1L ) ) -> "must not be empty" )
     }
 
     "support interleaved indices within access chains" in {
       val sample = CollectionOfIndirections( Seq( TestElement( "" ) ) )
       val result = validate( sample )( collectionOfIndirectionsValidator )
-      result should failWith( AccessChain( Indexed( 0L, AccessChain( Generic( "field" ) ) ), Generic( "property" ) ) )
+      result should failWith( Path( Generic( "field" ), Indexed( 0L ), Generic( "property" ) ) )
     }
 
     "support underlying self references with an overriding explicit description" in {
       val sample = RuntimeDescribedTest( Seq( "valid", "" ) )
       val result = validate( sample )( propagatedSelfReferenceWithExplicitDescriptionAndRuntimeRewriteValidator )
-      result should failWith( Indexed( 1L, Explicit( "described" ) ) )
+      result should failWith( Path( Explicit( "described" ), Indexed( 1L ) ) )
     }
   }
 

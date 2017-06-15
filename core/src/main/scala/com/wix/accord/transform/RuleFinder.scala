@@ -17,7 +17,7 @@
 package com.wix.accord.transform
 
 import MacroHelper._
-import com.wix.accord.Descriptions.{Description, Explicit}
+import com.wix.accord.Descriptions.{Description, Explicit, Path}
 import com.wix.accord._
 
 private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ] with MacroHelper[ C ] {
@@ -30,7 +30,7 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
 
   sealed trait ValidatorApplication
   protected case class BooleanExpression( expr: Tree ) extends ValidatorApplication
-  protected case class ValidationRule( ouv: Tree, validation: Tree, description: context.Expr[ Description ] )
+  protected case class ValidationRule( ouv: Tree, validation: Tree, path: Expr[ Path ] )
     extends ValidatorApplication
 
   protected object ValidationRule {
@@ -84,16 +84,19 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
 
       case ObjectUnderValidation( ouv :: Nil ) =>
         val sv = rewriteContextExpressionAsValidator( expr )
-        val description = ExplicitlyDescribed.unapply( expr ).getOrElse( describeTree( prototype, ouv ) )
+        val path =
+          ExplicitlyDescribed.unapply( expr )
+            .map { explicit => q"com.wix.accord.Descriptions.Path( $explicit )" }
+            .getOrElse( describeTree( prototype, ouv ) )
         trace( s"""
               |Found validation rule:
               |  ouv=$ouv
               |  ouvraw=${showRaw(ouv)}
               |  sv=${show(sv)}
               |  svraw=${showRaw(sv)}
-              |  desc=$description
+              |  path=$path
               |""".stripMargin, ouv.pos )
-        Some( ValidationRule( ouv, sv, description ) )
+        Some( ValidationRule( ouv, sv, context.Expr[ Path ]( path ) ) )
 
       case ObjectUnderValidation( _ :: _ ) =>
         // Multiple validators found; this can happen in case of a multiple-clause boolean expression,

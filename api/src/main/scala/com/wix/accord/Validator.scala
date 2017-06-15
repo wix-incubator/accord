@@ -62,7 +62,7 @@ object Validator {
   abstract class PromotedPrimitiveValidator[ U, B ]( validator: Validator[ U ] )( implicit unbox: B => U ) {
     /** Transforms this validator to a null-safe variant over the reference type. */
     def boxed = new Validator[ B ] {
-      def apply( v: B ) = if ( v == null ) nullFailure else validator( v )
+      def apply( v: B ): Result = if ( v == null ) nullFailure else validator( v )
     }
   }
 

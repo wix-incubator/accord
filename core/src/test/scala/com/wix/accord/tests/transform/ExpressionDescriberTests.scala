@@ -28,33 +28,33 @@ class ExpressionDescriberTests extends WordSpec with Matchers {
 
   "A single-parameter function literal" should {
     "render an access chain description for a property getter" in {
-      val description = ExpressionDescriber describe { ( t: Test ) => t.field1 }
-      description shouldEqual AccessChain( Generic( "field1" ) )
+      val path = ExpressionDescriber describe { ( t: Test ) => t.field1 }
+      path shouldEqual Path( Generic( "field1" ) )
     }
     "render an access chain description for multiple indirections via property getters" in {
-      val description = ExpressionDescriber describe { ( t: Test ) => t.nested.field }
-      description shouldEqual AccessChain( Generic( "nested" ), Generic( "field" ) )
+      val path = ExpressionDescriber describe { ( t: Test ) => t.nested.field }
+      path shouldEqual Path( Generic( "nested" ), Generic( "field" ) )
     }
     "render an explicit description when \"as\" is used" in {
-      val description = ExpressionDescriber describe { ( t: Test ) => t.field2 as "explicit" }
-      description shouldEqual Explicit( "explicit" )
+      val path = ExpressionDescriber describe { ( t: Test ) => t.field2 as "explicit" }
+      path shouldEqual Path( Explicit( "explicit" ) )
     }
     "render a generic description for unsupported expressions" in {
-      val description = ExpressionDescriber describe { ( _: Test ) => "arbitrary" }
-      description shouldEqual Generic( "\"arbitrary\"" )
+      val path = ExpressionDescriber describe { ( _: Test ) => "arbitrary" }
+      path shouldEqual Path( Generic( "\"arbitrary\"" ) )
     }
     "desugar unsupported expressions before rendering" in {
-      val description = ExpressionDescriber describe { ( t: Test ) => t.field1.length * 2 }
-      description shouldEqual Generic( "t.field1.length * 2" )
+      val path = ExpressionDescriber describe { ( t: Test ) => t.field1.length * 2 }
+      path shouldEqual Path( Generic( "t.field1.length * 2" ) )
     }
     "include the last token in full" in {
-      val description = ExpressionDescriber describe { ( t: Test ) => t.field1.length * 180 }
-      description shouldEqual Generic( "t.field1.length * 180" )
+      val path = ExpressionDescriber describe { ( t: Test ) => t.field1.length * 180 }
+      path shouldEqual Path( Generic( "t.field1.length * 180" ) )
     }
     "properly render a function call" in {
       def test( s: String ) = ???
-      val description = ExpressionDescriber describe { ( t: Test ) => test( t.field1 ) }
-      description shouldEqual Generic( "test( t.field1 )" )
+      val path = ExpressionDescriber describe { ( t: Test ) => test( t.field1 ) }
+      path shouldEqual Path( Generic( "test( t.field1 )" ) )
     }
     "successfully handle empty compiler-generated subtrees" in {
       // The Scala compiler (2.11.x at any rate) generates an empty subtree for the following
@@ -64,8 +64,8 @@ class ExpressionDescriberTests extends WordSpec with Matchers {
     "render a self-reference description when the sample object itself is used anonymously" in pending
 //    {
 //      TODO find a way to encode such a function, or add yet another helper macro
-//      val description = ExpressionDescriber describe[ String, String ] { _ }
-//      description shouldEqual "SelfReference"
+//      val path = ExpressionDescriber describe[ String, String ] { _ }
+//      path shouldEqual Path( SelfReference )
 //    }
   }
 

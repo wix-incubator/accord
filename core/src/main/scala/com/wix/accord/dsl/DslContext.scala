@@ -17,6 +17,7 @@
 package com.wix.accord.dsl
 
 import com.wix.accord.{Result, Validator}
+import com.wix.accord.ResultBuilders._
 
 // TODO ScalaDocs
 
@@ -33,7 +34,7 @@ class CollectionDslContext[ Inner, Outer ]( protected val transform: Validator[ 
         if ( v1 == null )
           Validator.nullFailure
         else
-          validator.boxed( v1.size ).replaceValue( v1 )
+          validator.boxed( v1.size ).withValue( v1 )
     }
     transform apply composed
   }

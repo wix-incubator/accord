@@ -17,7 +17,7 @@
 package com.wix.accord.transform
 
 import MacroHelper._
-import com.wix.accord.Descriptions.Description
+import com.wix.accord.Descriptions.{Branch, Path}
 import com.wix.accord._
 import com.wix.accord.transform.ValidationTransform.TransformedValidator
 
@@ -35,17 +35,19 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
   val ( prototype, validatorBody ) = describeFunction( v in context.mirror )
 
-  type DescriptionTransformation = context.Expr[ Description ] => context.Expr[ Description ]
+  type PathTransformation = context.Expr[ Path ] => context.Expr[ Path ]
 
-  def rewriteOne( rule: ValidationRule, transform: DescriptionTransformation = identity ): Tree = {
-    val description = transform( rule.description )
+  def rewriteOne( rule: ValidationRule, transform: PathTransformation = identity ): Tree = {
+    val description = transform( rule.path )
     val rewrite =
       q"""
           new com.wix.accord.Validator[ ${weakTypeOf[ T ] } ] {
+            import com.wix.accord.DescriptionBuilders._
+
             def apply( ${ resetAttrs( prototype.duplicate ) } ) = {
               val validation = ${rule.validation}
-              val description = $description
-              validation( ${rule.ouv} ) applyDescription description
+              val path = $description
+              validation( ${rule.ouv} ) prepend path
             }
           }
        """
@@ -123,16 +125,16 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
       val cond = resetAttrs( rawCond.duplicate )
       val rewrittenBranches = cases collect {
         case CaseDef( pat, guard, ValidatorApplicationBlock( rules ) ) =>
-          val guardDescription = if ( guard.isEmpty ) q"scala.None" else q"scala.Some( ${describeTree( prototype, guard )} )"
+          val guardDescription =
+            if ( guard.isEmpty ) q"scala.None" else q"scala.Some( ${genericDescription( guard )} )"
           val condDescription = describeTree( prototype, cond )
-          val description: DescriptionTransformation = { target => context.Expr[ Description ](
+          val description: PathTransformation = { target => context.Expr[ Path ](
             q"""
-              com.wix.accord.Descriptions.Conditional(
+              com.wix.accord.Descriptions.PatternMatch(
                 on = $condDescription,
                 value = $cond,
-                guard = $guardDescription,
-                target = $target
-              )
+                guard = $guardDescription
+              ) +: $target
             """ ) }
 
           val rewriteOne = rewriteValidatorApplication( description )
@@ -158,24 +160,16 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
   val processBranches: TransformAST = {
     case t @ Branch( ValidationRuleBranch( branches, default ) ) =>
-      def describeBranch( cond: Tree ): DescriptionTransformation = {
-        val condDescription = describeTree( prototype, cond )
-        target: context.Expr[ Description ] => context.Expr[ Description ](
-          q"""
-              com.wix.accord.Descriptions.Conditional(
-                on = com.wix.accord.Descriptions.Generic( "branch" ),
-                value = true,
-                guard = Some( $condDescription ),
-                target = $target
-              )
-          """
-        )
+      def describeBranch( cond: Tree, evaluation: Boolean ): PathTransformation = {
+        val condDescription = genericDescription( cond )
+        target: context.Expr[ Path ] =>
+          context.Expr[ Path ]( q"com.wix.accord.Descriptions.Branch( $condDescription, $evaluation ) +: $target" )
       }
 
       val rewrittenBranches =
         branches.map { b =>
           val liftedCondition = q"( ${ resetAttrs( prototype.duplicate ) } => ${ resetAttrs( b.cond.duplicate ) } )"
-          val rewriteOne = rewriteValidatorApplication( describeBranch( b.cond ) )
+          val rewriteOne = rewriteValidatorApplication( describeBranch( b.cond, evaluation = true ) )
           val aggregate = b.rules match {
             case Nil =>
               context.abort( t.pos, "Unexpected rule count (safety net; should never happen)" )
@@ -190,16 +184,7 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
       val rewrittenDefault =
         default.map { d =>
-          val describeDefault: DescriptionTransformation = { target => context.Expr[ Description ](
-            q"""
-              com.wix.accord.Descriptions.Conditional(
-                on = com.wix.accord.Descriptions.Generic( "branch" ),
-                value = false,
-                guard = Some( com.wix.accord.Descriptions.Generic( "<else>" ) ),
-                target = $target
-              )
-            """ )
-          }
+          val describeDefault = describeBranch( branches.last.cond, evaluation = false )
           q"scala.Some( ${ rewriteValidatorApplication( describeDefault )( d ) } )"
         }.getOrElse( q"scala.None" )
 
@@ -212,18 +197,18 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
   val processControlStructures: TransformAST = processBranches orElse processMatches
 
   /** A pattern which rewrites validation rules found in the tree. */
-  def rewriteValidationRules( transform: DescriptionTransformation = identity ): TransformAST = {
+  def rewriteValidationRules( transform: PathTransformation = identity ): TransformAST = {
     case ValidatorApplication( sv: ValidationRule ) =>
       rewriteOne( sv, transform )
   }
 
   /** A pattern which lifts boolean expressions and rewrites their clauses. */
-  def processBooleanExpressions( transform: DescriptionTransformation = identity ): TransformAST = {
+  def processBooleanExpressions( transform: PathTransformation = identity ): TransformAST = {
     case ValidatorApplication( BooleanExpression( tree ) ) =>
       liftBooleanOps( transformByPattern( tree )( rewriteValidationRules( transform ) ) )
   }
 
-  def rewriteValidatorApplication( transform: DescriptionTransformation = identity ): TransformAST =
+  def rewriteValidatorApplication( transform: PathTransformation = identity ): TransformAST =
     rewriteValidationRules( transform ) orElse processBooleanExpressions( transform )
 
   /** Returns the specified validation block, transformed into a single monolithic validator.
@@ -258,15 +243,17 @@ object ValidationTransform {
     val helper = new FunctionDescriber[ c.type, U, T ] {
       val context: c.type = c
       private val ( prototype, body ) = describeFunction( g )
-      val description: c.Expr[Description] = describeTree( prototype, body )
+      val description = describeTree( prototype, body )
     }
 
     import c.universe._
     val rewrite =
      q"""
         new com.wix.accord.Validator[ ${weakTypeOf[ U ]} ] {
+          import com.wix.accord.DescriptionBuilders._
+
           override def apply( v1: ${weakTypeOf[ U ]} ): com.wix.accord.Result =
-            ${c.prefix} apply $g( v1 ) applyDescription ${helper.description}
+            ${c.prefix} apply $g( v1 ) prepend ${helper.description}
         }
       """
 

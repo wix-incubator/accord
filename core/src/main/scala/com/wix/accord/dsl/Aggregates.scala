@@ -41,9 +41,12 @@ object Aggregates {
           var index = 0
           var aggregate: Result = Success
 
+
+          import com.wix.accord.DescriptionBuilders._
+
           coll foreach { element =>
             val result = if ( includeIndices )
-              validator apply element applyDescription Indexed( index, Empty )
+              validator apply element prepend Indexed( index )
             else
               validator apply element
             aggregate = aggregate and result
