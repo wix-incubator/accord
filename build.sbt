@@ -161,7 +161,7 @@ lazy val core =
       name := "accord-core",
 
       libraryDependencies += "org.scalamacros" %% "resetallattrs" % "1.0.0",
-      libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
+      libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
 
       description :=
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
