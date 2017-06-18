@@ -23,7 +23,7 @@ trait SpringAdapterBase {
 
   /** Formats Spring Validation rejection messages. */
   protected def formatMessage( failure: Violation ) =
-    s"${Descriptions.render( failure.description )} ${failure.constraint}"
+    s"${Descriptions.render( failure.path )} ${failure.constraint}"
 
   /** Formats Spring Validation error codes. Currently hardcoded. */
   protected def formatErrorCode( failure: Violation ) = SpringAdapterBase.defaultErrorCode

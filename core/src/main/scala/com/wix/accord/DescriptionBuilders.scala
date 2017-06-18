@@ -2,12 +2,27 @@ package com.wix.accord
 
 import Descriptions._
 
-trait DescriptionBuilders {
+trait DescriptionBuilders extends LowPriorityDescriptionBuilders {
 
-//  implicit class PathOps( base: Path ) {
-//    def prepend( element: Description ): Path = element +: base
-//    def append( element: Description ): Path = base :+ element
-//  }
+  implicit class FailurePathOps( base: Failure ) {
+    def withPath( f: Path => Path ): Failure =
+      base map { violations => violations map { _ withPath f } }
+
+    def prepend( desc: Description ): Failure =
+      withPath( desc +: _ )
+
+    def prepend( path: Path ): Failure =
+      withPath( path ++ _ )
+
+    def append( desc: Description ): Failure =
+      withPath( _ :+ desc )
+
+    def append( path: Path ): Failure =
+      withPath( _ ++ path )
+  }
+}
+
+trait LowPriorityDescriptionBuilders {
 
   implicit class ViolationPathOps( base: Violation ) {
     def withPath( f: Path => Path ): Violation = base match {

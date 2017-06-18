@@ -45,9 +45,9 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
             import com.wix.accord.DescriptionBuilders._
 
             def apply( ${ resetAttrs( prototype.duplicate ) } ) = {
-              val validation = ${rule.validation}
-              val path = $description
-              validation( ${rule.ouv} ) prepend path
+              val validation$$0 = ${rule.validation}
+              val path$$0 = $description
+              validation$$0( ${rule.ouv} ) prepend path$$0
             }
           }
        """

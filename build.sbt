@@ -164,8 +164,8 @@ lazy val core =
 
       noFatalWarningsOn( compile, Test )      // Avoid failed test compilation due to deprecations // TODO remove
     ) ++ baseSettings :_* )
-    .jvmSettings( limitPackageSize( 400 ) )
-    .jsSettings( limitPackageSize( 700 ) )
+    .jvmSettings( limitPackageSize( 500 ) )
+    .jsSettings( limitPackageSize( 800 ) )
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
 
