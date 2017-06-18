@@ -39,14 +39,14 @@ def noFatalWarningsOn( task: sbt.TaskKey[_] = compile, configuration: sbt.Config
 
 // Necessary to work around scala/scala-dev#275 (see wix/accord#84)
 def providedScalaCompiler =
-  libraryDependencies <+= scalaVersion { "org.scala-lang" % "scala-compiler" % _ % "provided" }
+  libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
 
 def limitPackageSize( allowedSizeInKB: Int ) =
   packageBin in Compile := {
     val jar = ( packageBin in Compile ).value
     val sizeKB = jar.length() / 1024
     if ( sizeKB > allowedSizeInKB )
-      error( s"Resulting package $jar (size=${sizeKB}KB) is larger than the allowed limit of ${allowedSizeInKB}KB" )
+      sys.error( s"Resulting package $jar (size=${sizeKB}KB) is larger than the allowed limit of ${allowedSizeInKB}KB" )
     jar
   }
 
@@ -97,9 +97,11 @@ lazy val api =
     limitPackageSize( 150 )
   )
   .jvmSettings(
-    libraryDependencies <+= scalaVersion {
-      case v if v startsWith "2.12" => "org.scalatest" %% "scalatest" % "3.0.0" % "test"
-      case _ => "org.scalatest" %% "scalatest" % "2.2.6" % "test"
+    libraryDependencies += {
+      if ( scalaVersion.value startsWith "2.12" )
+        "org.scalatest" %% "scalatest" % "3.0.0" % "test"
+      else
+        "org.scalatest" %% "scalatest" % "2.2.6" % "test"
     },
     limitPackageSize( 90 )
   )
@@ -122,9 +124,11 @@ lazy val scalatest =
     limitPackageSize( 100 )
   )
   .jvmSettings(
-    libraryDependencies <+= scalaVersion {
-      case v if v startsWith "2.12" => "org.scalatest" %% "scalatest" % "3.0.0"
-      case _ => "org.scalatest" %% "scalatest" % "2.2.6"
+    libraryDependencies += {
+      if ( scalaVersion.value startsWith "2.12" )
+        "org.scalatest" %% "scalatest" % "3.0.0"
+      else
+        "org.scalatest" %% "scalatest" % "2.2.6"
     },
     limitPackageSize( 60 )
   )
@@ -137,9 +141,11 @@ lazy val specs2 =
     base = file( "specs2" ),
     settings = baseSettings ++ Seq(
       name := "accord-specs2",
-      libraryDependencies <+= scalaVersion {
-        case v if v startsWith "2.12" => "org.specs2" %% "specs2-core" % "3.8.6"
-        case _ => "org.specs2" %% "specs2-core" % "3.6.5"
+      libraryDependencies += {
+        if ( scalaVersion.value startsWith "2.12" )
+          "org.specs2" %% "specs2-core" % "3.8.6"
+        else
+          "org.specs2" %% "specs2-core" % "3.6.5"
       },
       noFatalWarningsOn( compile, Test ),
       limitPackageSize( 80 )
@@ -155,7 +161,7 @@ lazy val core =
       name := "accord-core",
 
       libraryDependencies += "org.scalamacros" %% "resetallattrs" % "1.0.0",
-      libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-reflect" % _ % "provided" ),
+      libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
 
       description :=
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
