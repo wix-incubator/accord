@@ -16,7 +16,7 @@
 
 package com.wix.accord
 
-import com.wix.accord.Descriptions.{Description, Path}
+import com.wix.accord.Descriptions.Path
 
 /** A base trait for all violation types. */
 sealed trait Violation {
@@ -145,7 +145,6 @@ case class GroupViolation( value: Any,
   * @see [[com.wix.accord.Success]], [[com.wix.accord.Failure]]
   */
 sealed trait Result {
-
   /** Returns `true` if this result represents a successful validation `false` otherwise.  */
   def isSuccess: Boolean
 
@@ -195,7 +194,7 @@ case object Success extends Result {
 //  override def replaceValue( newValue: Any ): Success.type = this
   override def isSuccess: Boolean = true
   override def isFailure: Boolean = false
-  override def map( f: Set[ Violation ] => Set[ Violation ] ): Result = this
+  override def map( f: Set[ Violation ] => Set[ Violation ] ): Success.type = this
 }
 
 /** An object representing a failed validation result.
@@ -219,7 +218,7 @@ case class Failure( violations: Set[ Violation ] ) extends Result {
 //  override def replaceValue( newValue: Any ): Failure =
 //    Failure( violations map { _ replaceValue newValue } )
 
-  override def map( f: Set[ Violation ] => Set[ Violation ] ): Result =
+  override def map( f: Set[ Violation ] => Set[ Violation ] ): Failure =
     Failure( f( violations ) )
 
   override def isSuccess: Boolean = false
