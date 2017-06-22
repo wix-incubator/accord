@@ -16,7 +16,6 @@
 
 package com.wix.accord.tests.dsl
 
-import com.wix.accord.Descriptions.Generic
 import com.wix.accord.scalatest.ResultMatchers
 import org.scalatest.{Matchers, WordSpec}
 import com.wix.accord.combinators.{AnInstanceOf, EqualTo, IsNotNull, IsNull, NotAnInstanceOf, NotEqualTo}
@@ -59,6 +58,14 @@ class GenericOpsTests extends WordSpec with Matchers with ResultMatchers {
       notAnInstanceOfValidator shouldBe a[ NotAnInstanceOf[_] ]
     }
   }
+
+  "Delegating via \"is valid\"" should {
+    "result in the same description as directly delegating to the implicitly-resolved validator" in {
+      val res1 = directDelegatingValidator( null ).toFailure.getOrElse( fail( "Failure expected!" ) )
+      val res2 = indirectDelegatingValidator( null ).toFailure.getOrElse( fail( "Failure expected!" ) )
+      res1.violations.map( _.path ) shouldEqual res2.violations.map( _.path )
+    }
+  }
 }
 
 object GenericOpsTests {
@@ -79,4 +86,7 @@ object GenericOpsTests {
 
   case class ConditionalTest( cond: Value, value: String )
   case class GuardedConditionalTest( cond: Int, value: String )
+
+  val directDelegatingValidator = validator[ Value ] { _ is valid( notNullValidator ) }
+  val indirectDelegatingValidator = validator[ Value ] { _ is notNullValidator }
 }

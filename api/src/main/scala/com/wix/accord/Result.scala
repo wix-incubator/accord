@@ -170,31 +170,17 @@ sealed trait Result {
 
   def map( f: Set[ Violation ] => Set[ Violation ] ): Result
 
-//  /** Applies a transformation to all descriptions within this result.
-//    *
-//    * @param description The description to be applied
-//    * @return A modified copy of this result with the new violation description in place.
-//    */
-//  def withPath( f: Description => Description ): Result
-//
-//  /** Replaces the reported value of this result (if a failure) with the specified value.
-//    *
-//    * @param newValue The replacement value for this result.
-//    * @return If this result represents a success, it is returned as-is; otherwise returns a new
-//    *         failure whose violations report the new value.
-//    */
-//  def replaceValue( newValue: Any ): Result
+  def toFailure: Option[ Failure ]
 }
 
 /** An object representing a successful validation result. */
 case object Success extends Result {
   override def and( other: Result ): Result = other
   override def or( other: Result ): Success.type = this
-//  override def mapDescription( f: Description => Description ): Success.type = this
-//  override def replaceValue( newValue: Any ): Success.type = this
   override def isSuccess: Boolean = true
   override def isFailure: Boolean = false
   override def map( f: Set[ Violation ] => Set[ Violation ] ): Success.type = this
+  override def toFailure: Option[ Failure ] = None
 }
 
 /** An object representing a failed validation result.
@@ -212,15 +198,10 @@ case class Failure( violations: Set[ Violation ] ) extends Result {
     case Failure(_) => this
   }
 
-//  override def mapDescription( f: Description => Description ): Failure =
-//    Failure( violations map { _ mapDescription f } )
-//
-//  override def replaceValue( newValue: Any ): Failure =
-//    Failure( violations map { _ replaceValue newValue } )
-
   override def map( f: Set[ Violation ] => Set[ Violation ] ): Failure =
     Failure( f( violations ) )
 
   override def isSuccess: Boolean = false
   override def isFailure: Boolean = true
+  override def toFailure: Option[ Failure ] = Some( this )
 }
