@@ -90,7 +90,8 @@ lazy val api =
       description :=
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
         "dead-simple and self-contained story for defining validation rules and executing them on object " +
-        "instances. Feedback, bug reports and improvements are welcome!"
+        "instances. Feedback, bug reports and improvements are welcome!",
+      noFatalWarningsOn( configuration = Test )
     ) ++ baseSettings :_* )
   .jsSettings(
     libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0" % "test",

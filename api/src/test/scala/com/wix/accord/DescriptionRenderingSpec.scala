@@ -39,36 +39,41 @@ class DescriptionRenderingSpec extends FlatSpec with Matchers {
     render( Generic( "test" ) ) shouldEqual "test"
   }
 
-  "Rendering a self-reference" should "result in the string \"value\"" in {
-    render( SelfReference ) shouldEqual "value"
+  "Rendering a self-reference (empty path)" should "result in the string \"value\"" in {
+    render( Path.empty ) shouldEqual "value"
   }
 
   "Rendering an indexed description" should "result in the index suffix" in {
     render( Indexed( 5L ) ) shouldEqual "[at index 5]"
   }
 
-  "Rendering a conditional description" should "include the predicated object in the result, if specified" in {
-    val cond = Path( Generic( "cond" ) )
-    val condDescription = Descriptions.render( cond )
-    val value = 5
-    val conditional = Conditional( on = cond, value = value, guard = None )
-    render( conditional ) shouldEqual s"[where $condDescription=$value]"
-  }
-
-  "Rendering a conditional description" should "include the guard in the result, if specified" in {
+  "Rendering a branch" should "result in a branch marker for the true branch" in {
     val guard = Generic( "guard" )
     val guardDescription = Descriptions.render( guard )
-    render( Conditional( on = Path.empty, value = 5, guard = Some( guard ) ) ) shouldEqual
-      s"[where $guardDescription]"
+    val branch = Branch( guard, evaluation = true )
+    render( branch ) shouldEqual s"[where $guardDescription is true]"
   }
 
-  "Rendering a conditional description" should "include both predicated object and guard, if both are specified" in {
-    val cond = Path( Generic( "cond" ) )
-    val condDescription = Descriptions.render( cond )
-    val value = 5
+  "Rendering a branch" should "result in a branch marker for the false branch" in {
     val guard = Generic( "guard" )
     val guardDescription = Descriptions.render( guard )
-    val conditional = Conditional( on = cond, value = value, guard = Some( guard ) )
-    render( conditional ) shouldEqual s" [where $condDescription=$value and $guardDescription]"
+    val branch = Branch( guard, evaluation = false )
+    render( branch ) shouldEqual s"[where $guardDescription is false]"
+  }
+
+  "Rendering a simple pattern match" should "result in a value marker for the selected pattern" in {
+    val target = Path( Generic( "target" ) )
+    val targetDescription = render( target )
+    val patternMatch = PatternMatch( target, 5, None )
+    render( patternMatch ) shouldEqual s"[where $targetDescription=5]"
+  }
+
+  "Rendering a guarded pattern match" should "include the guard in the result" in {
+    val target = Path( Generic( "target" ) )
+    val targetDescription = render( target )
+    val guard = Generic( "someProperty == 2" )
+    val guardDescription = render( guard )
+    val patternMatch = PatternMatch( target, 5, Some( guard ) )
+    render( patternMatch ) shouldEqual s"[where $targetDescription=5 and $guardDescription]"
   }
 }

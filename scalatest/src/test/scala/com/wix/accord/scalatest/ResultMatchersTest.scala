@@ -16,7 +16,7 @@
 
 package com.wix.accord.scalatest
 
-import com.wix.accord.Descriptions.Generic
+import com.wix.accord.Descriptions.{Generic, Path}
 import org.scalatest.{Matchers, WordSpec}
 import com.wix.accord._
 import com.wix.accord.GroupViolation
@@ -40,7 +40,7 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
     }
 
     "correctly match a rule violation based on description" in {
-      val matchRule = RuleViolationMatcher( description = Generic( "description" ) )
+      val matchRule = RuleViolationMatcher( path = Generic( "description" ) )
       sampleViolation should matchRule
     }
 
@@ -71,7 +71,7 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
     }
 
     "correctly match a rule violation based on description" in {
-      val matchRule = GroupViolationMatcher( description = Generic( "ftw" ) )
+      val matchRule = GroupViolationMatcher( path = Generic( "ftw" ) )
       sampleGroup should matchRule
     }
 
@@ -82,7 +82,7 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
 
     "correctly match a rule violation based on children" in {
       val matchChildRule =
-        RuleViolationMatcher( value = "value", constraint = "constraint", description = Generic( "description" ) )
+        RuleViolationMatcher( value = "value", constraint = "constraint", path = Generic( "description" ) )
       val matchRule = GroupViolationMatcher( violations = Set( matchChildRule ) )
       sampleGroup should matchRule
     }
@@ -104,7 +104,7 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
     "generate a correct rule violation for a Tuple2[String, String] (deprecated)" in {
       val rv: RuleViolationMatcher = "description" -> "constraint"
       rv.legacyDescription shouldEqual "description"
-      rv.description should ===( null )
+      rv.path should ===( null )
       rv.constraint shouldEqual "constraint"
       rv.value should ===( null )
     }
@@ -112,7 +112,7 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
     "generate a correct group violation via group() with legacy description (deprecated)" in {
       val gv = group( "description", "constraint", "description" -> "constraint" )
       gv.legacyDescription shouldEqual "description"
-      gv.description should ===( null )
+      gv.path should ===( null )
       gv.constraint shouldEqual "constraint"
       gv.value should ===( null )
       gv.violations should contain only
@@ -122,7 +122,7 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
     "generate a correct rule violation for a Tuple2[Description, String]" in {
       val rv: RuleViolationMatcher = Generic( "description" ) -> "constraint"
       rv.legacyDescription should ===( null )
-      rv.description shouldEqual Generic( "description" )
+      rv.path shouldEqual Path( Generic( "description" ) )
       rv.constraint shouldEqual "constraint"
       rv.value should ===( null )
     }
@@ -130,11 +130,11 @@ class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
     "generate a correct group violation via group()" in {
       val gv = group( Generic( "description" ), "constraint", Generic( "description" ) -> "constraint" )
       gv.legacyDescription should ===( null )
-      gv.description shouldEqual Generic( "description" )
+      gv.path shouldEqual Path( Generic( "description" ) )
       gv.constraint shouldEqual "constraint"
       gv.value should ===( null )
       gv.violations should contain only
-        RuleViolationMatcher( description = Generic( "description" ), constraint = "constraint" )
+        RuleViolationMatcher( path = Generic( "description" ), constraint = "constraint" )
     }
   }
 
