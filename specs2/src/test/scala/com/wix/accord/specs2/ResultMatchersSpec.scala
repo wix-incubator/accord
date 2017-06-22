@@ -16,7 +16,7 @@
 
 package com.wix.accord.specs2
 
-import com.wix.accord.Descriptions.Generic
+import com.wix.accord.Descriptions.{Generic, Path}
 import org.specs2.mutable.Specification
 import com.wix.accord._
 import org.specs2.matcher.Matchers
@@ -38,7 +38,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers with Matchers
     }
 
     "correctly match a rule violation based on description" in {
-      val matchRule = RuleViolationMatcher( description = Generic( "description" ) )
+      val matchRule = RuleViolationMatcher( path = Generic( "description" ) )
       sampleViolation should matchRule
     }
 
@@ -69,7 +69,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers with Matchers
     }
 
     "correctly match a rule violation based on description" in {
-      val matchRule = GroupViolationMatcher( description = Generic( "ftw" ) )
+      val matchRule = GroupViolationMatcher( path = Generic( "ftw" ) )
       sampleGroup should matchRule
     }
 
@@ -80,7 +80,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers with Matchers
 
     "correctly match a rule violation based on children" in {
       val matchChildRule =
-        RuleViolationMatcher( value = "value", constraint = "constraint", description = Generic( "description" ) )
+        RuleViolationMatcher( value = "value", constraint = "constraint", path = Generic( "description" ) )
       val matchRule = GroupViolationMatcher( violations = Set( matchChildRule ) )
       sampleGroup should matchRule
     }
@@ -102,7 +102,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers with Matchers
     "generate a correct rule violation for a Tuple2[String, String] (deprecated)" in {
       val rv: RuleViolationMatcher = "description" -> "constraint"
       rv.legacyDescription shouldEqual "description"
-      rv.description should beNull
+      rv.path should beNull
       rv.constraint shouldEqual "constraint"
       rv.value should beNull
     }
@@ -110,7 +110,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers with Matchers
     "generate a correct group violation via group() with legacy description (deprecated)" in {
       val gv = group( "description", "constraint", "description" -> "constraint" )
       gv.legacyDescription shouldEqual "description"
-      gv.description should beNull
+      gv.path should beNull
       gv.constraint shouldEqual "constraint"
       gv.value should beNull
       gv.violations shouldEqual Set(
@@ -120,7 +120,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers with Matchers
     "generate a correct rule violation for a Tuple2[Description, String]" in {
       val rv: RuleViolationMatcher = Generic( "description" ) -> "constraint"
       rv.legacyDescription shouldEqual null       // beNull won't compile. Not sure why
-      rv.description shouldEqual Generic( "description" )
+      rv.path shouldEqual Path( Generic( "description" ) )
       rv.constraint shouldEqual "constraint"
       rv.value should beNull
     }
@@ -128,11 +128,11 @@ class ResultMatchersSpec extends Specification with ResultMatchers with Matchers
     "generate a correct group violation via group()" in {
       val gv = group( Generic( "description" ), "constraint", Generic( "description" ) -> "constraint" )
       gv.legacyDescription shouldEqual null       // beNull won't compile. Not sure why
-      gv.description shouldEqual Generic( "description" )
+      gv.path shouldEqual Path( Generic( "description" ) )
       gv.constraint shouldEqual "constraint"
       gv.value should beNull
       gv.violations shouldEqual Set(
-        RuleViolationMatcher( description = Generic( "description" ), constraint = "constraint" ) )
+        RuleViolationMatcher( path = Generic( "description" ), constraint = "constraint" ) )
     }
   }
 

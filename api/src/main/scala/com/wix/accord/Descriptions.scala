@@ -134,24 +134,10 @@ object Descriptions {
         tail match {
           case Nil =>
 
-          case ( assoc: AssociativeDescription ) +: Nil =>
-            if ( !emitted ) sb append "value"
-            sb append ' '
-            sb append render( assoc )
-
           case ( assoc: AssociativeDescription ) +: remainder =>
             if ( !emitted ) sb append "value"
             sb append ' '
             sb append render( assoc )
-            process( remainder )
-
-          case ( exp: Explicit ) +: Nil =>
-            if ( emitted ) sb append '.'
-            sb append render( exp )
-
-          case ( exp: Explicit ) +: next +: remainder =>
-            if ( emitted ) sb append '.'
-            sb append render( exp )
             process( remainder )
 
           case next +: remainder =>
