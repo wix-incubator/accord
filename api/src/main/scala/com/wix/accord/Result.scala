@@ -32,16 +32,6 @@ sealed trait Violation {
     */
   def path: Path
 
-//  /** Applies the specified description to this violation, and produces a new instance with the resulting
-//    * description. For the exact semantics please refer to [[com.wix.accord.Descriptions.combine]].
-//    *
-//    * @see com.wix.accord.Descriptions.combine
-//    */
-//  def prependPath( description: Description ): Violation
-//
-//  /** Produces a copy of this violation with the specified value. */
-//  def replaceValue( newValue: Any ): Violation
-//
   /** Renders a textual representation of this violation.
     *
     * Important note: This is intended for debugging and logging purposes; there are no guarantees on
@@ -61,12 +51,6 @@ case class RuleViolation( value: Any,
                           constraint: String,
                           path: Path = Path.empty )
   extends Violation {
-
-//  override def mapDescription( f: Description => Description ): RuleViolation =
-//    this.copy( description = f( description ) )
-//
-//  override def replaceValue( newValue: Any ): RuleViolation =
-//    this.copy( value = newValue )
 
   override def toString: String = {
     val includeValue =
@@ -97,12 +81,6 @@ case class GroupViolation( value: Any,
                            children: Set[ Violation ],
                            path: Path = Path.empty )
   extends Violation {
-
-//  override def mapDescription( f: Description => Description ): GroupViolation =
-//    this.copy( description = f( description ) )
-//
-//  override def replaceValue( newValue: Any ): GroupViolation =
-//    this.copy( value = newValue )
 
   private def renderHeader =
     ( if ( value != null )
