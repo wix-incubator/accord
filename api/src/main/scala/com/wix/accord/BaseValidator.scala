@@ -55,3 +55,47 @@ class NullSafeValidator[ T <: AnyRef ]( test: T => Boolean,
     else
       failure( value )
 }
+
+/**
+  * A type class that indicates whether or not a type is nullable.
+  * @tparam T The type for which nullability is indicated.
+  */
+trait Nullability[ T ] {
+  def isNullable: Boolean
+}
+
+object Nullability {
+  import scala.language.implicitConversions
+
+  /** Provides an instance of [[com.wix.accord.Nullability]] for reference types. */
+  implicit def referenceTypeNullability[ T ]( implicit ev: T <:< AnyRef ): Nullability[ T ] =
+    new Nullability[ T ] { def isNullable = true }
+
+  /** Provides an instance of [[com.wix.accord.Nullability]] for value types. */
+  implicit def valueTypeNullability[ T ]( implicit ev: T <:< AnyVal ): Nullability[ T ] =
+    new Nullability[ T ] { def isNullable = false }
+}
+
+/** A base validator implementation that, depends on the specified type's [[com.wix.accord.Nullability nullability]],
+  * checks for null values prior to executing the specified test.
+  *
+  * @param test The predicate that determines whether or not validation is successful.
+  * @param onFailure A generator function for producing [[com.wix.accord.Failure]]s if validation fails. The helper
+  *                  methods in [[com.wix.accord.ViolationBuilder]] can be used to simplify this task.
+  * @param onNull The resulting failure for nulls. Defaults to [[com.wix.accord.Validator.nullFailure]].
+  * @tparam T The object type this validator operates on.
+  */
+class MaybeNullSafeValidator[ T : Nullability ]( test: T => Boolean,
+                                                 onFailure: T => Failure,
+                                                 onNull: => Failure = Validator.nullFailure )
+  extends Validator[ T ] {
+
+  def apply( v: T ): Result =
+    if ( implicitly[ Nullability[ T ] ].isNullable && v == null )
+      onNull
+    else if ( test( v ) )
+      Success
+    else
+      onFailure( v )
+}
+
