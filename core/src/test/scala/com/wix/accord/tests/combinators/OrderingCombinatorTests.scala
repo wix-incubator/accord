@@ -16,6 +16,7 @@
 
 package com.wix.accord.tests.combinators
 
+import com.wix.accord.Validator
 import org.scalatest.Matchers
 import com.wix.accord.combinators.OrderingCombinators
 import com.wix.accord.scalatest.CombinatorTestSpec
@@ -29,103 +30,106 @@ class OrderingCombinatorTests extends CombinatorTestSpec with Matchers with Orde
   }
 
   "GreaterThan combinator" should {
+    val validator = GreaterThan( Test( 5 ), "got" )
+
     "successfully validate a greater object" in {
-      val left = Test( 10 )
-      val validator = new GreaterThan( Test( 5 ), "got" )
-      validator( left ) should be( aSuccess )
+      validator( Test( 10 ) ) should be( aSuccess )
     }
     "render a correct rule violation" in {
-      val left = Test( 0 )
-      val validator = new GreaterThan( Test( 5 ), "got" )
-      validator( left ) should failWith( "got Test(0), expected more than Test(5)" )
+      validator( Test( 0 ) ) should failWith( "got Test(0), expected more than Test(5)" )
+    }
+    "be null safe" in {
+      validator( null ) shouldEqual Validator.nullFailure
     }
   }
   
   "GreaterThanOrEqual combinator" should {
+    val validator = GreaterThanOrEqual( Test( 10 ), "got" )
+
     "successfully validate a greater object" in {
-      val left = Test( 20 )
-      val validator = new GreaterThanOrEqual( Test( 10 ), "got" )
-      validator( left ) should be( aSuccess )
+      validator( Test( 20 ) ) should be( aSuccess )
     }
     "successfully validate an equal object" in {
-      val left = Test( 10 )
-      val validator = new GreaterThanOrEqual( Test( 10 ), "got" )
-      validator( left ) should be( aSuccess )
+      validator( Test( 10 ) ) should be( aSuccess )
     }
     "render a correct rule violation" in {
-      val left = Test( 0 )
-      val validator = new GreaterThanOrEqual( Test( 5 ), "got" )
-      validator( left ) should failWith( "got Test(0), expected Test(5) or more" )
+      validator( Test( 0 ) ) should failWith( "got Test(0), expected Test(10) or more" )
+    }
+    "be null safe" in {
+      validator( null ) shouldEqual Validator.nullFailure
     }
   }
   
   "LesserThan combinator" should {
+    val validator = LesserThan( Test( 10 ), "got" )
+
     "successfully validate a lesser object" in {
-      val left = Test( 5 )
-      val validator = new LesserThan( Test( 10 ), "got" )
-      validator( left ) should be( aSuccess )
+      validator( Test( 5 ) ) should be( aSuccess )
     }
     "render a correct rule violation" in {
-      val left = Test( 10 )
-      val validator = new LesserThan( Test( 10 ), "got" )
-      validator( left ) should failWith( "got Test(10), expected less than Test(10)" )
+      validator( Test( 10 ) ) should failWith( "got Test(10), expected less than Test(10)" )
+    }
+    "be null safe" in {
+      validator( null ) shouldEqual Validator.nullFailure
     }
   }
   
   "LesserThanOrEqual combinator" should {
+    val validator = LesserThanOrEqual( Test( 10 ), "got" )
+
     "successfully validate a lesser object" in {
-      val left = Test( 5 )
-      val validator = new LesserThanOrEqual( Test( 10 ), "got" )
-      validator( left ) should be( aSuccess )
+      validator( Test( 5 ) ) should be( aSuccess )
     }
     "successfully validate an equal object" in {
-      val left = Test( 10 )
-      val validator = new LesserThanOrEqual( Test( 10 ), "got" )
-      validator( left ) should be( aSuccess )
+      validator( Test( 10 ) ) should be( aSuccess )
     }
     "render a correct rule violation" in {
-      val left = Test( 10 )
-      val validator = new LesserThanOrEqual( Test( 5 ), "got" )
-      validator( left ) should failWith( "got Test(10), expected Test(5) or less" )
+      validator( Test( 20 ) ) should failWith( "got Test(20), expected Test(10) or less" )
+    }
+    "be null safe" in {
+      validator( null ) shouldEqual Validator.nullFailure
     }
   }
   
   "EquivalentTo combinator" should {
+    val validator = EquivalentTo( Test( 10 ), "got" )
+
     "successfully validate an equal object" in {
-      val left = Test( 10 )
-      val validator = new EquivalentTo( Test( 10 ), "got" )
-      validator( left ) should be( aSuccess )
+      validator( Test( 10 ) ) should be( aSuccess )
     }
     "render a correct rule violation" in {
-      val left = Test( 10 )
-      val validator = new EquivalentTo( Test( 5 ), "got" )
-      validator( left ) should failWith( "got Test(10), expected Test(5)" )
+      validator( Test( 5 ) ) should failWith( "got Test(5), expected Test(10)" )
+    }
+    "be null safe" in {
+      validator( null ) shouldEqual Validator.nullFailure
     }
   }
   
   "InRangeInclusive combinator" should {
+    val validator = InRangeInclusive( Test( 5 ), Test( 10 ), "got" )
+
     "successfully validate an object within the specified range" in {
-      val left = Test( 10 )
-      val validator = new InRangeInclusive( Test( 5 ), Test( 10 ), "got" )
-      validator( left ) should be( aSuccess )
+      validator( Test( 10 ) ) should be( aSuccess )
     }
     "render a correct rule violation" in {
-      val left = Test( 1 )
-      val validator = new InRangeInclusive( Test( 5 ), Test( 10 ), "got" )
-      validator( left ) should failWith( "got Test(1), expected between Test(5) and Test(10)" )
+      validator( Test( 1 ) ) should failWith( "got Test(1), expected between Test(5) and Test(10)" )
+    }
+    "be null safe" in {
+      validator( null ) shouldEqual Validator.nullFailure
     }
   }
   
   "InRangeExclusive combinator" should {
+    val validator = InRangeExclusive( Test( 5 ), Test( 10 ), "got" ).exclusive
+
     "successfully validate an object within the specified range" in {
-      val left = Test( 5 )
-      val validator = new InRangeExclusive( Test( 5 ), Test( 10 ), "got" ).exclusive
-      validator( left ) should be( aSuccess )
+      validator( Test( 5 ) ) should be( aSuccess )
     }
     "render a correct rule violation" in {
-      val left = Test( 10 )
-      val validator = new InRangeExclusive( Test( 5 ), Test( 10 ), "got" ).exclusive
-      validator( left ) should failWith( "got Test(10), expected between Test(5) and Test(10) (exclusively)" )
+      validator( Test( 10 ) ) should failWith( "got Test(10), expected between Test(5) and Test(10) (exclusively)" )
+    }
+    "be null safe" in {
+      validator( null ) shouldEqual Validator.nullFailure
     }
   }
 }
