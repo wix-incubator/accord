@@ -16,7 +16,7 @@
 
 package com.wix.accord
 
-import com.wix.accord.Descriptions.Generic
+import com.wix.accord.Descriptions.{Generic, Path}
 import org.scalatest.{Matchers, WordSpec}
 
 /**
@@ -25,25 +25,27 @@ import org.scalatest.{Matchers, WordSpec}
 class DebugRenderingSpec extends WordSpec with Matchers {
 
   object RuleViolations {
-    val full = RuleViolation( "string", "must start with \"test\"", Generic( "full" ) )
-    val nullValue = RuleViolation( null, "is a null", Generic( "nullValue" ) )
-    val emptyString = RuleViolation( "", "must not be empty", Generic( "emptyString" ) )
-    val emptySeq = RuleViolation( Seq.empty[ Int ], "must not be empty", Generic( "emptySeq" ) )
+    val full = RuleViolation( "string", "must start with \"test\"", Path( Generic( "full" ) ) )
+    val nullValue = RuleViolation( null, "is a null", Path( Generic( "nullValue" ) ) )
+    val emptyString = RuleViolation( "", "must not be empty", Path( Generic( "emptyString" ) ) )
+    val emptySeq = RuleViolation( Seq.empty[ Int ], "must not be empty", Path( Generic( "emptySeq" ) ) )
   }
 
   object GroupViolations {
     val children = Set[ Violation ]( RuleViolations.full, RuleViolations.emptySeq )
 
-    val full = GroupViolation( "some value", "doesn't meet any of the requirements", children, Generic( "full" ) )
-    val nullValue = GroupViolation( null, "doesn't meet any of the requirements", Set.empty, Generic( "nullValue" ) )
+    val full =
+      GroupViolation( "some value", "doesn't meet any of the requirements", children, Path( Generic( "full" ) ) )
+    val nullValue =
+      GroupViolation( null, "doesn't meet any of the requirements", Set.empty, Path( Generic( "nullValue" ) ) )
     val noChildren =
-      GroupViolation( "some value", "doesn't meet any of the requirements", Set.empty, Generic( "noChildren" ) )
+      GroupViolation( "some value", "doesn't meet any of the requirements", Set.empty, Path( Generic( "noChildren" ) ) )
     val singleChild =
-      GroupViolation( "some value", "doesn't meet any of the requirements", Set( RuleViolations.full ), Generic( "singleChild" ) )
+      GroupViolation( "some value", "doesn't meet any of the requirements", Set( RuleViolations.full ), Path( Generic( "singleChild" ) ) )
     val nested =
-      GroupViolation( "some value", "doesn't meet any of the requirements", children + full, Generic( "nested" ) )
+      GroupViolation( "some value", "doesn't meet any of the requirements", children + full, Path( Generic( "nested" ) ) )
     val tieBreaker =
-      GroupViolation( "some value", "doesn't meet any of the requirements", Set( RuleViolations.nullValue, this.nullValue ), Generic( "tieBreaker" ) )
+      GroupViolation( "some value", "doesn't meet any of the requirements", Set( RuleViolations.nullValue, this.nullValue ), Path( Generic( "tieBreaker" ) ) )
   }
 
   "RuleViolation debug rendering" should {

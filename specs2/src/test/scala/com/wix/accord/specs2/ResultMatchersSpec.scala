@@ -25,7 +25,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers with Matchers
 
   "RuleViolationMatcher" should {
 
-    val sampleViolation = RuleViolation( "value", "constraint", Generic( "description" ) )
+    val sampleViolation = RuleViolation( "value", "constraint", Path( Generic( "description" ) ) )
 
     "correctly match a rule violation based on value" in {
       val matchRule = RuleViolationMatcher( value = "value" )
@@ -38,7 +38,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers with Matchers
     }
 
     "correctly match a rule violation based on description" in {
-      val matchRule = RuleViolationMatcher( path = Generic( "description" ) )
+      val matchRule = RuleViolationMatcher( path = Path( Generic( "description" ) ) )
       sampleViolation should matchRule
     }
 
@@ -55,8 +55,8 @@ class ResultMatchersSpec extends Specification with ResultMatchers with Matchers
 
   "GroupViolationMatcher" should {
 
-    val sampleRule = RuleViolation( "value", "constraint", Generic( "description" ) )
-    val sampleGroup = GroupViolation( "group", "violation", children = Set( sampleRule ), Generic( "ftw" ) )
+    val sampleRule = RuleViolation( "value", "constraint", Path( Generic( "description" ) ) )
+    val sampleGroup = GroupViolation( "group", "violation", children = Set( sampleRule ), Path( Generic( "ftw" ) ) )
 
     "correctly match a group violation based on value" in {
       val matchRule = GroupViolationMatcher( value = "group" )
@@ -69,7 +69,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers with Matchers
     }
 
     "correctly match a rule violation based on description" in {
-      val matchRule = GroupViolationMatcher( path = Generic( "ftw" ) )
+      val matchRule = GroupViolationMatcher( path = Path( Generic( "ftw" ) ) )
       sampleGroup should matchRule
     }
 
@@ -80,7 +80,7 @@ class ResultMatchersSpec extends Specification with ResultMatchers with Matchers
 
     "correctly match a rule violation based on children" in {
       val matchChildRule =
-        RuleViolationMatcher( value = "value", constraint = "constraint", path = Generic( "description" ) )
+        RuleViolationMatcher( value = "value", constraint = "constraint", path = Path( Generic( "description" ) ) )
       val matchRule = GroupViolationMatcher( violations = Set( matchChildRule ) )
       sampleGroup should matchRule
     }
@@ -126,26 +126,26 @@ class ResultMatchersSpec extends Specification with ResultMatchers with Matchers
     }
 
     "generate a correct group violation via group()" in {
-      val gv = group( Generic( "description" ), "constraint", Generic( "description" ) -> "constraint" )
+      val gv = group( Generic( "description" ), "constraint", Path( Generic( "description" ) ) -> "constraint" )
       gv.legacyDescription shouldEqual null       // beNull won't compile. Not sure why
       gv.path shouldEqual Path( Generic( "description" ) )
       gv.constraint shouldEqual "constraint"
       gv.value should beNull
       gv.violations shouldEqual Set(
-        RuleViolationMatcher( path = Generic( "description" ), constraint = "constraint" ) )
+        RuleViolationMatcher( path = Path( Generic( "description" ) ), constraint = "constraint" ) )
     }
   }
 
   "failWith matcher" should {
 
-    val result: Result = Failure( Set( RuleViolation( "value", "constraint", Generic( "description" ) ) ) )
+    val result: Result = Failure( Set( RuleViolation( "value", "constraint", Path( Generic( "description" ) ) ) ) )
 
     "succeed if a validation rule matches successfully" in {
-      result should failWith( Generic( "description" ) -> "constraint" )
+      result should failWith( Path( Generic( "description" ) ) -> "constraint" )
     }
 
     "fail if a validation rule does not match" in {
-      result should not( failWith( Generic( "invalid" ) -> "invalid" ) )
+      result should not( failWith( Path( Generic( "invalid" ) ) -> "invalid" ) )
     }
   }
 

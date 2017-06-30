@@ -119,7 +119,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       val invalid = ControlStructureTest( 1, "wrong" )
       simplePatternMatch( invalid ) should failWith( Path (
         PatternMatch(
-          on = AccessChain( Generic( "field1" ) ),
+          on = Path( Generic( "field1" ) ),
           value = 1,
           guard = None
         ),
@@ -130,7 +130,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       val invalid = ControlStructureTest( -1, "wrong" )
       patternMatchWithGuard( invalid ) should failWith( Path(
         PatternMatch(
-          on = AccessChain( Generic( "field1" ) ),
+          on = Path( Generic( "field1" ) ),
           value = -1,
           guard = Some( Generic( "n < 0" ) )
         ),
@@ -154,62 +154,63 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
 
     "be generated for a fully-qualified field selector" in {
       validate( FlatTest( null ) )( implicitlyDescribedNamedValidator ) should
-        failWith( AccessChain( Generic( "field" ) ) -> "is a null" )
+        failWith( Path( Generic( "field" ) ) -> "is a null" )
     }
     "be generated for an anonymously-qualified field selector" in {
       validate( FlatTest( null ) )( implicitlyDescribedAnonymousValidator ) should
-        failWith( AccessChain( Generic( "field" ) ) -> "is a null" )
+        failWith( Path( Generic( "field" ) ) -> "is a null" )
     }
     "be generated for an anonymous value reference" in {
-      validate( null )( implicitlyDescribedValueValidator ) should failWith( SelfReference -> "is a null" )
+      validate( null )( implicitlyDescribedValueValidator ) should failWith( Path.empty -> "is a null" )
     }
     "be generated for an explicitly-described anonymous value reference" in {
-      validate( null )( explicitlyDescribedValueValidator ) should failWith( Explicit( "described" ) -> "is a null" )
+      validate( null )( explicitlyDescribedValueValidator ) should
+        failWith( Path( Explicit( "described" ) ) -> "is a null" )
     }
     "propagate through anonymous value references for anonymous descriptions" in {
-      validate( null )( selfReferenceToImplicitlyDescribedValidator ) should failWith( SelfReference -> "is a null" )
+      validate( null )( selfReferenceToImplicitlyDescribedValidator ) should failWith( Path.empty -> "is a null" )
     }
     "propagate through anonymous value references for explicit descriptions" in {
       validate( null )( selfReferenceToExplicitlyDescribedValidator ) should
-        failWith( Explicit( "described" ) -> "is a null" )
+        failWith( Path( Explicit( "described" ) ) -> "is a null" )
     }
     "be generated for explicit description of multiple anonymous value references" in {
       validate( null )( explicitlyDescribedSelfReferenceToImplicitlyDescribedValidator ) should
-        failWith( Explicit( "described" ) -> "is a null" )
+        failWith( Path( Explicit( "described" ) ) -> "is a null" )
     }
     "be generated for a fully-qualified selector with multiple indirections" in {
       val obj = CompositeTest( FlatTest( null ) )
       validate( obj )( namedIndirectValidator ) should
-        failWith( AccessChain( Generic( "member" ), Generic( "field" ) ) -> "is a null" )
+        failWith( Path( Generic( "member" ), Generic( "field" ) ) -> "is a null" )
     }
     "be generated for an anonymously-qualified selector with multiple indirections" in {
       val obj = CompositeTest( FlatTest( null ) )
       validate( obj )( anonymousIndirectValidator ) should
-        failWith( AccessChain( Generic( "member" ), Generic( "field" ) ) -> "is a null" )
+        failWith( Path( Generic( "member" ), Generic( "field" ) ) -> "is a null" )
     }
     "be generated for a multiple-clause boolean expression" in {
       val obj = FlatTest( "123" )
       validate( obj )( booleanExpressionValidator ) should failWith(
         group( null: Description, "doesn't meet any of the requirements",
-          AccessChain( Generic( "field" ) ) -> "is not a null",
-          AccessChain( Generic( "field" ) ) -> "has size 3, expected more than 5"
+          Path( Generic( "field" ) ) -> "is not a null",
+          Path( Generic( "field" ) ) -> "has size 3, expected more than 5"
         ) )
     }
     "be generated for a generic expression" in {
       val obj = FlatTest( "" )
       validate( obj )( genericValidator ) should
-        failWith( Generic( "t.field.length * 2" ) -> "got 0, expected more than 0" )
+        failWith( Path( Generic( "t.field.length * 2" ) ) -> "got 0, expected more than 0" )
     }
     "be propagated for an explicitly-described expression" in {
       validate( FlatTest( null ) )( explicitlyDescribedValidator ) should
-        failWith( Explicit( "described" ) -> "is a null" )
+        failWith( Path( Explicit( "described" ) ) -> "is a null" )
     }
     "be propagated for a composite validator" in {
       val obj = CompositeTest( FlatTest( null ) )
       validate( obj )( compositeValidator ) should failWith( group(
-        AccessChain( Generic( "member" ) ),
+        Path( Generic( "member" ) ),
         "is invalid",
-        AccessChain( Generic( "field" ) ) -> "is a null"
+        Path( Generic( "field" ) ) -> "is a null"
       ) )
     }
     "be propagated for an adapted validator" in {
