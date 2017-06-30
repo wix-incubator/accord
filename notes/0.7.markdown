@@ -3,6 +3,7 @@
 Version 0.7 drops support for Scala 2.10, and includes an enhanced (as well as simplified) description model based on input from the community. Other than that, it features the usual array of enhancements, bug fixes and improvements:
 
 * [#106](https://github.com/wix/accord/pull/106) Feature: Add combinators on blank strings (contributed by [@dakatsuka](https://github.com/dakatsuka));
+* [#90](https://github.com/wix/accord/issues/90) Add support for date/time constructs;
 * [#78](https://github.com/wix/accord/issues/78) Feature: Add useful toString to Violation;
 * [#109](https://github.com/wix/accord/issues/109) Bug: Problem with combining descriptors in 0.6.1;
 * [#115](https://github.com/wix/accord/issues/115) Bug: null BigDecimal validation throws NPE;
