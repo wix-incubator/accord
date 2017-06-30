@@ -74,7 +74,8 @@ lazy val baseSettings =
   Seq(
     organization := "com.wix",
     homepage := Some( url( "https://github.com/wix/accord" ) ),
-    licenses := Seq( "Apache-2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) )
+    licenses := Seq( "Apache-2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) ),
+    coverageEnabled := true
   )
 
 lazy val noPublish = Seq( publish := {}, publishLocal := {}, publishArtifact := false )
@@ -95,7 +96,8 @@ lazy val api =
     ) ++ baseSettings :_* )
   .jsSettings(
     libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0" % "test",
-    limitPackageSize( 150 )
+    limitPackageSize( 150 ),
+    coverageEnabled := false
   )
   .jvmSettings(
     libraryDependencies += {
@@ -122,7 +124,8 @@ lazy val scalatest =
     ) :_* )
   .jsSettings(
     libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0",
-    limitPackageSize( 100 )
+    limitPackageSize( 100 ),
+    coverageEnabled := false
   )
   .jvmSettings(
     libraryDependencies += {
@@ -172,7 +175,7 @@ lazy val core =
       noFatalWarningsOn( compile, Test )      // Avoid failed test compilation due to deprecations // TODO remove
     ) ++ baseSettings :_* )
     .jvmSettings( limitPackageSize( 500 ) )
-    .jsSettings( limitPackageSize( 800 ) )
+    .jsSettings( limitPackageSize( 800 ), coverageEnabled := false )
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
 
@@ -189,7 +192,8 @@ lazy val java8 =
     .jsSettings(
       // This library is still not complete (e.g. LocalDateTime isn't implemented); Scala.js support
       // for this module is consequently currently disabled.
-      libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.0"
+      libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.0",
+      coverageEnabled := false
     )
 
 lazy val java8JVM = java8.jvm

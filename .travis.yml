@@ -8,21 +8,19 @@ sudo: false
 
 script:
   # Evidently sbt-doge doesn't like it when you specify multiple commands
-  - sbt "+++$TRAVIS_SCALA_VERSION clean" "+++$TRAVIS_SCALA_VERSION test"
+  - sbt "+++$TRAVIS_SCALA_VERSION clean" "+++$TRAVIS_SCALA_VERSION test" "+++$TRAVIS_SCALA_VERSION coverageReport" &&
+    sbt "+++$TRAVIS_SCALA_VERSION coverageAggregate"
 
-# Coverage disabled pending fix for https://github.com/scoverage/sbt-scoverage/issues/101
-#script: "sbt ++$TRAVIS_SCALA_VERSION clean coverage test"
-#after_success: "sbt ++$TRAVIS_SCALA_VERSION coveralls"
+after_success:
+  - sbt "+++$TRAVIS_SCALA_VERSION coveralls"
+  # Snapshot publishing via Travis courtesy of Jan Machacek, thanks!
+  # http://www.cakesolutions.net/teamblogs/publishing-artefacts-to-oss-sonatype-nexus-using-sbt-and-travis-ci
+  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt \"+++$TRAVIS_SCALA_VERSION publish\"; };"
 
 jdk:
   - oraclejdk7
   - openjdk7
   - oraclejdk8
-
-# Snapshot publishing via Travis courtesy of Jan Machacek, thanks!
-# http://www.cakesolutions.net/teamblogs/publishing-artefacts-to-oss-sonatype-nexus-using-sbt-and-travis-ci
-after_success:
-  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt \"+++$TRAVIS_SCALA_VERSION publish\"; };"
 
 env:
   global:
