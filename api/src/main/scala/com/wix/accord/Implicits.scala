@@ -21,6 +21,7 @@ package com.wix.accord
   * `instanceUnderTest.validate`. This is strictly an aesthetic preference, there are
   * no differences in implementation or execution.
   */
+@deprecated( "Will be removed in subsequent releases; you can reimplement this easily if needed.", since = "0.7" )
 object Implicits {
   implicit class ExtendObjectForValidation[ T : Validator ]( x: T ) {
     /** Executes the validation rule for this instance.
