@@ -113,8 +113,8 @@ object StringOpsTests {
 
   val               startsWithValidator = validator[ Test ] { _.s should startWith( "test" ) }
   val                 endsWithValidator = validator[ Test ] { _.s should endWith( "test" ) }
-  val                 notBlankValidator = validator[ Test ] { _.s should notBlank }
-  val                    blankValidator = validator[ Test ] { _.s should blank }
+  val                 notBlankValidator = validator[ Test ] { _.s is notBlank }
+  val                    blankValidator = validator[ Test ] { _.s is blank }
   val               matchRegexValidator = validator[ Test ] { _.s should matchRegex( "test(s?)" ) }
   val        matchRegexByScalaValidator = validator[ Test ] { _.s should matchRegex( "test(s?)".r ) }
   val      matchRegexByPatternValidator = validator[ Test ] { _.s should matchRegex( "test(s?)".r.pattern ) }

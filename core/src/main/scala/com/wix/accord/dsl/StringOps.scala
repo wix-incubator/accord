@@ -38,10 +38,14 @@ trait StringOps {
     */
   def endWith( suffix: String ): Validator[ String ] = new EndsWith( suffix )
 
-  /** Specifies a validator that operates on strings and succeeds only if the validation expression is not blank. */
+  /** Specifies a validator that operates on strings and succeeds only if the validation expression is not blank
+    * (i.e. empty or whitespace-only).
+    */
   def notBlank: Validator[ String ] = new NotBlank
 
-  /** Specifies a validator that operates on strings and succeeds only if the validation expression is blank. */
+  /** Specifies a validator that operates on strings and succeeds only if the validation expression is blank
+    * (i.e. empty or whitespace-only).
+    */
   def blank: Validator[ String ] = new Blank
 
   /** Specifies a validator that operates on strings and succeeds only if the validation expression matches the

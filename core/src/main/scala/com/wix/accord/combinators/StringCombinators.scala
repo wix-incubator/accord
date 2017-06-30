@@ -31,14 +31,14 @@ trait StringCombinators {
   class EndsWith( suffix: String )
     extends NullSafeValidator[ String ]( _ endsWith suffix, _ -> s"must end with '$suffix'" )
 
-  /** A validator that succeeds only if the provided string is not blank. Note that [[java.lang.String.trim]] is used
-    * for inspection whitespace.
+  /** A validator that succeeds only if the provided string is not blank (i.e. empty or whitespace-only).
+    * Note that [[java.lang.String.trim]] is used to eliminate whitespace.
     */
   class NotBlank
     extends NullSafeValidator[ String ]( !_.trim.isEmpty, _ -> "must not be blank" )
 
-  /** A validator that succeeds only if the provided string is blank. Note that [[java.lang.String.trim]] is used
-    * for inspection whitespace.
+  /** A validator that succeeds only if the provided string is blank (i.e. empty or whitespace-only).
+    * Note that [[java.lang.String.trim]] is used to eliminate whitespace.
     */
   class Blank
     extends NullSafeValidator[ String ]( _.trim.isEmpty, _ -> "must be blank" )
