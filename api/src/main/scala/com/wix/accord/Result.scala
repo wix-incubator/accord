@@ -45,7 +45,7 @@ sealed trait Violation {
   *
   * @param value The value of the object which failed the validation rule.
   * @param constraint A textual description of the constraint being violated (for example, "must not be empty").
-  * @param description The description of the object under validation.
+  * @param path The path to the object under validation.
   */
 case class RuleViolation( value: Any,
                           constraint: String,
@@ -73,7 +73,7 @@ case class RuleViolation( value: Any,
   * @param value The value of the object which failed validation.
   * @param constraint A textual description of the constraint being violated (for example, "doesn't meet any
   *                   of the requirements").
-  * @param description The description of the object under validation.
+  * @param path The path to the object under validation.
   * @param children The set of violations contained within the group.
   */
 case class GroupViolation( value: Any,
@@ -130,24 +130,34 @@ sealed trait Result {
   def isFailure: Boolean
 
   /**
-   * Returns a new result representing successful validation of both rules, or failure or either.
+    * Returns a new result representing successful validation of both rules, or failure or either.
     *
     * @param other Another result to be composed with this one.
-   * @return The resulting instance of [[com.wix.accord.Result]].
-   */
+    * @return The resulting instance of [[com.wix.accord.Result]].
+    */
   def and( other: Result ): Result
 
   /**
-   * Returns a new result representing successful validation of either rule, or failure or both.
+    * Returns a new result representing successful validation of either rule, or failure or both.
     *
     * @param other Another result to be composed with this one.
-   * @return The resulting instance of [[com.wix.accord.Result]].
-   */
+    * @return The resulting instance of [[com.wix.accord.Result]].
+    */
   def or( other: Result ): Result
 
-
+  /**
+    * Maps over all violations contained in this result (if any).
+    *
+    * @param f A function that transforms a set of violations.
+    * @return The result after the transformation is applied.
+    */
   def map( f: Set[ Violation ] => Set[ Violation ] ): Result
 
+  /**
+    * Returns a projection of this result as an optional failure.
+    *
+    * @return [[scala.None None]] if this result represents a success, a wrapped [[com.wix.accord.Failure]] otherwise.
+    */
   def toFailure: Option[ Failure ]
 }
 
