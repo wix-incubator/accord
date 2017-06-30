@@ -191,7 +191,7 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
     "be generated for a multiple-clause boolean expression" in {
       val obj = FlatTest( "123" )
       validate( obj )( booleanExpressionValidator ) should failWith(
-        group( null: Description, "doesn't meet any of the requirements",
+        group( null: Path, "doesn't meet any of the requirements",
           Path( Generic( "field" ) ) -> "is not a null",
           Path( Generic( "field" ) ) -> "has size 3, expected more than 5"
         ) )
