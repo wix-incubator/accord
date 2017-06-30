@@ -1,11 +1,15 @@
 ![Accord](https://raw.githubusercontent.com/wix/accord/master/assets/accord-logo-light.png?raw=1)
 
-Version 0.7 drops support for Scala 2.10 and includes the usually array of enhancements, bug fixes and improvements:
+Version 0.7 drops support for Scala 2.10, and includes an enhanced (as well as simplified) description model based on input from the community. Other than that, it features the usual array of enhancements, bug fixes and improvements:
 
-* [#106](https://github.com/wix/accord/pull/106) Feature: Add combinators on blank strings (contributed by @dakatsuka);
-* [#97](https://github.com/wix/accord/issues/97) Bug: scala.js: Only adding accord into libraryDependencies adds +320kb after fullOptJS;
-* [#96](https://github.com/wix/accord/issues/96) Enhancement: Remove support for Scala 2.10.x;
+* [#106](https://github.com/wix/accord/pull/106) Feature: Add combinators on blank strings (contributed by [@dakatsuka](https://github.com/dakatsuka));
 * [#78](https://github.com/wix/accord/issues/78) Feature: Add useful toString to Violation;
+* [#109](https://github.com/wix/accord/issues/109) Bug: Problem with combining descriptors in 0.6.1;
+* [#115](https://github.com/wix/accord/issues/115) Bug: null BigDecimal validation throws NPE;
+* [#104](https://github.com/wix/accord/issues/104) Bug: "has size" RuleViolation has wrong value;
+* [#97](https://github.com/wix/accord/issues/97) Bug: scala.js: Only adding accord into libraryDependencies adds +320kb after fullOptJS;
+* [#98](https://github.com/wix/accord/issues/98) Enhancement: Define (and enforce at build-time) size limitations on produced artefacts
+* [#96](https://github.com/wix/accord/issues/96) Enhancement: Remove support for Scala 2.10.x;
 
 As always, bug reports, pull requests and other ideas are welcome -- [join the discussion](https://gitter.im/wix/accord?utm_source=share-link&utm_medium=link&utm_campaign=share-link) on Gitter!
 
