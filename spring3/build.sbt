@@ -1,6 +1,6 @@
 name := "accord-spring3"
 
-libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-reflect" % _ % "provided" )
+libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided"
 
 libraryDependencies ++= Seq(
     "javax.validation" % "validation-api" % "1.0.0.GA",
