@@ -111,6 +111,8 @@ import com.wix.accord.transform.ValidationTransform
   *   sample.stringField should matchRegexFully( "b[aeiou]t" )  // Matches "bat" but not "dingbat"
   *   sample.stringField should matchRegex( pattern )           // You can also use java.util.regex.Pattern
   *   sample.stringField should matchRegex( regex )             // ... or scala.util.matching.Regex
+  *   sample.stringField is blank                               // Matches empty or whitespace-only strings
+  *   sample.stringField is notBlank
   *
   *   // You can use "must" instead of "should":
   *   sample.stringField must startWith( "prefix" )
