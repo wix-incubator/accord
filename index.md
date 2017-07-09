@@ -6,7 +6,7 @@ title: "A sane validation library for Scala"
 Overview
 ========
 
-Accord is a validation library written in and for Scala. Compared to [JSR 303](http://jcp.org/en/jsr/detail?id=303) and [Scalaz validation](https://github.com/scalaz/scalaz/blob/scalaz-seven/core/src/main/scala/scalaz/Validation.scala) it aims to provide the following:
+Accord is a data validation library written in and for Scala. Compared to [JSR 303](http://jcp.org/en/jsr/detail?id=303) and [Scalaz validation](https://github.com/scalaz/scalaz/blob/scalaz-seven/core/src/main/scala/scalaz/Validation.scala) it aims to provide the following:
 
 * __Composable__: Because JSR 303 is annotation based, validation rules cannot be composed (annotations cannot receive other annotations as parameters). This is a real problem with some Scala features, for example `Option`s or collections. Accord's validation rules are trivially composable.
 * __Simple__: Accord provides a dead-simple story for validation rule definition by leveraging macros, as well as the validation call site (see example below).
@@ -63,7 +63,7 @@ assert( failure == Failure( Set(                          // One or more violati
   RuleViolation(                                          // A violation includes:
     value = "",                                           //   - The invalid value
     constraint = "must not be empty",                     //   - The constraint being violated
-    description = Descriptions.AccessChain( "firstName" ) //   - A property description
+    path = Path( Generic( "firstName" ) )                 //   - A path to the violating property
   )
 ) ) )
 ```
@@ -91,12 +91,13 @@ libraryDependencies += "com.wix" %% "accord-core" % "{{ site.version.release }}"
 // Scala.js projects:
 libraryDependencies += "com.wix" %%% "accord-core" % "{{ site.version.release }}"
 
-// As a result of a Scala compiler bug, in rare cases you may get "missing or invalid
-// dependency detected while loading class file" errors. Until a fix is released
-// this can be worked around by adding the following your build script.
+// As a result of a Scala compiler bug in versions prior to 2.12.2, in some
+// cases you may get "missing or invalid dependency detected while loading 
+// class file" errors. Until a fix is released this can be worked around by
+// adding the following your build script.
 // (See issue #84 at https://github.com/wix/accord/issues/84)
 libraryDependencies +=
- "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
+  "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
 ```
 
 If you want to evaluate the upcoming snapshot release, add the Sonatype snapshot repository to your resolvers; typically this means adding the following to your `build.sbt` file:
@@ -124,9 +125,10 @@ Accord is published to the Maven Central Repository, so you simply have to add t
     <version>{{ site.version.release }}</version>
   </dependency>
   <!--
-    As a result of a Scala compiler bug, in rare cases you may get "missing or
-    invalid dependency detected while loading class file" errors. Until a fix is
-    released this can be worked around by adding the following your build script.
+    As a result of a Scala compiler bug in versions prior to 2.12.1, in some
+    cases you may get "missing or invalid dependency detected while loading 
+    class file" errors. Until a fix is released this can be worked around by
+    adding the following your build script.
     (See issue #84 at https://github.com/wix/accord/issues/84)
   -->
   <dependency>

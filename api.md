@@ -16,7 +16,7 @@ Accord's API comprises three main building blocks:
 
 As with any validation framework, Accord faces two design considerations: discovery (which validator should be executed? What happens if there are multiple options?) and execution (running the actual validator and obtaining the results). Accord solves these dilemmas by:
   
-* Defining `Validator[T]` as a function from some type under validation `T` to Accord's [result model](#result-model), and
+* Defining `Validator[T]` as a function from some type under validation `T` to Accord's [result model](#result-model);
 * Making `Validator[T]` a typeclass, and leveraging Scala's normal implicit resolution mechanism for discovery.
 
 This provides a very flexible API with which to scope and execute validators. The recommended practice is to place a class's validator in its companion object, thereby making it automatically visible to anyone using the class, but validators can be placed anywhere and resolved explicitly if needed:
@@ -55,7 +55,7 @@ assert( result1 == result2 && result2 == result3 )
 # Results
 <a name="result-model"></a>
 
-The Accord domain model is essentially quite simple (this is a simplified excerpt, for the full API definition see [Result.scala](https://github.com/wix/accord/blob/v{{ site.version.release }}/api/src/main/scala/com/wix/accord/Result.scala)):
+The Accord domain model is quite simple (following is a minimal excerpt, for the full API definition see [Result.scala](https://github.com/wix/accord/blob/v{{ site.version.release }}/api/src/main/scala/com/wix/accord/Result.scala)):
 
 ```scala
 // A validation result can either be a success or a failure:
@@ -69,12 +69,12 @@ trait Violation {
   def value: Any                     
   /** The violated constraint, e.g. "got 15, expected 18 or more" */
   def constraint: String
-  /** A description of the expression that failed validation, more details below */
-  def description: Description
+  /** The actual generated path of the object under validation, more details below */
+  def path: Path
 }
 ```
 
-The vast majority of violations indicate a broken *rule*, but some validators (notably delegation and logical OR) produce a violation that encompasses a *group* of violations. Consider the following example:
+The vast majority of violations indicate a broken *rule*; some validators, notably delegation via `valid` and the `or` operator, produce a violation that encompasses a *group* of violations. Consider the following example:
 
 ```scala
 case class Address( street: String, city: String, zipcode: Option[ String ] )
@@ -109,16 +109,16 @@ val result = validate( Person( "", 27, Address( "221B Baker Street", "", Some( "
 
 assert( result == Failure( Set(
   // First violation:
-  RuleViolation( "", "must not be empty", Descriptions.AccessChain( Generic( "name" ) ) ),
+  RuleViolation( "", "must not be empty", Path( Generic( "name" ) ) ),
 
   // Second violation:
   GroupViolation(
     value       = Address( "221B Baker Street", "", Some( "" ) ),
     constraint  = "is invalid",
-    description = Descriptions.AccessChain( Generic( "address" ) ),
+    description = Path( Generic( "address" ) ),
     children = Set(
-      RuleViolation( "", "must not be empty", Descriptions.AccessChain( Generic( "city" ) ) ),
-      RuleViolation( "", "must not be empty", Descriptions.AccessChain( Generic( "zipcode" ) ) 
+      RuleViolation( "", "must not be empty", Path( Generic( "city" ) ) ),
+      RuleViolation( "", "must not be empty", Path( Generic( "zipcode" ) ) 
     )
   )
 ) ) )
@@ -127,24 +127,27 @@ assert( result == Failure( Set(
 # Descriptions
 <a name="description-model"></a>
 
-Accord automatically generates descriptions for each validation rule based on the expression left of `is`. Since a rule can validate any arbitrary Scala expression, Accord features a fine-grained [description model](https://github.com/wix/accord/blob/v{{ site.version.release }}/api/src/main/scala/com/wix/accord/Descriptions.scala). That in turn is exposed through a violation's `description` property.
+Accord automatically generates descriptions for each validation rule based on the expression left of `is`. Since a rule can validate any arbitrary Scala expression, Accord features a fine-grained [description model](https://github.com/wix/accord/blob/v{{ site.version.release }}/api/src/main/scala/com/wix/accord/Descriptions.scala) which is exposed through a violation's `path` property.
 
-|-------------+--------------------------------------------------------------------------------------------------+
-| Class       | Description                                                                                      |
-|-------------+--------------------------------------------------------------------------------------------------+
-| Empty       | An empty description (not seen in normal operation)                                              |
-| Explicit    | An explicitly described validation rule                                                          |
-| AccessChain | Member access with possible indirections. This is the most commonly found description            |
-| Generic     | A textual description when Accord can't break the expression down further (e.g. property getter) |
-| Indexed     | Indicates indexed access, such as into a sequence                                                |
-| Conditional | Denotes that the desirable validation strategy depends on a runtime condition                    |
-|-------------|--------------------------------------------------------------------------------------------------+
+Any violation can be traced through a `Path`, which is a sequence of "steps" into the domain model. An empty path means the root object itself failed a validation rule, but it is much more common in practice to see paths leading to specific properties. Each "step" in the path is encoded as an instance of the `Description` trait, with the following subclasses available:
+
+
+|--------------+--------------------------------------------------------------------------------------------------+
+| Class        | Description                                                                                      |
+|--------------+--------------------------------------------------------------------------------------------------+
+| Explicit     | An explicitly described validation rule (via the `as` DSL operator)                              |
+| Generic      | A textual description when Accord can't break the expression down further (e.g. property name)   |
+| Indexed      | Indicates indexed access, such as into a sequence                                                |
+| Branch       | Denotes that the desirable validation strategy depends of the result of an `if` statement        |
+| PatternMatch | Denotes that the desirable validation strategy depends on the result of a pattern match          |
+|--------------|--------------------------------------------------------------------------------------------------+
 
 With this model, Accord automatically produces detailed information about the exact object that violated a particular rule, for example:
 
 ```scala
 import com.wix.accord._
 import com.wix.accord.dsl._
+import com.wix.accord.Descriptions._     // For assertions
 
 // First set up a sample domain object and validator:
 
@@ -181,18 +184,18 @@ assert( explicit == Failure( Set(
   RuleViolation(
     value = -1,
     constraint = "got -1, expected 0 or more",
-    description = Descriptions.Explicit( "Legal age" )
+    path = Path( Explicit( "Legal age" ) )
   )
 ) ) )
 
 // 2. Named property access:
 
-val accessChain = validate( person.copy( heightInMeters = -4.0 ) )
-assert( accessChain == Failure( Set(
+val propertyAccess = validate( person.copy( heightInMeters = -4.0 ) )
+assert( propertyAccess == Failure( Set(
   RuleViolation(
     value = -4.0,
     constraint = "got -4.0, expected 0.0 or more",
-    description = Descriptions.AccessChain( Generic( "heightInMeters" ) )
+    path = Path( Generic( "heightInMeters" ) )
   )
 ) ) )
 
@@ -203,22 +206,20 @@ assert( generic == Failure( Set(
   RuleViolation(
     value = 30.0,
     constraint = "got 30.0, expected 25.0 or less",
-    description = Descriptions.Generic( "bmi( p.heightInMeters, p.weightInKG )" )
+    path = Path( Generic( "bmi( p.heightInMeters, p.weightInKG )" ) )
   )
 ) ) )
 
-// 4. Conditionals (in this case, an if/else):
+// 4. Branch (if/else):
 
-val conditional = validate( person.copy( age = 1, guardian = None ) )
-assert( conditional == Failure( Set(
+val branch = validate( person.copy( age = 1, guardian = None ) )
+assert( branch == Failure( Set(
   RuleViolation(
     value = None,
     constraint = "must not be empty",
-    description = Descriptions.Conditional(
-      on = Descriptions.Generic( "branch" ),
-      value = true,
-      guard = Some( Descriptions.Generic( "p.age < 18" ) ),
-      target = Descriptions.AccessChain( "guardian" )
+    path = Path(
+      Branch( guard = Generic( "p.age < 18" ), evaluation = true ),
+      Generic( "guardian" )
     )
   )
 ) ) )
@@ -228,10 +229,10 @@ Dealing with these descriptions can be a bit of a chore, and Accord provides a s
 
 ```scala
 def descriptionOf( r: Result ) = 
-  Descriptions.render( r.asInstanceOf[ Failure ].violations.head.description )
+  Descriptions.render( r.toFailure.get.violations.head.path )
 
 assert( descriptionOf( explicit ) == "Legal age" )
 assert( descriptionOf( generic ) == "bmi( p.heightInMeters, p.weightInKG )" )
-assert( descriptionOf( accessChain ) == "heightInMeters" )
-assert( descriptionOf( conditional ) == "guardian [where branch=true and p.age < 18]" )
+assert( descriptionOf( propertyAccess ) == "heightInMeters" )
+assert( descriptionOf( branch ) == "value [where p.age < 18 is true].guardian" )
 ```

@@ -3,6 +3,20 @@ layout: page
 title: "Migration Guide"
 ---
 
+Migrating to 0.7
+================
+
+The description framework saw a significant revamp with 0.7 as a result of community feedback (shout out to the Marathon team for a really serious use case!). Instead of one, hard to interact with `Description` trait, Accord now features the `Path` type (really a sequence of `Description` elements), as well as a cleaned-up description class hierarchy.
+
+In practical terms, this means:
+
+* Single instances of `Description` should not be used as full paths. An implicit conversion is provided for backwards-compatibility, is marked deprecated and is expected to go away in the next release of Accord.
+* The `description` property of all `Violation`s is no longer available; you should use the `path` property instead.
+* The `description` property of `RuleViolationMatcher` and `GroupViolationMatcher` is no longer available; you should use the `path` property instead.
+* `AccessChain` is deprecated; you should use `Path` instead. For example, `AccessChain( Generic( "property" ) )` now becomes `Path( Generic( "property" ) )`. A companion is provided for backwards-compatibility, is marked deprecated and is expected to go away in the next release of Accord.
+* `SelfReference` is deprecated, and is now represented by `Path.empty`. The symbol itself is made available for backwards compatibility, is marked deprecated and is expected to go away in the next release of Accord.
+* `Conditional` is deprecated. You should use `Branch` (for `if`s) or `PatternMatch` as appropriate. A convenience 
+
 Migrating to 0.6
 ================
 
