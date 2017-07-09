@@ -24,7 +24,7 @@ Roadmap
 
 Accord is still fairly rudimentary, and there's plenty of improvements to be made:
 
-* The [0.7 milestone](https://github.com/wix/accord/milestones/0.7) lists the planned improvements for the next release.
+* The [0.8 milestone](https://github.com/wix/accord/milestones/0.8) lists the planned improvements for the next release.
 * Some future plans/ideas:
     * Performance benchmarks
     * Elide DSL implicit invocations from resulting tree for better performance and smaller code
