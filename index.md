@@ -91,7 +91,7 @@ libraryDependencies += "com.wix" %% "accord-core" % "{{ site.version.release }}"
 // Scala.js projects:
 libraryDependencies += "com.wix" %%% "accord-core" % "{{ site.version.release }}"
 
-// As a result of a Scala compiler bug in versions prior to 2.12.1, in some
+// As a result of a Scala compiler bug in versions prior to 2.12.2, in some
 // cases you may get "missing or invalid dependency detected while loading 
 // class file" errors. Until a fix is released this can be worked around by
 // adding the following your build script.
