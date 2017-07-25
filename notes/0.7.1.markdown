@@ -1,0 +1,8 @@
+![Accord](https://raw.githubusercontent.com/wix/accord/master/assets/accord-logo-light.png?raw=1)
+
+Version 0.7.1 fixes a (possibly breaking) build issue with 0.7; no other changes apply, so it is *a drop-in replacement* for the previous version. Apologies for the mess!
+
+* [#117](https://github.com/wix/accord/pull/117) Bug: Upgrade from 0.6.1 to 0.7 produces strange FileNotFoundException errors (reported by [@dpalinic](https://github.com/dpalinic))
+
+As always, bug reports, pull requests and other ideas are welcome -- [join the discussion](https://gitter.im/wix/accord?utm_source=share-link&utm_medium=link&utm_campaign=share-link) on Gitter!
+
