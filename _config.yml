@@ -4,7 +4,7 @@ url: "http://wix.github.io/accord"
 baseurl: "/accord"
 
 version:
-  release: 0.7
+  release: 0.7.1
   snapshot: 0.8-SNAPSHOT
 
 markdown: kramdown
