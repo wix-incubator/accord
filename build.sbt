@@ -74,7 +74,7 @@ lazy val baseSettings =
     organization := "com.wix",
     homepage := Some( url( "https://github.com/wix/accord" ) ),
     licenses := Seq( "Apache-2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) ),
-    coverageEnabled := true
+    coverageEnabled := /*true*/ false  // Pending solutions for wix/accord#50 and scoverage/sbt-scoverage#84
   )
 
 lazy val noPublish = Seq( publish := {}, publishLocal := {}, publishArtifact := false )
