@@ -69,12 +69,10 @@ lazy val baseSettings =
   publishSettings ++
   releaseSettings ++
   compileOptions ++
-  sbtdoge.CrossPerProjectPlugin.projectSettings ++
   Seq(
     organization := "com.wix",
     homepage := Some( url( "https://github.com/wix/accord" ) ),
-    licenses := Seq( "Apache-2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) ),
-    coverageEnabled := /*true*/ false  // Pending solutions for wix/accord#50 and scoverage/sbt-scoverage#84
+    licenses := Seq( "Apache-2.0" -> url( "http://www.opensource.org/licenses/Apache-2.0" ) )
   )
 
 lazy val noPublish = Seq( publish := {}, publishLocal := {}, publishArtifact := false )
@@ -95,8 +93,7 @@ lazy val api =
     ) ++ baseSettings :_* )
   .jsSettings(
     libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0" % "test",
-    limitPackageSize( 150 ),
-    coverageEnabled := false
+    limitPackageSize( 150 )
   )
   .jvmSettings(
     libraryDependencies += {
@@ -123,8 +120,7 @@ lazy val scalatest =
     ) :_* )
   .jsSettings(
     libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0",
-    limitPackageSize( 100 ),
-    coverageEnabled := false
+    limitPackageSize( 100 )
   )
   .jvmSettings(
     libraryDependencies += {
@@ -139,10 +135,10 @@ lazy val scalatestJVM = scalatest.jvm
 lazy val scalatestJS = scalatest.js
 
 lazy val specs2 =
-  Project(
-    id = "specs2",
-    base = file( "specs2" ),
-    settings = baseSettings ++ Seq(
+  project
+    .in( file( "specs2" ) )
+    .settings( baseSettings :_* )
+    .settings(
       name := "accord-specs2",
       libraryDependencies += {
         if ( scalaVersion.value startsWith "2.12" )
@@ -153,7 +149,7 @@ lazy val specs2 =
       noFatalWarningsOn( compile, Test ),
       limitPackageSize( 80 )
     )
-  ).dependsOn( apiJVM )
+    .dependsOn( apiJVM )
 
 lazy val core =
   crossProject
@@ -174,7 +170,7 @@ lazy val core =
       noFatalWarningsOn( compile, Test )      // Avoid failed test compilation due to deprecations // TODO remove
     ) ++ baseSettings :_* )
     .jvmSettings( limitPackageSize( 500 ) )
-    .jsSettings( limitPackageSize( 800 ), coverageEnabled := false )
+    .jsSettings( limitPackageSize( 800 ) )
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
 
@@ -191,18 +187,17 @@ lazy val java8 =
     .jsSettings(
       // This library is still not complete (e.g. LocalDateTime isn't implemented); Scala.js support
       // for this module is consequently currently disabled.
-      libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.0",
-      coverageEnabled := false
+      libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.0"
     )
 
 lazy val java8JVM = java8.jvm
 //lazy val java8JS = java8.js     // Disabled until scalajs-java-time comes along. See comment above
 
 lazy val joda =
-  Project(
-    id = "joda",
-    base = file( "joda" ),
-    settings = baseSettings ++ Seq(
+  project
+    .in( file( "joda" ) )
+    .settings( baseSettings :_* )
+    .settings(
       name := "accord-joda",
       libraryDependencies ++= Seq(
         "joda-time" % "joda-time" % "2.9.7",
@@ -210,43 +205,42 @@ lazy val joda =
       ),
       description := "Adds native Accord combinators for Joda-Time",
       limitPackageSize( 25 )
-    ) )
+    )
   .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile" )
 
 lazy val spring3 =
-  Project(
-    id = "spring3",
-    base = file ( "spring3" ),
-    settings = baseSettings ++ Seq( limitPackageSize( 25 ) )
-  )
-  .dependsOn( apiJVM, scalatestJVM % "test->compile", coreJVM % "test->compile" )
+  project
+    .in( file ( "spring3" ) )
+    .settings( baseSettings :_* )
+    .settings( limitPackageSize( 25 ) )
+    .dependsOn( apiJVM, scalatestJVM % "test->compile", coreJVM % "test->compile" )
 
 lazy val examples =
-  Project(
-    id = "examples",
-    base = file( "examples" ),
-    settings = baseSettings ++ noPublish ++ Seq(
+  project
+    .in( file( "examples" ) )
+    .settings( baseSettings :_* )
+    .settings( noPublish :_* )
+    .settings(
       name := "accord-examples",
       description := "Sample projects for the Accord validation library.",
       noFatalWarningsOn( configuration = Compile )
-    ) )
-  .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2 % "test->compile", spring3 )
+    )
+    .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2 % "test->compile", spring3 )
 
 
 // Root --
 
 lazy val root =
-  Project(
-    id = "root",
-    base = file( "." ),
-    settings = baseSettings ++ noPublish
-  )
-  .aggregate(
-    apiJVM, apiJS, coreJVM, coreJS,                 // Core modules
-    scalatestJVM, scalatestJS, specs2,              // Testing support
-    spring3, joda,                                  // Optional modules
-    examples                                        // Extras
-  )
-  .whenJavaVersion( _ >= 1.8 ) {
-    _.aggregate( java8JVM/*, java8JS*/ )            // Modules that explicitly require Java 8
-  }
+  project
+    .in( file( "." ) )
+    .settings( baseSettings :_* )
+    .settings( noPublish :_* )
+    .aggregate(
+      apiJVM, apiJS, coreJVM, coreJS,                 // Core modules
+      scalatestJVM, scalatestJS, specs2,              // Testing support
+      spring3, joda,                                  // Optional modules
+      examples                                        // Extras
+    )
+    .whenJavaVersion( _ >= 1.8 ) {
+      _.aggregate( java8JVM/*, java8JS*/ )            // Modules that explicitly require Java 8
+    }

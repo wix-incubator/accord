@@ -7,16 +7,9 @@ scala:
 sudo: false
 
 script:
-  # Disabled until I can figure out why Doge can't run commands and how to work around the rest of it
-  # Evidently sbt-doge doesn't like it when you specify multiple commands
-  #- sbt "+++$TRAVIS_SCALA_VERSION clean" "+++$TRAVIS_SCALA_VERSION coverage" "+++$TRAVIS_SCALA_VERSION test" "+++$TRAVIS_SCALA_VERSION coverageReport" &&
-  #  sbt "+++$TRAVIS_SCALA_VERSION coverageAggregate"
-  - sbt "+++$TRAVIS_SCALA_VERSION clean" "+++$TRAVIS_SCALA_VERSION test"
+  - sbt ++$TRAVIS_SCALA_VERSION clean test
 
 after_success:
-  # Disabled until I can figure out why Doge can't run commands and how to work around the rest of it
-  #- sbt "+++$TRAVIS_SCALA_VERSION coveralls"
-  #
   # Snapshot publishing via Travis courtesy of Jan Machacek, thanks!
   # http://www.cakesolutions.net/teamblogs/publishing-artefacts-to-oss-sonatype-nexus-using-sbt-and-travis-ci
   - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt \"+++$TRAVIS_SCALA_VERSION publish\"; };"
