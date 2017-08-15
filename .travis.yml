@@ -7,12 +7,13 @@ scala:
 sudo: false
 
 script:
-  - sbt ++$TRAVIS_SCALA_VERSION clean test
+  - sbt ++$TRAVIS_SCALA_VERSION jvmRoot/clean jvmRoot/test
+  - sbt ++$TRAVIS_SCALA_VERSION jsRoot/clean jsRoot/test
 
 after_success:
   # Snapshot publishing via Travis courtesy of Jan Machacek, thanks!
   # http://www.cakesolutions.net/teamblogs/publishing-artefacts-to-oss-sonatype-nexus-using-sbt-and-travis-ci
-  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt \"+++$TRAVIS_SCALA_VERSION publish\"; };"
+  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt \"++$TRAVIS_SCALA_VERSION publish\"; };"
 
 jdk:
   - oraclejdk8

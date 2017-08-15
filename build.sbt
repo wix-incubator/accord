@@ -228,19 +228,25 @@ lazy val examples =
     .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2 % "test->compile", spring3 )
 
 
-// Root --
+// Roots --
+
+lazy val jvmRoot =
+  project
+    .settings( baseSettings :_* )
+    .settings( noPublish :_* )
+    .aggregate( apiJVM, coreJVM, scalatestJVM, specs2, spring3, joda, examples )
+    .whenJavaVersion( _ >= 1.8 ) { _.aggregate( java8JVM ) }
+
+lazy val jsRoot =
+  project
+    .settings( baseSettings :_* )
+    .settings( noPublish :_* )
+    .aggregate( apiJS, coreJS, scalatestJS )
+    //.whenJavaVersion( _ >= 1.8 ) { _.aggregate( java8JS ) }
 
 lazy val root =
   project
     .in( file( "." ) )
     .settings( baseSettings :_* )
     .settings( noPublish :_* )
-    .aggregate(
-      apiJVM, apiJS, coreJVM, coreJS,                 // Core modules
-      scalatestJVM, scalatestJS, specs2,              // Testing support
-      spring3, joda,                                  // Optional modules
-      examples                                        // Extras
-    )
-    .whenJavaVersion( _ >= 1.8 ) {
-      _.aggregate( java8JVM/*, java8JS*/ )            // Modules that explicitly require Java 8
-    }
+    .aggregate( jvmRoot, jsRoot )
