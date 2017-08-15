@@ -15,8 +15,6 @@ after_success:
   - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt \"+++$TRAVIS_SCALA_VERSION publish\"; };"
 
 jdk:
-  - oraclejdk7
-  - openjdk7
   - oraclejdk8
 
 env:
@@ -31,14 +29,6 @@ notifications:
     on_success: change
     on_failure: always
     on_start: never
-
-# Exclude builds for Scala 2.12 on JDK <8
-matrix:
-  exclude:
-    - scala: "2.12.0"
-      jdk: oraclejdk7
-    - scala: "2.12.0"
-      jdk: openjdk7
 
 # Cache bootstrap and dependency files for (hopefully) faster builds, per recommendation in
 # http://www.scala-sbt.org/0.13/docs/Travis-CI-with-sbt.html
