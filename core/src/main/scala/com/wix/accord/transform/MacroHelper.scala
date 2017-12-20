@@ -68,8 +68,8 @@ trait MacroHelper[ C <: Context ] {
     g.newUnitParser( code, "<Accord>" )
   }
 
-  protected def startPos( pos: Position ) = pos.start
-  protected def endPos( pos: Position ) = pos.end
+  protected def startPos( pos: Position ): Int = pos.start
+  protected def endPos( pos: Position ): Int = pos.end
 }
 
 object MacroHelper {
