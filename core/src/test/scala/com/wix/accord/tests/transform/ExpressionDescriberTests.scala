@@ -25,6 +25,7 @@ class ExpressionDescriberTests extends WordSpec with Matchers {
 
   case class Nested( field: String )
   case class Test( field1: String, field2: String, nested: Nested )
+  case class InSeq( field: Seq[ String ] )
 
   "A single-parameter function literal" should {
     "render an access chain description for a property getter" in {
@@ -60,6 +61,9 @@ class ExpressionDescriberTests extends WordSpec with Matchers {
       // The Scala compiler (2.11.x at any rate) generates an empty subtree for the following
       // expression; an empty tree has no position, which is the root cause of #89.
       "com.wix.accord.transform.ExpressionDescriber describe { ( t: Test ) => t.field1.map( _.toUpper ) }" should compile
+    }
+    "handle anonymous functions in expressions" in {
+      "com.wix.accord.transform.ExpressionDescriber describe { ( i: InSeq ) => i.field.collect { case p if p != \"\" => p } }" should compile
     }
     "render a self-reference description when the sample object itself is used anonymously" in pending
 //    {

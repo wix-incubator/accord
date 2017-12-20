@@ -217,6 +217,16 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
       validate( FlatTest( null ) )( adaptedValidator ) should
         failWith( Path( Generic( "field" ) ) -> "is a null" )
     }
+    "be generated for a complex expression involving lambdas" in {
+      """
+      import com.wix.accord.dsl._
+      case class Thing(people: List[String])
+
+      val thingValidator = validator[Thing] { t =>
+        t.people.collect { case p if p != "" => p } is notEmpty
+      }
+      """ should compile
+    }
   }
 
   "A runtime validator description decoration (e.g. sequence position)" should {
