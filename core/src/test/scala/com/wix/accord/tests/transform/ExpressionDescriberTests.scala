@@ -63,7 +63,7 @@ class ExpressionDescriberTests extends WordSpec with Matchers {
       "com.wix.accord.transform.ExpressionDescriber describe { ( t: Test ) => t.field1.map( _.toUpper ) }" should compile
     }
     "handle anonymous functions in expressions" in {
-      "com.wix.accord.transform.ExpressionDescriber describe { ( i: InSeq ) => i.field.collect { case p if p != \"\" => p } }" should compile
+      "com.wix.accord.transform.ExpressionDescriber describe { ( i: InSeq ) => i.field.collect { case p => p } }" should compile
     }
     "render a self-reference description when the sample object itself is used anonymously" in pending
 //    {

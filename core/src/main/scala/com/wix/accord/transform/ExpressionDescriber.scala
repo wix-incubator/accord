@@ -43,7 +43,7 @@ import scala.language.experimental.macros
 private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelper[ C ] with PatternHelper[ C ] {
   import context.universe._
 
-  private val tokenLookup = "(\\s+\\)?)+".r
+  private val tokenLookup = "(\\s+[\\)\\}]?)+".r
 
   protected def prettyPrint( tree: Tree ): String = {
     val fileContent = new String( tree.pos.source.content )
@@ -62,7 +62,11 @@ private[ transform ] trait ExpressionDescriber[ C <: Context ] extends MacroHelp
       }
 
     val parser = newUnitParser( codeSlice )
-    parser.expr()
+    try parser.expr()
+    catch {
+      case e: Exception =>
+        context.abort( tree.pos, s"""Failed to pretty print expression "$tree", code slice: "$codeSlice", message: ${e.getMessage}""" )
+    }
     fileContent.slice( start, start + parser.in.lastOffset )
   }
 
