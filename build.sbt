@@ -50,9 +50,9 @@ def limitPackageSize( allowedSizeInKB: Int ) =
   }
 
 lazy val compileOptions = Seq(
-  scalaVersion := "2.11.1",
+  scalaVersion := "2.12.0",
   crossScalaVersions := ( Helpers.javaVersion match {
-    case v if v >= 1.8 => Seq( "2.11.1", "2.12.0" )
+    case v if v >= 1.8 => Seq( "2.11.1", "2.12.0", "2.13.0-M2" )
     case _             => Seq( "2.11.1" )
   } ),
   scalacOptions ++= Seq(
@@ -89,21 +89,11 @@ lazy val api =
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
         "dead-simple and self-contained story for defining validation rules and executing them on object " +
         "instances. Feedback, bug reports and improvements are welcome!",
+      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.4" % "test",
       noFatalWarningsOn( configuration = Test )
     ) ++ baseSettings :_* )
-  .jsSettings(
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0" % "test",
-    limitPackageSize( 150 )
-  )
-  .jvmSettings(
-    libraryDependencies += {
-      if ( scalaVersion.value startsWith "2.12" )
-        "org.scalatest" %% "scalatest" % "3.0.0" % "test"
-      else
-        "org.scalatest" %% "scalatest" % "2.2.6" % "test"
-    },
-    limitPackageSize( 90 )
-  )
+  .jsSettings( limitPackageSize( 150 ) )
+  .jvmSettings( limitPackageSize( 90 ) )
 
 lazy val apiJVM = api.jvm
 lazy val apiJS = api.js
@@ -116,40 +106,29 @@ lazy val scalatest =
     .settings( baseSettings ++ Seq(
       name := "accord-scalatest",
       description := "ScalaTest matchers for the Accord validation library",
+      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.4",
       noFatalWarningsOn( configuration = Test )
     ) :_* )
-  .jsSettings(
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0",
-    limitPackageSize( 100 )
-  )
-  .jvmSettings(
-    libraryDependencies += {
-      if ( scalaVersion.value startsWith "2.12" )
-        "org.scalatest" %% "scalatest" % "3.0.0"
-      else
-        "org.scalatest" %% "scalatest" % "2.2.6"
-    },
-    limitPackageSize( 60 )
-  )
+  .jsSettings( limitPackageSize( 100 ) )
+  .jvmSettings( limitPackageSize( 60 ) )
 lazy val scalatestJVM = scalatest.jvm
 lazy val scalatestJS = scalatest.js
 
 lazy val specs2 =
-  project
+  crossProject
+    .crossType( CrossType.Pure )
     .in( file( "specs2" ) )
-    .settings( baseSettings :_* )
-    .settings(
+    .dependsOn( api )
+    .settings( baseSettings ++ Seq(
       name := "accord-specs2",
-      libraryDependencies += {
-        if ( scalaVersion.value startsWith "2.12" )
-          "org.specs2" %% "specs2-core" % "3.8.6"
-        else
-          "org.specs2" %% "specs2-core" % "3.6.5"
-      },
+      libraryDependencies += "org.specs2" %%% "specs2-core" % "4.0.2",
       noFatalWarningsOn( compile, Test ),
       limitPackageSize( 80 )
-    )
-    .dependsOn( apiJVM )
+    ) :_* )
+    .jsSettings( limitPackageSize( 100 ) )
+    .jvmSettings( limitPackageSize( 60 ) )
+lazy val specs2JVM = specs2.jvm
+lazy val specs2JS = specs2.js
 
 lazy val core =
   crossProject
@@ -225,7 +204,7 @@ lazy val examples =
       description := "Sample projects for the Accord validation library.",
       noFatalWarningsOn( configuration = Compile )
     )
-    .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2 % "test->compile", spring3 )
+    .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2JVM % "test->compile", spring3 )
 
 
 // Roots --
@@ -234,7 +213,7 @@ lazy val jvmRoot =
   project
     .settings( baseSettings :_* )
     .settings( noPublish :_* )
-    .aggregate( apiJVM, coreJVM, scalatestJVM, specs2, spring3, joda, examples )
+    .aggregate( apiJVM, coreJVM, scalatestJVM, specs2JVM, specs2JS, spring3, joda, examples )
     .whenJavaVersion( _ >= 1.8 ) { _.aggregate( java8JVM ) }
 
 lazy val jsRoot =

@@ -39,6 +39,7 @@ object OrderingOpsTests {
       override def compare( x: ArbitraryType, y: ArbitraryType ): Int = ???
       override def quot( x: ArbitraryType, y: ArbitraryType ): ArbitraryType = ???
       override def rem( x: ArbitraryType, y: ArbitraryType ): ArbitraryType = ???
+      def parseString( str: String ): Option[ ArbitraryType ] = ???   // Scala 2.13 extension
     }
 
     def apply() = new ArbitraryType {}
