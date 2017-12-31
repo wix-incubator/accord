@@ -18,6 +18,7 @@ after_success:
 
 jdk:
   - oraclejdk8
+  - oraclejdk9
 
 env:
   global:
