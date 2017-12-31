@@ -200,7 +200,12 @@ lazy val spring3 =
     .in( file ( "spring3" ) )
     .settings( baseSettings :_* )
     .settings( limitPackageSize( 25 ) )
-    .whenJavaVersion( _ >= 1.9 ) { _.settings( libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.0" ) }
+    .whenJavaVersion( _ >= 1.9 ) { _.settings(
+      libraryDependencies ++= Seq(
+        "javax.xml.bind" % "jaxb-api" % "2.3.0",
+        "javax.annotation" % "javax.annotation-api" % "1.3.1"
+      )
+    ) }
     .dependsOn( apiJVM, scalatestJVM % "test->compile", coreJVM % "test->compile" )
 
 lazy val examples =
