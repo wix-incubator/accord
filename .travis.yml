@@ -18,7 +18,12 @@ after_success:
 
 jdk:
   - oraclejdk8
-  - oraclejdk9
+
+matrix:
+  include:
+    # Add JDK 9 build, currently only available with 2.13.0
+    - jdk: oraclejdk9
+      scala: "2.13.0-M2"
 
 env:
   global:
