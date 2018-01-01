@@ -203,7 +203,8 @@ lazy val spring3 =
     .whenJavaVersion( _ >= 1.9 ) { _.settings(
       libraryDependencies ++= Seq(
         "javax.xml.bind" % "jaxb-api" % "2.3.0",
-        "javax.annotation" % "javax.annotation-api" % "1.3.1"
+        "javax.annotation" % "javax.annotation-api" % "1.3.1",
+        "org.apache.commons" % "commons-lang3" % "3.5"
       )
     ) }
     .dependsOn( apiJVM, scalatestJVM % "test->compile", coreJVM % "test->compile" )
