@@ -6,6 +6,7 @@ Version 0.7.2 is a maintenance release with a few bug fixes and support for Scal
 * [#120](https://github.com/wix/accord/issues/120) Bug: PartialFunction in validator leads to UnsupportedOperationException: Position.start on NoPosition (reported by [@timcharper](https://github.com/timcharper))
 * Added support for Scala 2.13.0-M2.
 * Specs² now supported on Scala.js (via Specs² 4.x).
+* Accord is now also tested on JDK 9.
 
 As always, bug reports, pull requests and other ideas are welcome -- [join the discussion](https://gitter.im/wix/accord?utm_source=share-link&utm_medium=link&utm_campaign=share-link) on Gitter!
 
