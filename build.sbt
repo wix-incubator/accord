@@ -121,15 +121,14 @@ lazy val specs2 =
     .dependsOn( api )
     .settings( baseSettings ++ Seq(
       name := "accord-specs2",
-      noFatalWarningsOn( compile, Test ),
-      limitPackageSize( 80 )
+      noFatalWarningsOn( compile, Test )
     ) :_* )
     .jsSettings(
       limitPackageSize( 100 ),
       libraryDependencies += "org.specs2" %%% "specs2-core" % "4.0.2"
     )
     .jvmSettings(
-      limitPackageSize( 60 ),
+      limitPackageSize( 80 ),
       libraryDependencies += { scalaVersion.value match {
         case v if v startsWith "2.13" => "org.specs2" %% "specs2-core" % "4.0.2"
         case _                        => "org.specs2" %% "specs2-core" % "3.8.6"
