@@ -12,18 +12,21 @@ script:
   - sbt ++$TRAVIS_SCALA_VERSION jsRoot/clean jsRoot/test
 
 after_success:
-  # Snapshot publishing via Travis courtesy of Jan Machacek, thanks!
+  # Snapshot publishing via Travis (only for authoritative repo and on master branch) courtesy of Jan Machacek, thanks!
   # http://www.cakesolutions.net/teamblogs/publishing-artefacts-to-oss-sonatype-nexus-using-sbt-and-travis-ci
-  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt \"++$TRAVIS_SCALA_VERSION publish\"; };"
+  - "[[ \"$TRAVIS_REPO_SLUG\" == \"wix/accord\" ]] && [[ \"$TRAVIS_BRANCH\" == \"master\" ]] && { sbt \"++$TRAVIS_SCALA_VERSION publish\"; };"
 
 jdk:
   - oraclejdk8
+  - oraclejdk9
+  - oraclejdk10
 
-matrix:
-  include:
-    # Add JDK 9 build, currently only available with 2.13.0
-    - jdk: oraclejdk9
-      scala: "2.13.0-M2"
+# Trying out new JDK 8-10 matrix, if it works this section will go away. --TG
+#matrix:
+#  include:
+#    # Add JDK 9 build, currently only available with 2.13.0
+#    - jdk: oraclejdk9
+#      scala: "2.13.0-M2"
 
 env:
   global:
