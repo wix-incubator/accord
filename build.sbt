@@ -203,7 +203,7 @@ lazy val spring3 =
       libraryDependencies ++= Seq(
         "javax.xml.bind" % "jaxb-api" % "2.3.0",
         "javax.annotation" % "javax.annotation-api" % "1.3.1",
-        "org.apache.commons" % "commons-lang3" % "3.7"
+        "org.apache.commons" % "commons-lang3" % "3.8"
       )
     ) }
     .dependsOn( apiJVM, scalatestJVM % "test->compile", coreJVM % "test->compile" )
