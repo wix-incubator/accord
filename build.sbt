@@ -50,10 +50,10 @@ def limitPackageSize( allowedSizeInKB: Int ) =
   }
 
 lazy val compileOptions = Seq(
-  scalaVersion := "2.12.0",
+  scalaVersion := "2.12.6",
   crossScalaVersions := ( Helpers.javaVersion match {
-    case v if v >= 1.8 => Seq( "2.11.1", "2.12.0", "2.13.0-M2" )
-    case _             => Seq( "2.11.1" )
+    case v if v >= 1.8 => Seq( "2.11.12", "2.12.6", "2.13.0-M2" )
+    case _             => Seq( "2.11.12" )
   } ),
   scalacOptions ++= Seq(
     "-language:reflectiveCalls",
@@ -203,7 +203,7 @@ lazy val spring3 =
       libraryDependencies ++= Seq(
         "javax.xml.bind" % "jaxb-api" % "2.3.0",
         "javax.annotation" % "javax.annotation-api" % "1.3.1",
-        "org.apache.commons" % "commons-lang3" % "3.5"
+        "org.apache.commons" % "commons-lang3" % "3.8"
       )
     ) }
     .dependsOn( apiJVM, scalatestJVM % "test->compile", coreJVM % "test->compile" )

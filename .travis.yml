@@ -1,8 +1,8 @@
 language: scala
 
 scala:
-  - "2.11.1"
-  - "2.12.0"
+  - "2.11.12"
+  - "2.12.6"
   - "2.13.0-M2"
 
 sudo: false
@@ -12,18 +12,13 @@ script:
   - sbt ++$TRAVIS_SCALA_VERSION jsRoot/clean jsRoot/test
 
 after_success:
-  # Snapshot publishing via Travis courtesy of Jan Machacek, thanks!
+  # Snapshot publishing via Travis (only for authoritative repo and on master branch) courtesy of Jan Machacek, thanks!
   # http://www.cakesolutions.net/teamblogs/publishing-artefacts-to-oss-sonatype-nexus-using-sbt-and-travis-ci
-  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt \"++$TRAVIS_SCALA_VERSION publish\"; };"
+  - "[[ \"$TRAVIS_REPO_SLUG\" == \"wix/accord\" ]] && [[ \"$TRAVIS_BRANCH\" == \"master\" ]] && { sbt \"++$TRAVIS_SCALA_VERSION publish\"; };"
 
 jdk:
   - oraclejdk8
-
-matrix:
-  include:
-    # Add JDK 9 build, currently only available with 2.13.0
-    - jdk: oraclejdk9
-      scala: "2.13.0-M2"
+  - oraclejdk11
 
 env:
   global:
