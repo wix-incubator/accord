@@ -53,9 +53,9 @@ def limitPackageSize( allowedSizeInKB: Int ) =
   }
 
 lazy val compileOptions = Seq(
-  scalaVersion := "2.12.6",
+  scalaVersion := "2.13.0-M5",
   crossScalaVersions := ( Helpers.javaVersion match {
-    case v if v >= 1.8 => Seq( "2.11.12", "2.12.6", "2.13.0-M2" )
+    case v if v >= 1.8 => Seq( "2.11.12", "2.12.6", "2.13.0-M5" )
     case _             => Seq( "2.11.12" )
   } ),
   scalacOptions ++= Seq(
@@ -92,7 +92,10 @@ lazy val api =
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
         "dead-simple and self-contained story for defining validation rules and executing them on object " +
         "instances. Feedback, bug reports and improvements are welcome!",
-      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.4" % "test",
+      libraryDependencies += { scalaVersion.value match {
+        case v if v startsWith "2.13" => "org.scalatest" %%% "scalatest" % "3.0.6-SNAP5" % "test"
+        case _                        => "org.scalatest" %%% "scalatest" % "3.0.4" % "test"
+      } },
       noFatalWarningsOn( configuration = Test )
     ) ++ baseSettings :_* )
   .jsSettings( limitPackageSize( 150 ) )
@@ -106,7 +109,10 @@ lazy val scalatest =
     .settings( baseSettings ++ Seq(
       name := "accord-scalatest",
       description := "ScalaTest matchers for the Accord validation library",
-      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.4",
+      libraryDependencies += { scalaVersion.value match {
+        case v if v startsWith "2.13" => "org.scalatest" %%% "scalatest" % "3.0.6-SNAP5"
+        case _                        => "org.scalatest" %%% "scalatest" % "3.0.4"
+      } },
       noFatalWarningsOn( configuration = Test )
     ) :_* )
   .jsSettings( limitPackageSize( 100 ) )
@@ -120,19 +126,11 @@ lazy val specs2 =
     .settings( baseSettings ++ Seq(
       name := "accord-specs2",
       description := "Specs² matchers for the Accord validation library",
+      libraryDependencies += "org.specs2" %%% "specs2-core" % "4.3.6",
       noFatalWarningsOn( compile, Test )
     ) :_* )
-    .jsSettings(
-      limitPackageSize( 100 ),
-      libraryDependencies += "org.specs2" %%% "specs2-core" % "4.0.2"
-    )
-    .jvmSettings(
-      limitPackageSize( 80 ),
-      libraryDependencies += { scalaVersion.value match {
-        case v if v startsWith "2.13" => "org.specs2" %% "specs2-core" % "4.0.2"
-        case _                        => "org.specs2" %% "specs2-core" % "3.8.6"
-      } }
-    )
+    .jsSettings( limitPackageSize( 100 ) )
+    .jvmSettings( limitPackageSize( 80 ) )
 
 lazy val core =
   crossProject( JVMPlatform, JSPlatform )
@@ -149,8 +147,14 @@ lazy val core =
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
         "dead-simple and self-contained story for defining validation rules and executing them on object " +
         "instances. Feedback, bug reports and improvements are welcome!",
+      
+      noFatalWarningsOn( configuration = Test ),  // Avoid failed test compilation due to deprecations // TODO remove
 
-      noFatalWarningsOn( compile, Test )      // Avoid failed test compilation due to deprecations // TODO remove
+      // Scala 2.13 deprecates a number of older collection traits like Traversable and the family of Gen*
+      // traits. Maintaining backwards compatibility with <2.13 requires keeping these APIs as is, and because
+      // there's no way to specifically suppress specific warnings by type OR by scope, we have to do this
+      // wholesale.
+      noFatalWarningsOn( configuration = Compile )
     ) ++ baseSettings :_* )
     .jvmSettings( limitPackageSize( 500 ) )
     .jsSettings( limitPackageSize( 800 ) )
@@ -168,7 +172,7 @@ lazy val java8 =
     .jsSettings(
       // This library is still not complete (e.g. LocalDateTime isn't implemented); Scala.js support
       // for this module is consequently currently disabled.
-      libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.0"
+      libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.5"
     )
 
 lazy val joda =
