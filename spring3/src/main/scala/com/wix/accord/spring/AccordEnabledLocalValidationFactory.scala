@@ -27,18 +27,18 @@ class AccordEnabledLocalValidationFactory extends LocalValidatorFactoryBean with
 
   // Need an indirection through a separate method to get a type T in a way that's consistently usable
   // across multiple expressions. There might be a better way to do this.
-  private def internalValidate[ T : ClassTag ]( target: T, errors: Errors ) {
+  private def internalValidate[ T : ClassTag ]( target: T, errors: Errors ): Unit = {
     resolver.lookupValidator[ T ] match {
       case Some( validator ) => applyAdaptedValidator( validator, target, errors )
       case None => super.validate( target, errors )
     }
   }
 
-  override def validate( target: Any, errors: Errors ) {
+  override def validate( target: Any, errors: Errors ): Unit = {
     internalValidate( target, errors )( ClassTag( target.getClass ) )
   }
 
-  override def validate( target: Any, errors: Errors, validationHints: AnyRef* ) {
+  override def validate( target: Any, errors: Errors, validationHints: AnyRef* ): Unit = {
     // TODO is this sane?...
     super.validate( target, errors, validationHints )
   }

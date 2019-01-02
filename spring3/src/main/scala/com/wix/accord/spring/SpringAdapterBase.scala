@@ -31,7 +31,7 @@ trait SpringAdapterBase {
   /** Adapts the specified Accord validator and applies it to the specified [[org.springframework.validation.Errors]]
     * object.
     */
-  protected def applyAdaptedValidator[ T ]( validator: Validator[ T ], target: T, errors: Errors ) {
+  protected def applyAdaptedValidator[ T ]( validator: Validator[ T ], target: T, errors: Errors ): Unit = {
     validator( target ) match {
       case Failure( violations ) =>
         violations foreach { v => errors.reject( formatErrorCode( v ), formatMessage( v ) ) }
