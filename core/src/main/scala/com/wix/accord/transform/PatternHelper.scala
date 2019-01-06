@@ -57,7 +57,7 @@ trait PatternHelper[ C <: Context ] {
   def extractFromPattern[ R ]( tree: Tree )( pattern: PartialFunction[ Tree, R ] ): Option[ R ] = {
     var found: Option[ R ] = None
     new Traverser {
-      override def traverse( subtree: Tree ) {
+      override def traverse( subtree: Tree ): Unit = {
         if ( pattern.isDefinedAt( subtree ) )
           found = Some( pattern( subtree ) )
         else
@@ -80,7 +80,7 @@ trait PatternHelper[ C <: Context ] {
   def collectFromPattern[ R ]( tree: Tree )( pattern: PartialFunction[ Tree, R ] ): List[ R ] = {
     var found: Vector[ R ] = Vector.empty
     new Traverser {
-      override def traverse( subtree: Tree ) {
+      override def traverse( subtree: Tree ): Unit = {
         if ( pattern.isDefinedAt( subtree ) )
           found = found :+ pattern( subtree )
         else

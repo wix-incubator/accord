@@ -125,7 +125,7 @@ private[ transform ] trait RuleFinder[ C <: Context ] extends PatternHelper[ C ]
           } else super.traverseCases( cases )
       }.traverse( tree )
 
-      if ( l.isEmpty ) None else Some( l )
+      if ( l.isEmpty ) None else Some( l.toSeq )
     }
   }
 }

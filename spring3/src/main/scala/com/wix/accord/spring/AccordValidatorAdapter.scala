@@ -28,7 +28,7 @@ class AccordValidatorAdapter[ T : ClassTag ]( validator: Validator[ T ] )
 
   def supports( clazz: Class[_] ) = implicitly[ ClassTag[ T ] ].runtimeClass isAssignableFrom clazz
 
-  override def validate( target: Any, errors: Errors ) {
+  override def validate( target: Any, errors: Errors ): Unit = {
     // Safety net
     if ( !supports( target.getClass ) )
       throw new IllegalArgumentException( s"Class ${target.getClass.getName} is not supported by this validator" )

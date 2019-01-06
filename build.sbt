@@ -1,6 +1,9 @@
 import com.typesafe.sbt.pgp.PgpKeys._
 import Helpers._
 
+// shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
+import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
+
 lazy val publishSettings = Seq(
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
@@ -50,9 +53,9 @@ def limitPackageSize( allowedSizeInKB: Int ) =
   }
 
 lazy val compileOptions = Seq(
-  scalaVersion := "2.12.6",
+  scalaVersion := "2.13.0-M5",
   crossScalaVersions := ( Helpers.javaVersion match {
-    case v if v >= 1.8 => Seq( "2.11.12", "2.12.6", "2.13.0-M2" )
+    case v if v >= 1.8 => Seq( "2.11.12", "2.12.6", "2.13.0-M5" )
     case _             => Seq( "2.11.12" )
   } ),
   scalacOptions ++= Seq(
@@ -80,7 +83,7 @@ lazy val noPublish = Seq( publish := {}, publishLocal := {}, publishArtifact := 
 // Projects --
 
 lazy val api =
-  crossProject
+  crossProject( JVMPlatform, JSPlatform )
     .crossType( CrossType.Pure )
     .in( file( "api" ) )
     .settings( Seq(
@@ -89,56 +92,48 @@ lazy val api =
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
         "dead-simple and self-contained story for defining validation rules and executing them on object " +
         "instances. Feedback, bug reports and improvements are welcome!",
-      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.4" % "test",
+      libraryDependencies += { scalaVersion.value match {
+        case v if v startsWith "2.13" => "org.scalatest" %%% "scalatest" % "3.0.6-SNAP5" % "test"
+        case _                        => "org.scalatest" %%% "scalatest" % "3.0.4" % "test"
+      } },
       noFatalWarningsOn( configuration = Test )
     ) ++ baseSettings :_* )
   .jsSettings( limitPackageSize( 150 ) )
   .jvmSettings( limitPackageSize( 90 ) )
 
-lazy val apiJVM = api.jvm
-lazy val apiJS = api.js
-
 lazy val scalatest =
-  crossProject
+  crossProject( JVMPlatform, JSPlatform )
     .crossType( CrossType.Pure )
     .in( file( "scalatest" ) )
     .dependsOn( api )
     .settings( baseSettings ++ Seq(
       name := "accord-scalatest",
       description := "ScalaTest matchers for the Accord validation library",
-      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.4",
+      libraryDependencies += { scalaVersion.value match {
+        case v if v startsWith "2.13" => "org.scalatest" %%% "scalatest" % "3.0.6-SNAP5"
+        case _                        => "org.scalatest" %%% "scalatest" % "3.0.4"
+      } },
       noFatalWarningsOn( configuration = Test )
     ) :_* )
   .jsSettings( limitPackageSize( 100 ) )
   .jvmSettings( limitPackageSize( 60 ) )
-lazy val scalatestJVM = scalatest.jvm
-lazy val scalatestJS = scalatest.js
 
 lazy val specs2 =
-  crossProject
+  crossProject( JVMPlatform, JSPlatform )
     .crossType( CrossType.Pure )
     .in( file( "specs2" ) )
     .dependsOn( api )
     .settings( baseSettings ++ Seq(
       name := "accord-specs2",
+      description := "Specs² matchers for the Accord validation library",
+      libraryDependencies += "org.specs2" %%% "specs2-core" % "4.3.6",
       noFatalWarningsOn( compile, Test )
     ) :_* )
-    .jsSettings(
-      limitPackageSize( 100 ),
-      libraryDependencies += "org.specs2" %%% "specs2-core" % "4.0.2"
-    )
-    .jvmSettings(
-      limitPackageSize( 80 ),
-      libraryDependencies += { scalaVersion.value match {
-        case v if v startsWith "2.13" => "org.specs2" %% "specs2-core" % "4.0.2"
-        case _                        => "org.specs2" %% "specs2-core" % "3.8.6"
-      } }
-    )
-lazy val specs2JVM = specs2.jvm
-lazy val specs2JS = specs2.js
+    .jsSettings( limitPackageSize( 100 ) )
+    .jvmSettings( limitPackageSize( 80 ) )
 
 lazy val core =
-  crossProject
+  crossProject( JVMPlatform, JSPlatform )
     .crossType( CrossType.Pure )
     .in( file( "core" ) )
     .dependsOn( api, scalatest % "test->compile" )
@@ -152,16 +147,20 @@ lazy val core =
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
         "dead-simple and self-contained story for defining validation rules and executing them on object " +
         "instances. Feedback, bug reports and improvements are welcome!",
+      
+      noFatalWarningsOn( configuration = Test ),  // Avoid failed test compilation due to deprecations // TODO remove
 
-      noFatalWarningsOn( compile, Test )      // Avoid failed test compilation due to deprecations // TODO remove
+      // Scala 2.13 deprecates a number of older collection traits like Traversable and the family of Gen*
+      // traits. Maintaining backwards compatibility with <2.13 requires keeping these APIs as is, and because
+      // there's no way to specifically suppress specific warnings by type OR by scope, we have to do this
+      // wholesale.
+      noFatalWarningsOn( configuration = Compile )
     ) ++ baseSettings :_* )
     .jvmSettings( limitPackageSize( 500 ) )
     .jsSettings( limitPackageSize( 800 ) )
-lazy val coreJVM = core.jvm
-lazy val coreJS = core.js
 
 lazy val java8 =
-  crossProject
+  crossProject( JVMPlatform, JSPlatform )
     .crossType( CrossType.Pure )
     .in( file( "java8" ) )
     .dependsOn( api, core, scalatest % "test->compile" )
@@ -173,14 +172,12 @@ lazy val java8 =
     .jsSettings(
       // This library is still not complete (e.g. LocalDateTime isn't implemented); Scala.js support
       // for this module is consequently currently disabled.
-      libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.0"
+      libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.5"
     )
 
-lazy val java8JVM = java8.jvm
-//lazy val java8JS = java8.js     // Disabled until scalajs-java-time comes along. See comment above
-
 lazy val joda =
-  project
+  crossProject( JVMPlatform )
+    .crossType( CrossType.Pure )
     .in( file( "joda" ) )
     .settings( baseSettings :_* )
     .settings(
@@ -192,13 +189,25 @@ lazy val joda =
       description := "Adds native Accord combinators for Joda-Time",
       limitPackageSize( 25 )
     )
-  .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile" )
+    .dependsOn( api, core, scalatest % "test->compile" )
 
 lazy val spring3 =
-  project
+  crossProject( JVMPlatform )
+    .crossType( CrossType.Pure )
     .in( file ( "spring3" ) )
     .settings( baseSettings :_* )
-    .settings( limitPackageSize( 25 ) )
+    .settings(
+      name := "accord-spring3",
+      libraryDependencies ++= Seq(
+        "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
+        "javax.validation" % "validation-api" % "1.0.0.GA",
+        "org.springframework" % "spring-context" % "3.2.5.RELEASE",
+        "org.springframework" % "spring-test" % "3.2.5.RELEASE" % "test",
+        "org.apache.bval" % "org.apache.bval.bundle" % "0.5" % "test"
+      ),
+      description := "Spring 3.x Validation integration for the Accord validation library",
+      limitPackageSize( 25 )
+    )
     .whenJavaVersion( _ >= 1.9 ) { _.settings(
       libraryDependencies ++= Seq(
         "javax.xml.bind" % "jaxb-api" % "2.3.0",
@@ -206,10 +215,11 @@ lazy val spring3 =
         "org.apache.commons" % "commons-lang3" % "3.8"
       )
     ) }
-    .dependsOn( apiJVM, scalatestJVM % "test->compile", coreJVM % "test->compile" )
+    .dependsOn( api, scalatest % "test->compile", core % "test->compile" )
 
 lazy val examples =
-  project
+  crossProject( JVMPlatform )
+    .crossType( CrossType.Pure )
     .in( file( "examples" ) )
     .settings( baseSettings :_* )
     .settings( noPublish :_* )
@@ -218,7 +228,7 @@ lazy val examples =
       description := "Sample projects for the Accord validation library.",
       noFatalWarningsOn( configuration = Compile )
     )
-    .dependsOn( apiJVM, coreJVM, scalatestJVM % "test->compile", specs2JVM % "test->compile", spring3 )
+    .dependsOn( api, core, scalatest % "test->compile", specs2 % "test->compile", spring3 )
 
 
 // Roots --
@@ -227,15 +237,15 @@ lazy val jvmRoot =
   project
     .settings( baseSettings :_* )
     .settings( noPublish :_* )
-    .aggregate( apiJVM, coreJVM, scalatestJVM, specs2JVM, specs2JS, spring3, joda, examples )
-    .whenJavaVersion( _ >= 1.8 ) { _.aggregate( java8JVM ) }
+    .aggregate( api.jvm, core.jvm, scalatest.jvm, specs2.jvm, spring3.jvm, joda.jvm, examples.jvm )
+    .whenJavaVersion( _ >= 1.8 ) { _.aggregate( java8.jvm ) }
 
 lazy val jsRoot =
   project
     .settings( baseSettings :_* )
     .settings( noPublish :_* )
-    .aggregate( apiJS, coreJS, scalatestJS )
-    //.whenJavaVersion( _ >= 1.8 ) { _.aggregate( java8JS ) }
+    .aggregate( api.js, core.js, scalatest.js )
+//    .whenJavaVersion( _ >= 1.8 ) { _.aggregate( java8.js ) }
 
 lazy val root =
   project

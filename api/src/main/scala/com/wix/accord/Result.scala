@@ -92,7 +92,7 @@ case class GroupViolation( value: Any,
   private def renderPrefix( nesting: Int, isLast: Boolean ) =
     ( " " * ( if ( nesting > 1 ) 1 else 0 ) ) +
     ( "   " * ( nesting - 1 ) ) +
-    ( ( if ( isLast ) '`' else '|' ) + "-- " ) * ( if ( nesting > 0 ) 1 else 0 )
+    ( if ( isLast ) "`-- " else "|-- " ) * ( if ( nesting > 0 ) 1 else 0 )
 
   private def renderSingleChild( nesting: Int, isLast: Boolean )( child: Violation ) =
     child match {

@@ -28,7 +28,7 @@ trait GeneralPurposeCombinators {
     * @tparam T The type on which this validator operates.
     */
   class And[ T ]( predicates: Validator[ T ]* ) extends Validator[ T ] {
-    def apply( x: T ) = predicates.map { _ apply x }.fold( Success ) { _ and _ }
+    def apply( x: T ) = predicates.map { _ apply x }.foldLeft( Success: Result ) { _ and _ }
   }
 
   /** A combinator that takes a chain of predicates and implements logical OR between them. When all predicates
@@ -41,7 +41,7 @@ trait GeneralPurposeCombinators {
     def apply( x: T ) = {
       val results = predicates.map { _ apply x }.toSet
       val failures = results.collect { case Failure( violations ) => violations }.flatten
-      result( results exists { _ == Success }, x -> "doesn't meet any of the requirements" -> failures )
+      result( results contains Success, x -> "doesn't meet any of the requirements" -> failures )
     }
   }
 
