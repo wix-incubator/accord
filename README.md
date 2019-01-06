@@ -32,5 +32,5 @@ Accord is still fairly rudimentary, and there's plenty of improvements to be mad
     * Support custom violation types (e.g. `p.firstName is notEmpty as MyServerError( code = -3 )`)
     * Full-blown i18n support ([need feedback](https://github.com/wix/accord/issues/21) on this)
 
-Ideas and feature requests welcome! You can join the fun on our [Gitter channel](https://gitter.im/wix/accord), report an [issue](https://github.com/wix/accord/issues/) or contact the [maintainer](https://github.com/holograph) directly. 
+Ideas and feature requests welcome! You can join the fun on our [Gitter channel](https://gitter.im/wix/accord), report an [issue](https://github.com/wix/accord/issues/) or contact the [maintainer](https://github.com/noam-almog) directly. 
 

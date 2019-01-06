@@ -1,0 +1,11 @@
+![Accord](https://raw.githubusercontent.com/wix/accord/master/assets/accord-logo-light.png?raw=1)
+
+Version 0.7.3 is a maintenance release with a few bug fixes and support for Scala 2.13. No new features have been introduced.
+
+* Added support for Scala 2.13.0-M5.
+* Accord is now also tested on JDK 11.
+
+Note: Library will have a new maintainer [Noam Almog](https://github.com/noam-almog)
+
+As always, bug reports, pull requests and other ideas are welcome -- [join the discussion](https://gitter.im/wix/accord?utm_source=share-link&utm_medium=link&utm_campaign=share-link) on Gitter!
+
