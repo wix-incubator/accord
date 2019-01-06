@@ -115,7 +115,7 @@ lazy val scalatest =
       } },
       noFatalWarningsOn( configuration = Test )
     ) :_* )
-  .jsSettings( limitPackageSize( 100 ) )
+  .jsSettings( limitPackageSize( 110 ) )
   .jvmSettings( limitPackageSize( 60 ) )
 
 lazy val specs2 =
@@ -129,7 +129,7 @@ lazy val specs2 =
       libraryDependencies += "org.specs2" %%% "specs2-core" % "4.3.6",
       noFatalWarningsOn( compile, Test )
     ) :_* )
-    .jsSettings( limitPackageSize( 100 ) )
+    .jsSettings( limitPackageSize( 110 ) )
     .jvmSettings( limitPackageSize( 80 ) )
 
 lazy val core =
