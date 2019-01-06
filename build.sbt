@@ -98,7 +98,7 @@ lazy val api =
       } },
       noFatalWarningsOn( configuration = Test )
     ) ++ baseSettings :_* )
-  .jsSettings( limitPackageSize( 150 ) )
+  .jsSettings( limitPackageSize( 160 ) )
   .jvmSettings( limitPackageSize( 90 ) )
 
 lazy val scalatest =
