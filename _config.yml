@@ -1,11 +1,11 @@
 title: "Accord: A sane validation library for Scala"
-email: "tomer@tomergabel.com"
+email: "noama@wix.com"
 url: "http://wix.github.io/accord"
 baseurl: "/accord"
 
 version:
-  release: 0.7.2
-  snapshot: 0.8-SNAPSHOT
+  release: 0.7.3
+  snapshot: 0.7.4-SNAPSHOT
 
 markdown: kramdown
 
