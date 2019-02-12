@@ -51,6 +51,8 @@ object CollectionOpsTests {
   def visitEach[ T ]( seq: Seq[ T ] )( visited: T => Result ): Result = ( seq.each is visited )( seq )
   def visitEach[ T ]( opt: Option[ T ] )( visited: T => Result ): Result = ( opt.each is visited )( opt )
   def visitEach[ T ]( set: Set[ T ] )( visited: T => Result ): Result = ( set.each is visited )( set )
+
+  def visited[ T ]( buf: mutable.ListBuffer[ T ] )( elem: T ): Result = { buf append elem; Success }
 }
 
 class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with Inside {
@@ -108,7 +110,7 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
     }
   }
 
-  "Calling \".each\" on a Traversable" should {
+  "Calling \".each\" on an Iterable" should {
     "apply subsequent validation rules to all elements" in {
       val coll = Seq.fill( 5 )( ArbitraryType.apply )
       val visited = mutable.ListBuffer.empty[ ArbitraryType ]
@@ -134,9 +136,9 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
       result shouldBe aSuccess
     }
 
-    def violationFor( elem: ArbitraryType ) = RuleViolation( elem, "fake constraint", Path.empty )
-    def failureFor( elem: ArbitraryType ) = Failure( Set( violationFor( elem ) ) )
-    def matcherFor( elem: ArbitraryType ) = RuleViolationMatcher( value = elem, constraint = "fake constraint" )
+    def violationFor[ T ]( elem: T ) = RuleViolation( elem, "fake constraint", Path.empty )
+    def failureFor[ T ]( elem: T ) = Failure( Set( violationFor( elem ) ) )
+    def matcherFor[ T ]( elem: T ) = RuleViolationMatcher( value = elem, constraint = "fake constraint" )
 
     "evaluate to a Failure if any element failed" in {
       val coll = Seq.fill( 5 )( ArbitraryType.apply )
@@ -181,6 +183,62 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
       val coll = Set( ArbitraryType.apply )
       val result = visitEach( coll ) { failureFor(_) }
       result should failWith( Path.empty )
+    }
+
+    "support calling \".map\"" should {
+      import dsl._
+
+      "apply subsequent validation rules to all transformed elements" in {
+        val coll = Seq( 1, 2, 3 )
+        val intToStr = ( _: Int ).toString
+        val visitedElements = mutable.ListBuffer.empty[ String ]
+        ( coll.each map intToStr is visited( visitedElements ) )( coll )
+
+        visitedElements should contain theSameElementsInOrderAs coll.map( intToStr )
+      }
+    }
+
+    "support calling \".flatMap\"" should {
+      import dsl._
+
+      "apply subsequent validation rules to all transformed elements" in {
+        val coll = Seq( 1, 2, 3 )
+        val duplicate = ( i: Int ) => Seq(i, i)
+        val visitedElements = mutable.ListBuffer.empty[ Int ]
+        ( coll.each flatMap duplicate is visited( visitedElements ) )( coll )
+
+        visitedElements should contain theSameElementsInOrderAs coll.flatMap( duplicate )
+      }
+
+      "evaluate to Success if resulting collection is empty" in {
+        val coll = Seq( 1, 2, 3 )
+        val drop = ( _: Int ) => Seq.empty[Nothing]
+        def failed( elem: Int ): Result = Failure( Set.empty )
+        val validate = coll.each flatMap drop is failed
+
+        validate( coll ) shouldBe aSuccess
+      }
+
+      "prepend position to a failed transformed sequence element's path" in {
+        val coll = Seq( 0, 2 )
+        val extend = (i: Int) => Seq( i, i + 1 )
+        def failing( elem: Int ): Result = elem match {
+          case 1 => failureFor( 1 )
+          case _ => Success
+        }
+        val validate = coll.each flatMap extend is failing
+
+        validate( coll ) should failWith( RuleViolationMatcher( value = 1, path = Path( Indexed( 1 ) ) ) )
+      }
+
+      "not include positional information for sets" in {
+        val coll = Set( ArbitraryType.apply )
+        val singleton = ( a: ArbitraryType ) => Set(a)
+        def failed( elem: ArbitraryType ): Result = failureFor( elem )
+        val validate = coll.each flatMap singleton is failed
+
+        validate( coll ) should failWith( Path.empty )
+      }
     }
   }
 }
