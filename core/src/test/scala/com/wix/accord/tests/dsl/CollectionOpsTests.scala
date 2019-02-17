@@ -110,7 +110,7 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
     }
   }
 
-  "Calling \".each\" on an Iterable" should {
+  "Calling \".each\" on a Traversable" should {
     "apply subsequent validation rules to all elements" in {
       val coll = Seq.fill( 5 )( ArbitraryType.apply )
       val visited = mutable.ListBuffer.empty[ ArbitraryType ]

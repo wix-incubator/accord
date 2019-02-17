@@ -80,13 +80,13 @@ class CollectionEachDslContext[ Element, Coll ]( withIndices: IndexedDescription
     * @return Syntax, where the collection elements are of type [[MappedElement]],
     *         resulting from applying function f to each element and concatenating the results.
     */
-  def flatMap[ MappedElement ]( f: Element => Iterable[ MappedElement ] )
+  def flatMap[ MappedElement ]( f: Element => Traversable[ MappedElement ] )
                               ( implicit withIndices: IndexedDescriptions[ Coll ] ) =
     new CollectionEachDslContext[ MappedElement, Coll ](
       IndexedDescriptions( includeIndices = false ),
       transformWith.compose { validator: Validator[ MappedElement ] =>
         val broadcast =
-          Aggregates.all[ Iterable[ MappedElement ], MappedElement ]( withIndices.includeIndexInformation ) _
+          Aggregates.all[ Traversable[ MappedElement ], MappedElement ]( withIndices.includeIndexInformation ) _
         broadcast(validator) compose f
       }
     )
@@ -126,7 +126,7 @@ trait DslContext[ Inner, Outer ] {
     * @tparam Element The element type m of the specified collection.
     * @return Additional syntax (see implementation).
     */
-  def each[ Element ]( implicit ev: Inner => Iterable[ Element ], withIndices: IndexedDescriptions[ Inner ] ) =
+  def each[ Element ]( implicit ev: Inner => Traversable[ Element ], withIndices: IndexedDescriptions[ Inner ] ) =
     new CollectionEachDslContext[ Element, Outer ](
       IndexedDescriptions[ Outer ]( withIndices.includeIndexInformation ),
       CollectionContextTransformer( withIndices =>
