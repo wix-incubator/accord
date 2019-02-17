@@ -16,7 +16,7 @@
 
 package com.wix.accord.tests.dsl
 
-import com.wix.accord.Descriptions.{Generic, Indexed, Path}
+import com.wix.accord.Descriptions.{Indexed, Path}
 import com.wix.accord._
 import com.wix.accord.scalatest.ResultMatchers
 import org.scalatest.{Inside, Matchers, WordSpec}
@@ -52,12 +52,12 @@ object CollectionOpsTests {
   def visitEach[ T ]( opt: Option[ T ] )( visited: T => Result ): Result = ( opt.each is visited )( opt )
   def visitEach[ T ]( set: Set[ T ] )( visited: T => Result ): Result = ( set.each is visited )( set )
 
-  def visited[ T ]( buf: mutable.ListBuffer[ T ] )( elem: T ): Result = { buf append elem; Success }
+  def visited[ T ]( buf: mutable.ListBuffer[ T ] ): T => Result = (elem: T) => { buf append elem; Success }
 }
 
 class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with Inside {
   import CollectionOpsTests._
-  import combinators.{Empty, NotEmpty, Distinct,In}
+  import combinators.{Distinct, Empty, In, NotEmpty}
 
 
   "Calling \"has size\"" should {
@@ -213,7 +213,7 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
       "evaluate to Success if resulting collection is empty" in {
         val coll = Seq( 1, 2, 3 )
         val drop = ( _: Int ) => Seq.empty[Nothing]
-        def failed( elem: Int ): Result = Failure( Set.empty )
+        val failed = ( _: Int ) => Failure( Set.empty )
         val validate = coll.each flatMap drop is failed
 
         validate( coll ) shouldBe aSuccess
@@ -221,8 +221,8 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
 
       "prepend position to a failed transformed sequence element's path" in {
         val coll = Seq( 0, 2 )
-        val extend = (i: Int) => Seq( i, i + 1 )
-        def failing( elem: Int ): Result = elem match {
+        val extend = ( i: Int ) => Seq( i, i + 1 )
+        val failing = ( _: Int ) match {
           case 1 => failureFor( 1 )
           case _ => Success
         }
@@ -234,7 +234,7 @@ class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with
       "not include positional information for sets" in {
         val coll = Set( ArbitraryType.apply )
         val singleton = ( a: ArbitraryType ) => Set(a)
-        def failed( elem: ArbitraryType ): Result = failureFor( elem )
+        val failed = ( elem: ArbitraryType ) => failureFor( elem )
         val validate = coll.each flatMap singleton is failed
 
         validate( coll ) should failWith( Path.empty )
