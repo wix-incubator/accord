@@ -91,14 +91,16 @@ private class ValidationTransform[ C <: Context, T : C#WeakTypeTag ]( val contex
 
   object ValidatorApplicationBlock {
     def unapply( t: Tree ): Option[ Seq[ Tree ] ] = t match {
-      case single @ ValidatorApplication(_) =>
-        Some( Seq( single ) )
-
       case Block( rules, q"()" ) if rules forall ValidatorApplication.isValid =>
         Some( rules )
 
       case Block( rules, terminal ) if rules.forall( ValidatorApplication.isValid ) && ValidatorApplication.isValid( terminal ) =>
         Some( rules :+ terminal )
+
+      case single @ ValidatorApplication(_) =>
+        // Because ValidatorApplication will match a two-statement validation block, it must be last on this list.
+        // TODO that branch of ValidatorApplication is intended for boolean clauses; perhaps it can be tightened
+        Some( Seq( single ) )
 
       case _ => None
     }
