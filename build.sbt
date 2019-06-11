@@ -53,9 +53,9 @@ def limitPackageSize( allowedSizeInKB: Int ) =
   }
 
 lazy val compileOptions = Seq(
-  scalaVersion := "2.13.0-M5",
+  scalaVersion := "2.13.0",
   crossScalaVersions := ( Helpers.javaVersion match {
-    case v if v >= 1.8 => Seq( "2.11.12", "2.12.6", "2.13.0-M5" )
+    case v if v >= 1.8 => Seq( "2.11.12", "2.12.6", "2.13.0" )
     case _             => Seq( "2.11.12" )
   } ),
   scalacOptions ++= Seq(
@@ -92,10 +92,7 @@ lazy val api =
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
         "dead-simple and self-contained story for defining validation rules and executing them on object " +
         "instances. Feedback, bug reports and improvements are welcome!",
-      libraryDependencies += { scalaVersion.value match {
-        case v if v startsWith "2.13" => "org.scalatest" %%% "scalatest" % "3.0.6-SNAP5" % "test"
-        case _                        => "org.scalatest" %%% "scalatest" % "3.0.4" % "test"
-      } },
+      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.8" % "test",
       noFatalWarningsOn( configuration = Test )
     ) ++ baseSettings :_* )
   .jsSettings( limitPackageSize( 160 ) )
@@ -109,10 +106,7 @@ lazy val scalatest =
     .settings( baseSettings ++ Seq(
       name := "accord-scalatest",
       description := "ScalaTest matchers for the Accord validation library",
-      libraryDependencies += { scalaVersion.value match {
-        case v if v startsWith "2.13" => "org.scalatest" %%% "scalatest" % "3.0.6-SNAP5"
-        case _                        => "org.scalatest" %%% "scalatest" % "3.0.4"
-      } },
+      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.8",
       noFatalWarningsOn( configuration = Test )
     ) :_* )
   .jsSettings( limitPackageSize( 110 ) )
@@ -126,7 +120,7 @@ lazy val specs2 =
     .settings( baseSettings ++ Seq(
       name := "accord-specs2",
       description := "Specs² matchers for the Accord validation library",
-      libraryDependencies += "org.specs2" %%% "specs2-core" % "4.3.6",
+      libraryDependencies += "org.specs2" %%% "specs2-core" % "4.5.1",
       noFatalWarningsOn( compile, Test )
     ) :_* )
     .jsSettings( limitPackageSize( 110 ) )
@@ -206,6 +200,11 @@ lazy val spring3 =
         "org.apache.bval" % "org.apache.bval.bundle" % "0.5" % "test"
       ),
       description := "Spring 3.x Validation integration for the Accord validation library",
+      // Scala 2.13 deprecates a number of older collection traits like Traversable and the family of Gen*
+      // traits. Maintaining backwards compatibility with <2.13 requires keeping these APIs as is, and because
+      // there's no way to specifically suppress specific warnings by type OR by scope, we have to do this
+      // wholesale.
+      noFatalWarningsOn( configuration = Compile ),
       limitPackageSize( 25 )
     )
     .whenJavaVersion( _ >= 1.9 ) { _.settings(
