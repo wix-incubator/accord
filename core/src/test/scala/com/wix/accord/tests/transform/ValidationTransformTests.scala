@@ -24,6 +24,7 @@ import com.wix.accord.scalatest.ResultMatchers
 class ValidationTransformTests extends WordSpec with Matchers with ResultMatchers {
   import ValidationTransformTests._
 
+
   "An \"if\" control structure that resolves to a validation rule" should {
     import ControlStructures._
 
@@ -89,6 +90,11 @@ class ValidationTransformTests extends WordSpec with Matchers with ResultMatcher
         Branch( Generic( "cst.field1 == 0" ), evaluation = false ),
         Generic( "field2" )
       ) )
+    }
+
+    "successfully handle a branch with two validation statements" in {
+      val invalidCST = ControlStructureTest( -3, " " )
+      ifWithTwoValidationStatements( invalidCST ) shouldBe aFailure
     }
   }
 
@@ -329,6 +335,7 @@ object ValidationTransformTests {
 
   object ControlStructures {
     case class ControlStructureTest( field1: Int, field2: String )
+
     val ifWithNoElse = validator [ ControlStructureTest ] { cst =>
       if ( cst.field1 < 0 )
         cst.field2 should startWith( "-" )
@@ -378,6 +385,15 @@ object ValidationTransformTests {
         case 0          => cst.field2 is equalTo( "0" )
         case n if n > 0 => cst.field2 is notEmpty
       }
+    }
+
+    val ifWithTwoValidationStatements = validator[ ControlStructureTest ] { o =>
+      if ( o.field1 < 0 ) {
+        o.field2 is empty
+        o.field2 is blank
+      }
+
+      o.field2 is blank
     }
   }
 }
