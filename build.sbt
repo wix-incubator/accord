@@ -55,7 +55,7 @@ def limitPackageSize( allowedSizeInKB: Int ) =
 lazy val compileOptions = Seq(
   scalaVersion := "2.13.0-M5",
   crossScalaVersions := ( Helpers.javaVersion match {
-    case v if v >= 1.8 => Seq( "2.11.12", "2.12.6", "2.13.0-M5" )
+    case v if v >= 1.8 => Seq( "2.11.12", "2.12.8", "2.13.0-M5" )
     case _             => Seq( "2.11.12" )
   } ),
   scalacOptions ++= Seq(
