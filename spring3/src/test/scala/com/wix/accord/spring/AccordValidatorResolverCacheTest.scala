@@ -18,13 +18,12 @@ package com.wix.accord.spring
 
 import com.wix.accord.Validator
 import com.wix.accord.dsl._
-import org.scalatest.Matchers
-import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.{Matchers, WordSpec}
 
 
 import scala.reflect.ClassTag
 
-class AccordValidatorResolverCacheTest extends AnyWordSpec with Matchers {
+class AccordValidatorResolverCacheTest extends WordSpec with Matchers {
 
   import AccordValidatorResolverCacheTest._
 

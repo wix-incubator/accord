@@ -16,10 +16,9 @@
 
 package com.wix.accord
 
-import org.scalatest.Matchers
-import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.{FlatSpec, Matchers}
 
-class DescriptionRenderingSpec extends AnyFlatSpec with Matchers {
+class DescriptionRenderingSpec extends FlatSpec with Matchers {
   import Descriptions._
 
   "Rendering a path" should "result in a Scala-style indirection chain with dot separation" in {

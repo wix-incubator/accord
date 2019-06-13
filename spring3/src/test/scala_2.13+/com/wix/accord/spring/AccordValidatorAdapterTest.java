@@ -1,6 +1,6 @@
 package com.wix.accord.spring;
 
-class AccordValidatorAdapterTest extends AnyWordSpec with Matchers {
+class AccordValidatorAdapterTest extends WordSpec with Matchers {
 
   "The validation adapter" should {
     def adapter = new AccordValidatorAdapter( testClassValidator )

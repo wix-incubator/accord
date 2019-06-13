@@ -17,13 +17,12 @@
 package com.wix.accord
 
 import com.wix.accord.Descriptions.{Generic, Path}
-import org.scalatest.Matchers
-import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.{Matchers, WordSpec}
 
 /**
   * Created by grenville on 9/6/16.
   */
-class DebugRenderingSpec extends AnyWordSpec with Matchers {
+class DebugRenderingSpec extends WordSpec with Matchers {
 
   object RuleViolations {
     val full = RuleViolation( "string", "must start with \"test\"", Path( Generic( "full" ) ) )

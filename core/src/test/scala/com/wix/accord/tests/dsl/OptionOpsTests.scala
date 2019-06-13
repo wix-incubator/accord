@@ -18,11 +18,10 @@ package com.wix.accord.tests.dsl
 
 import com.wix.accord.Descriptions.{Generic, Path}
 import com.wix.accord.scalatest.ResultMatchers
-import org.scalatest.Matchers
-import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.{Matchers, WordSpec}
 import com.wix.accord.Validator
 
-class OptionOpsTests extends AnyWordSpec with Matchers with ResultMatchers {
+class OptionOpsTests extends WordSpec with Matchers with ResultMatchers {
   import OptionOpsTests._
 
   // Quick and dirty helper to make the tests a little more terse

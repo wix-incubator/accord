@@ -16,12 +16,11 @@
 
 package com.wix.accord
 
-import org.scalatest.Matchers
-import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.{Matchers, WordSpec}
 
 import org.scalatest.LoneElement._    // Compilation fails when mixing this in, no idea why.
 
-class BaseValidatorTests extends AnyWordSpec with Matchers with ViolationBuilder {
+class BaseValidatorTests extends WordSpec with Matchers with ViolationBuilder {
   "BaseValidator.report" should {
 
     val validator = new NullSafeValidator[ String ]( _ startsWith "ok", _ -> "no good" )

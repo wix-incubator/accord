@@ -16,8 +16,7 @@
 
 package com.wix.accord.tests.dsl
 
-import org.scalatest.Matchers
-import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.{FlatSpec, Matchers}
 import com.wix.accord.scalatest.ResultMatchers
 
 
@@ -31,7 +30,7 @@ object AlternativeValidationSyntaxTests {
   }
 }
 
-class AlternativeValidationSyntaxTests extends AnyFlatSpec with Matchers with ResultMatchers {
+class AlternativeValidationSyntaxTests extends FlatSpec with Matchers with ResultMatchers {
   import AlternativeValidationSyntaxTests._
 
   "Importing com.wix.accord.Implicits" should "enable alternative validation invocation syntax" in {

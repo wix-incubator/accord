@@ -16,8 +16,7 @@
 
 package com.wix.accord.scalatest
 
-import org.scalatest.Matchers
-import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.{Matchers, WordSpec}
 
 
 /**
@@ -43,7 +42,7 @@ import org.scalatest.wordspec.AnyWordSpec
   * }}}
   *
   */
-trait CombinatorTestSpec extends AnyWordSpec with Matchers with ResultMatchers {
+trait CombinatorTestSpec extends WordSpec with Matchers with ResultMatchers {
   import scala.language.implicitConversions
 
   implicit def elevateStringToRuleViolationMatcher( s: String ): RuleViolationMatcher =

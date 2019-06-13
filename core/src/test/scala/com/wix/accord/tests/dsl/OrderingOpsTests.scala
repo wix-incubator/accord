@@ -17,8 +17,8 @@
 package com.wix.accord.tests.dsl
 
 import com.wix.accord.dsl.OrderingOps
-import org.scalatest.{Inside, Matchers}
-import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.{FlatSpec, Inside, Matchers}
+
 import scala.collection.immutable.NumericRange
 
 
@@ -61,9 +61,9 @@ object OrderingOpsTests {
   val ops = new OrderingOps { override def snippet = OrderingOpsTests.this.snippet }
 }
 
-class OrderingOpsTests extends AnyFlatSpec with Matchers with Inside {
-  import com.wix.accord.combinators._
+class OrderingOpsTests extends FlatSpec with Matchers with Inside {
   import OrderingOpsTests._
+  import com.wix.accord.combinators._
 
   "Operator \">\"" should "return a GreaterThan combinator" in {
     ( ops > rhs ) shouldEqual GreaterThan( rhs, snippet )
