@@ -17,11 +17,12 @@
 package com.wix.accord.tests.transform
 
 import com.wix.accord.Descriptions._
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import com.wix.accord._
 import com.wix.accord.scalatest.ResultMatchers
 
-class ValidationTransformTests extends WordSpec with Matchers with ResultMatchers {
+class ValidationTransformTests extends AnyWordSpec with Matchers with ResultMatchers {
   import ValidationTransformTests._
 
 

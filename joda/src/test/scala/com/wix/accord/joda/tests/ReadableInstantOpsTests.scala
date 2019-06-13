@@ -18,9 +18,10 @@ package com.wix.accord.joda.tests
 
 import com.wix.accord.scalatest.ResultMatchers
 import org.joda.time._
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ReadableInstantOpsTests extends WordSpec with Matchers with ResultMatchers {
+class ReadableInstantOpsTests extends AnyWordSpec with Matchers with ResultMatchers {
 
   import com.wix.accord.joda.{Before, After, Within}
   import ReadableInstantOpsTests._

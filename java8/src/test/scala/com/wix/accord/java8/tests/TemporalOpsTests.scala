@@ -21,9 +21,10 @@ import java.time.temporal.ChronoUnit
 import java.time.{LocalDateTime, ZoneOffset}
 import com.wix.accord.scalatest.ResultMatchers
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class TemporalOpsTests extends WordSpec with Matchers with ResultMatchers {
+class TemporalOpsTests extends AnyWordSpec with Matchers with ResultMatchers {
 
   import com.wix.accord.java8.{Before, After, Within}
   import TemporalOpsTests._
