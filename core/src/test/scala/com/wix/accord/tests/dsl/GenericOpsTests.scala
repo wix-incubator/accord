@@ -17,10 +17,11 @@
 package com.wix.accord.tests.dsl
 
 import com.wix.accord.scalatest.ResultMatchers
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import com.wix.accord.combinators.{AnInstanceOf, EqualTo, IsNotNull, IsNull, NotAnInstanceOf, NotEqualTo}
 
-class GenericOpsTests extends WordSpec with Matchers with ResultMatchers {
+class GenericOpsTests extends AnyWordSpec with Matchers with ResultMatchers {
   import GenericOpsTests._
   
   "The expression \"is aNull\"" should {
