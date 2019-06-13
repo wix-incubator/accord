@@ -16,7 +16,9 @@
 
 package com.wix.accord.scalatest
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+
 
 /**
   * An opinionated helper trait for combinator specifications. The recommended practice for defining new combinators
@@ -41,7 +43,7 @@ import org.scalatest.{Matchers, WordSpec}
   * }}}
   *
   */
-trait CombinatorTestSpec extends WordSpec with Matchers with ResultMatchers {
+trait CombinatorTestSpec extends AnyWordSpec with Matchers with ResultMatchers {
   import scala.language.implicitConversions
 
   implicit def elevateStringToRuleViolationMatcher( s: String ): RuleViolationMatcher =

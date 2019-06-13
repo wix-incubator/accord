@@ -17,10 +17,12 @@
 package com.wix.accord.tests.dsl
 
 import com.wix.accord.scalatest.ResultMatchers
-import org.scalatest.{WordSpec, Matchers}
+import org.scalatest.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+
 import com.wix.accord._
 
-class BooleanOpsTests extends WordSpec with Matchers with ResultMatchers {
+class BooleanOpsTests extends AnyWordSpec with Matchers with ResultMatchers {
   import BooleanOpsTests._
 
   "true" should {

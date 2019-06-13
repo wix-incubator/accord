@@ -17,13 +17,15 @@
 package com.wix.accord.spring
 
 import com.wix.accord.dsl
-import org.scalatest.{WordSpec, Matchers}
+import org.scalatest.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+
 import org.springframework.validation.{BeanPropertyBindingResult, Errors}
 import scala.collection.JavaConverters._
 
 import AccordValidatorAdapterTest._
 
-class AccordValidatorAdapterTest extends WordSpec with Matchers {
+class AccordValidatorAdapterTest extends AnyWordSpec with Matchers {
 
   "The validation adapter" should {
     def adapter = new AccordValidatorAdapter( testClassValidator )
