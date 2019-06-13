@@ -29,6 +29,19 @@ lazy val releaseSettings = Seq(
   releasePublishArtifactsAction := publishSigned.value
 )
 
+private def add213CrossDirs(config: Configuration): Seq[Setting[_]] = Seq(
+  unmanagedSourceDirectories in config += {
+    val sourceDir = (sourceDirectory in config).value
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, n)) if n >= 13 => sourceDir / "scala_2.13+"
+      case _                       => sourceDir / "scala_2.13-"
+    }
+  }
+)
+
+val crossBuildMultipleSourcesOptions = add213CrossDirs(Compile) ++ add213CrossDirs(Test)
+
+
 def noFatalWarningsOn( task: sbt.TaskKey[_] = compile, configuration: sbt.Configuration = Compile ) =
   task match {
     case `compile` =>
@@ -189,6 +202,7 @@ lazy val spring3 =
   crossProject( JVMPlatform )
     .crossType( CrossType.Pure )
     .in( file ( "spring3" ) )
+    .settings( crossBuildMultipleSourcesOptions )
     .settings( baseSettings :_* )
     .settings(
       name := "accord-spring3",
