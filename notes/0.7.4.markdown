@@ -1,0 +1,9 @@
+![Accord](https://raw.githubusercontent.com/wix/accord/master/assets/accord-logo-light.png?raw=1)
+
+Version 0.7.4 is a maintenance release with a few bug fixes and support for Scala 2.13. No new features have been introduced.
+
+* [#141](https://github.com/wix/accord/issues/141) Bug: Multiple validation rules in control structures is using the last validation result and not considering all of them (reported by [Chiyu Zhong](https://github.com/CatTail))
+* Added support for Scala 2.13.0.
+
+
+As always, bug reports, pull requests and other ideas are welcome -- [join the discussion](https://gitter.im/wix/accord?utm_source=share-link&utm_medium=link&utm_campaign=share-link) on Gitter!
