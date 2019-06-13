@@ -17,7 +17,7 @@
 package com.wix.accord.spring
 
 import com.wix.accord._
-import org.scalatest.{WordSpec, Matchers}
+import org.scalatest.{Matchers, WordSpec}
 import com.wix.accord.scalatest.ResultMatchers
 
 trait CompanionObjectValidatorResolverBehaviors extends Matchers with ResultMatchers {

@@ -17,6 +17,7 @@
 package com.wix.accord
 
 import org.scalatest.{Matchers, WordSpec}
+
 import org.scalatest.LoneElement._    // Compilation fails when mixing this in, no idea why.
 
 class BaseValidatorTests extends WordSpec with Matchers with ViolationBuilder {

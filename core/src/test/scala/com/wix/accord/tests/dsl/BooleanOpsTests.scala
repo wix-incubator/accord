@@ -17,7 +17,8 @@
 package com.wix.accord.tests.dsl
 
 import com.wix.accord.scalatest.ResultMatchers
-import org.scalatest.{WordSpec, Matchers}
+import org.scalatest.{Matchers, WordSpec}
+
 import com.wix.accord._
 
 class BooleanOpsTests extends WordSpec with Matchers with ResultMatchers {

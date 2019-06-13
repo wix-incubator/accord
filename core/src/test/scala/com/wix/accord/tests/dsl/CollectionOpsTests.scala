@@ -21,6 +21,7 @@ import com.wix.accord._
 import com.wix.accord.scalatest.ResultMatchers
 import org.scalatest.{Inside, Matchers, WordSpec}
 
+
 import scala.collection.mutable
 
 object CollectionOpsTests {

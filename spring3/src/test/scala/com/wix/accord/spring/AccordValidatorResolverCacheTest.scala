@@ -20,6 +20,7 @@ import com.wix.accord.Validator
 import com.wix.accord.dsl._
 import org.scalatest.{Matchers, WordSpec}
 
+
 import scala.reflect.ClassTag
 
 class AccordValidatorResolverCacheTest extends WordSpec with Matchers {

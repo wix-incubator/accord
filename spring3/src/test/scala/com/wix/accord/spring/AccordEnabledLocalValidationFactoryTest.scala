@@ -16,7 +16,8 @@
 
 package com.wix.accord.spring
 
-import org.scalatest.{WordSpec, Matchers}
+import org.scalatest.{Matchers, WordSpec}
+
 import org.springframework.test.context.{TestContextManager, ContextConfiguration}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.{BeanPropertyBindingResult, Validator}

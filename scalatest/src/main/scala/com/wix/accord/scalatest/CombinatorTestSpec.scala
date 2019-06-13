@@ -18,6 +18,7 @@ package com.wix.accord.scalatest
 
 import org.scalatest.{Matchers, WordSpec}
 
+
 /**
   * An opinionated helper trait for combinator specifications. The recommended practice for defining new combinators
   * is test-first via this specification:
