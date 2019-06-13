@@ -29,7 +29,7 @@ lazy val releaseSettings = Seq(
   releasePublishArtifactsAction := publishSigned.value
 )
 
-private def add213CrossDirs(config: Configuration): Seq[Setting[_]] = Seq(
+def add213CrossDirs(config: Configuration): Seq[Setting[_]] = Seq(
   unmanagedSourceDirectories in config += {
     val sourceDir = (sourceDirectory in config).value
     CrossVersion.partialVersion(scalaVersion.value) match {
