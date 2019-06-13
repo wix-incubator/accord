@@ -22,8 +22,8 @@ jdk:
 
 env:
   global:
-    - secure: "TRDTLUiwGoI1O0dcP6F96Djb7xlRlaowrEWMrL+lUZizlCiSJ3/RdqDDGspzS8NQkBRXrqHhyTf2RIwfxu3J0nstlzfTwEpNhF698EhpHVVR9srBsgr8+iinS5WCUcotrMKDWIOpLPERbw9tap3HJQPJiXAUDqzPixjThb/BpXg="
-    - secure: "U22HGF01uu6rruU+M2y6dokf2EHM5d9r/VxwSPRrxW6m34KlVhIfPtuobo+mAfwDRC25+nedPe/YWcPRm50kbX7pYzGVHAkP1A2SIJXVkvqmQb1qezu1D3qu3mSHoZbvLvWVUJX0ige7QHOfAW2lypIFFDJcbiwXqZN3q4IB+bs="
+  - secure: GobrEjsijaLyg0rQ06IPoI/pnZansnEucxB1SgSQmgfLMhofVnhrUxjsmzEx8fBMCF+8bB8qBvRdwIzfw3Sv4Y+/pSZtpUIPMNU/Q7WtpBzxCL0pptqqs+ap3Gxxs3mYEY9X86QM+VhUOvLv49nl3BjVmN7h1sSRDM9Oi1LcPrQ=
+  - secure: B7EMoExgWz5ajpDZPp+jKf+Hp3Vh23FBDka59N0iAeZFlt+7MPZlcLdUoOi2gAfq2fIRYSkxV3fIgk+Htk6YWWBA7wl9QTCBJG+xfsVeMXr8KsOVPPMmFzaG0KtOVPLRrXCd23xBqSQGmPZduZUQiZq3dqxlijOB8aUnyh/R044=
 
 notifications:
   webhooks:
