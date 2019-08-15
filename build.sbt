@@ -133,7 +133,7 @@ lazy val specs2 =
     .settings( baseSettings ++ Seq(
       name := "accord-specs2",
       description := "Specs² matchers for the Accord validation library",
-      libraryDependencies += "org.specs2" %%% "specs2-core" % "4.5.1",
+      libraryDependencies += "org.specs2" %%% "specs2-core" % "4.7.0",
       noFatalWarningsOn( compile, Test )
     ) :_* )
     .jsSettings( limitPackageSize( 110 ) )
@@ -190,8 +190,8 @@ lazy val joda =
     .settings(
       name := "accord-joda",
       libraryDependencies ++= Seq(
-        "joda-time" % "joda-time" % "2.9.7",
-        "org.joda" % "joda-convert" % "1.8.1"  // Required for rendering constraints
+        "joda-time" % "joda-time" % "2.10.3",
+        "org.joda" % "joda-convert" % "2.2.1"  // Required for rendering constraints
       ),
       description := "Adds native Accord combinators for Joda-Time",
       limitPackageSize( 25 )
@@ -209,8 +209,8 @@ lazy val spring3 =
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
         "javax.validation" % "validation-api" % "1.0.0.GA",
-        "org.springframework" % "spring-context" % "3.2.5.RELEASE",
-        "org.springframework" % "spring-test" % "3.2.5.RELEASE" % "test",
+        "org.springframework" % "spring-context" % "3.2.18.RELEASE",
+        "org.springframework" % "spring-test" % "3.2.18.RELEASE" % "test",
         "org.apache.bval" % "org.apache.bval.bundle" % "0.5" % "test"
       ),
       description := "Spring 3.x Validation integration for the Accord validation library",
@@ -218,9 +218,9 @@ lazy val spring3 =
     )
     .whenJavaVersion( _ >= 1.9 ) { _.settings(
       libraryDependencies ++= Seq(
-        "javax.xml.bind" % "jaxb-api" % "2.3.0",
-        "javax.annotation" % "javax.annotation-api" % "1.3.1",
-        "org.apache.commons" % "commons-lang3" % "3.8"
+        "javax.xml.bind" % "jaxb-api" % "2.3.1",
+        "javax.annotation" % "javax.annotation-api" % "1.3.2",
+        "org.apache.commons" % "commons-lang3" % "3.9"
       )
     ) }
     .dependsOn( api, scalatest % "test->compile", core % "test->compile" )
