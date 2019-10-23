@@ -66,9 +66,9 @@ def limitPackageSize( allowedSizeInKB: Int ) =
   }
 
 lazy val compileOptions = Seq(
-  scalaVersion := "2.13.0",
+  scalaVersion := "2.13.1",
   crossScalaVersions := ( Helpers.javaVersion match {
-    case v if v >= 1.8 => Seq( "2.11.12", "2.12.8", "2.13.0" )
+    case v if v >= 1.8 => Seq( "2.11.12", "2.12.8", "2.13.1" )
     case _             => Seq( "2.11.12" )
   } ),
   scalacOptions ++= Seq(
@@ -133,7 +133,7 @@ lazy val specs2 =
     .settings( baseSettings ++ Seq(
       name := "accord-specs2",
       description := "Specs² matchers for the Accord validation library",
-      libraryDependencies += "org.specs2" %%% "specs2-core" % "4.7.0",
+      libraryDependencies += "org.specs2" %%% "specs2-core" % "4.8.0",
       noFatalWarningsOn( compile, Test )
     ) :_* )
     .jsSettings( limitPackageSize( 110 ) )
@@ -190,7 +190,7 @@ lazy val joda =
     .settings(
       name := "accord-joda",
       libraryDependencies ++= Seq(
-        "joda-time" % "joda-time" % "2.10.3",
+        "joda-time" % "joda-time" % "2.10.4",
         "org.joda" % "joda-convert" % "2.2.1"  // Required for rendering constraints
       ),
       description := "Adds native Accord combinators for Joda-Time",
