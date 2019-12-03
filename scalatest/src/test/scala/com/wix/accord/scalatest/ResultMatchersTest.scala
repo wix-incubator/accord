@@ -17,13 +17,14 @@
 package com.wix.accord.scalatest
 
 import com.wix.accord.Descriptions.{Generic, Path}
-import org.scalatest.{Matchers, WordSpec}
 import com.wix.accord._
 import com.wix.accord.GroupViolation
 import com.wix.accord.RuleViolation
 import com.wix.accord.Failure
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ResultMatchersTest extends WordSpec with Matchers with ResultMatchers {
+class ResultMatchersTest extends AnyWordSpec with Matchers with ResultMatchers {
 
   "RuleViolationMatcher" should {
 

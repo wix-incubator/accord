@@ -13,14 +13,14 @@
   See the License for the specific language governing permissions and
   limitations under the License.
  */
-
 package com.wix.accord.tests.dsl
 
-import com.wix.accord.scalatest.ResultMatchers
-import org.scalatest.{Matchers, WordSpec}
 import com.wix.accord.combinators.{AnInstanceOf, EqualTo, IsNotNull, IsNull, NotAnInstanceOf, NotEqualTo}
+import com.wix.accord.scalatest.ResultMatchers
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class GenericOpsTests extends WordSpec with Matchers with ResultMatchers {
+class GenericOpsTests extends AnyWordSpec with Matchers with ResultMatchers {
   import GenericOpsTests._
   
   "The expression \"is aNull\"" should {

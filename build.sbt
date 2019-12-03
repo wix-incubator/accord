@@ -105,7 +105,7 @@ lazy val api =
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
         "dead-simple and self-contained story for defining validation rules and executing them on object " +
         "instances. Feedback, bug reports and improvements are welcome!",
-      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.8",
+      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.1.0",
       noFatalWarningsOn( configuration = Test )
     ) ++ baseSettings :_* )
   .jsSettings( limitPackageSize( 160 ) )
@@ -119,7 +119,7 @@ lazy val scalatest =
     .settings( baseSettings ++ Seq(
       name := "accord-scalatest",
       description := "ScalaTest matchers for the Accord validation library",
-      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.8",
+      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.1.0",
       noFatalWarningsOn( configuration = Test )
     ) :_* )
   .jsSettings( limitPackageSize( 110 ) )
@@ -154,7 +154,7 @@ lazy val core =
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
         "dead-simple and self-contained story for defining validation rules and executing them on object " +
         "instances. Feedback, bug reports and improvements are welcome!",
-      
+
       noFatalWarningsOn( configuration = Test ),  // Avoid failed test compilation due to deprecations // TODO remove
 
       // Scala 2.13 deprecates a number of older collection traits like Traversable and the family of Gen*

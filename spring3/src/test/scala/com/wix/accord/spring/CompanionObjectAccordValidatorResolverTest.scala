@@ -17,11 +17,12 @@
 package com.wix.accord.spring
 
 import com.wix.accord._
-import org.scalatest.{Matchers, WordSpec}
 import com.wix.accord.scalatest.ResultMatchers
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 trait CompanionObjectValidatorResolverBehaviors extends Matchers with ResultMatchers {
-  this: WordSpec =>
+  this: AnyWordSpec =>
 
   import CompanionObjectAccordValidatorResolverTest._
 
@@ -51,7 +52,7 @@ trait CompanionObjectValidatorResolverBehaviors extends Matchers with ResultMatc
   }
 }
 
-class CompanionObjectAccordValidatorResolverTest extends WordSpec with CompanionObjectValidatorResolverBehaviors {
+class CompanionObjectAccordValidatorResolverTest extends AnyWordSpec with CompanionObjectValidatorResolverBehaviors {
 
   "CompanionObjectAccordValidatorResolver" should {
     behave like companionObjectValidatorResolver( new CompanionObjectAccordValidatorResolver )

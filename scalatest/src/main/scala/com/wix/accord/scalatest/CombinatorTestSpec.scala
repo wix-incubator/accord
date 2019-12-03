@@ -16,7 +16,8 @@
 
 package com.wix.accord.scalatest
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 
 /**
@@ -24,7 +25,7 @@ import org.scalatest.{Matchers, WordSpec}
   * is test-first via this specification:
   *
   * {{{
-  * class MyCombinatorSpec extends WordSpec with ResultMatchers with Matchers {
+  * class MyCombinatorSpec extends AnyWordSpec with ResultMatchers with Matchers {
   *
   *   def isMonotonous[ T ]: Validator[ Iterable[ T ] ] = ???
   *
@@ -42,7 +43,7 @@ import org.scalatest.{Matchers, WordSpec}
   * }}}
   *
   */
-trait CombinatorTestSpec extends WordSpec with Matchers with ResultMatchers {
+trait CombinatorTestSpec extends AnyWordSpec with Matchers with ResultMatchers {
   import scala.language.implicitConversions
 
   implicit def elevateStringToRuleViolationMatcher( s: String ): RuleViolationMatcher =

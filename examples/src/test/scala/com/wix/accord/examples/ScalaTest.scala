@@ -17,10 +17,12 @@
 package com.wix.accord.examples
 
 import com.wix.accord.scalatest.ResultMatchers
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+
 import scala.util.Random
 
-class ScalaTest extends WordSpec with Matchers with ResultMatchers {
+class ScalaTest extends AnyWordSpec with Matchers with ResultMatchers {
   import com.wix.accord._
 
   val validAdult = Adult( name = "Grace", surname = "Hopper", age = 85, contactInfo = "Arlington National Cemetery" )

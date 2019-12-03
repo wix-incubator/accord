@@ -17,10 +17,11 @@
 package com.wix.accord.tests.transform
 
 import com.wix.accord.Descriptions._
-import org.scalatest.{Matchers, WordSpec}
 import com.wix.accord.transform.ExpressionDescriber
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ExpressionDescriberTests extends WordSpec with Matchers {
+class ExpressionDescriberTests extends AnyWordSpec with Matchers {
   import com.wix.accord.dsl.Descriptor
 
   case class Nested( field: String )
