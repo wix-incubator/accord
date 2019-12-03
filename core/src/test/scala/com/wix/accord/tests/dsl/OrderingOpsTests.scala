@@ -17,7 +17,8 @@
 package com.wix.accord.tests.dsl
 
 import com.wix.accord.dsl.OrderingOps
-import org.scalatest.{FlatSpec, Inside, Matchers}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.{FlatSpec, Inside, fixture}
 
 import scala.collection.immutable.NumericRange
 

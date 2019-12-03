@@ -16,17 +16,16 @@
 
 package com.wix.accord.java8.tests
 
+import java.time.ZoneOffset
 
-import java.time.temporal.ChronoUnit
-import java.time.{LocalDateTime, ZoneOffset}
 import com.wix.accord.scalatest.ResultMatchers
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-import org.scalatest.{Matchers, WordSpec}
+class TemporalOpsTests extends AnyWordSpec with Matchers with ResultMatchers {
 
-class TemporalOpsTests extends WordSpec with Matchers with ResultMatchers {
-
-  import com.wix.accord.java8.{Before, After, Within}
   import TemporalOpsTests._
+  import com.wix.accord.java8.{After, Before, Within}
 
   "The expression \"is before\"" should {
     "produce a Before combinator" in {
@@ -70,8 +69,8 @@ class TemporalOpsTests extends WordSpec with Matchers with ResultMatchers {
 }
 
 object TemporalOpsTests {
-  import java.time.{LocalDateTime, Duration}
   import java.time.temporal.{ChronoUnit, Temporal}
+  import java.time.{Duration, LocalDateTime}
 
   import com.wix.accord.dsl._
   import com.wix.accord.java8._

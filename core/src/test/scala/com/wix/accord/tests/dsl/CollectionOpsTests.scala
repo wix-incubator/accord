@@ -19,8 +19,9 @@ package com.wix.accord.tests.dsl
 import com.wix.accord.Descriptions.{Generic, Indexed, Path}
 import com.wix.accord._
 import com.wix.accord.scalatest.ResultMatchers
-import org.scalatest.{Inside, Matchers, WordSpec}
-
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.{Inside, WordSpec}
 
 import scala.collection.mutable
 
@@ -54,7 +55,7 @@ object CollectionOpsTests {
   def visitEach[ T ]( set: Set[ T ] )( visited: T => Result ): Result = ( set.each is visited )( set )
 }
 
-class CollectionOpsTests extends WordSpec with Matchers with ResultMatchers with Inside {
+class CollectionOpsTests extends AnyWordSpec with Matchers with ResultMatchers with Inside {
   import CollectionOpsTests._
   import combinators.{Empty, NotEmpty, Distinct,In}
 

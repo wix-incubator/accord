@@ -16,16 +16,15 @@
 
 package com.wix.accord.spring
 
-import org.scalatest.{Matchers, WordSpec}
-
-import org.springframework.test.context.{TestContextManager, ContextConfiguration}
+import org.springframework.test.context.{ContextConfiguration, TestContextManager}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.{BeanPropertyBindingResult, Validator}
-
 import AccordEnabledLocalValidationFactoryTest._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 @ContextConfiguration( classes = Array( classOf[ SpringValidationConfiguration ] ) )
-class AccordEnabledLocalValidationFactoryTest extends WordSpec with Matchers {
+class AccordEnabledLocalValidationFactoryTest extends AnyWordSpec with Matchers {
 
   new TestContextManager( this.getClass ).prepareTestInstance( this )
 

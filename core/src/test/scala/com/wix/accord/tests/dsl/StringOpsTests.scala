@@ -16,11 +16,12 @@
 
 package com.wix.accord.tests.dsl
 
-import com.wix.accord.scalatest.ResultMatchers
-import org.scalatest.{Matchers, WordSpec}
 import com.wix.accord.Validator
+import com.wix.accord.scalatest.ResultMatchers
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class StringOpsTests extends WordSpec with Matchers with ResultMatchers {
+class StringOpsTests extends AnyWordSpec with Matchers with ResultMatchers {
   import StringOpsTests._
 
   // Quick and dirty helper to make the tests a little more terse
