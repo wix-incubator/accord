@@ -20,6 +20,7 @@ import com.wix.accord.{Result, Validator}
 import com.wix.accord.ResultBuilders._
 
 // TODO ScalaDocs
+//test
 
 trait ContextTransformer[ Inner, Outer ] {
   protected def transform: Validator[ Inner ] => Validator[ Outer ]
