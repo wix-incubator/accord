@@ -1,0 +1,9 @@
+![Accord](https://raw.githubusercontent.com/wix/accord/master/assets/accord-logo-light.png?raw=1)
+
+Version 0.7.6 is a maintenance release with dependencies upgrade and build fix. No new features have been introduced.
+
+* [#141](https://github.com/wix/accord/issues/151) Bug: scalatest was imported with wrong classifier (reported by [Tim Harper](https://github.com/timcharper))
+* Upgraded some deps.
+
+
+As always, bug reports, pull requests and other ideas are welcome -- [join the discussion](https://gitter.im/wix/accord?utm_source=share-link&utm_medium=link&utm_campaign=share-link) on Gitter!
