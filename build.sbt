@@ -105,7 +105,7 @@ lazy val api =
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
         "dead-simple and self-contained story for defining validation rules and executing them on object " +
         "instances. Feedback, bug reports and improvements are welcome!",
-      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.1.0",
+      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.1.1" % "test",
       noFatalWarningsOn( configuration = Test )
     ) ++ baseSettings :_* )
   .jsSettings( limitPackageSize( 160 ) )
@@ -119,7 +119,7 @@ lazy val scalatest =
     .settings( baseSettings ++ Seq(
       name := "accord-scalatest",
       description := "ScalaTest matchers for the Accord validation library",
-      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.1.0",
+      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.1.1",
       noFatalWarningsOn( configuration = Test )
     ) :_* )
   .jsSettings( limitPackageSize( 110 ) )
@@ -133,7 +133,7 @@ lazy val specs2 =
     .settings( baseSettings ++ Seq(
       name := "accord-specs2",
       description := "Specs² matchers for the Accord validation library",
-      libraryDependencies += "org.specs2" %%% "specs2-core" % "4.8.0",
+      libraryDependencies += "org.specs2" %%% "specs2-core" % "4.9.2",
       noFatalWarningsOn( compile, Test )
     ) :_* )
     .jsSettings( limitPackageSize( 110 ) )
@@ -179,7 +179,7 @@ lazy val java8 =
     .jsSettings(
       // This library is still not complete (e.g. LocalDateTime isn't implemented); Scala.js support
       // for this module is consequently currently disabled.
-      libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.5"
+      libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "1.0.0"
     )
 
 lazy val joda =
@@ -190,7 +190,7 @@ lazy val joda =
     .settings(
       name := "accord-joda",
       libraryDependencies ++= Seq(
-        "joda-time" % "joda-time" % "2.10.4",
+        "joda-time" % "joda-time" % "2.10.5",
         "org.joda" % "joda-convert" % "2.2.1"  // Required for rendering constraints
       ),
       description := "Adds native Accord combinators for Joda-Time",
